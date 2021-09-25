@@ -1,0 +1,35 @@
+local_costmap:
+
+    global_frame: odom
+    
+    publish_frequency: 2.0 # was 3
+    
+    static_map: false # must be false
+    rolling_window: true
+    
+    width: 4.0
+    height: 4.0
+    resolution: 0.025
+
+    plugins:
+    - {name: obstacles, type: "costmap_2d::ObstacleLayer"}
+    - {name: inflater,  type: "costmap_2d::InflationLayer"}
+
+    #obstacles:
+        #publish_observations: false
+
+#    obstacles:
+#        observation_sources: base_scan
+#        base_scan:
+#            data_type: LaserScan
+#            topic: base_scan
+#            marking: true
+#            clearing: true
+#            obstacle_range: 4.0   # 4
+#            raytrace_range: 5.0  # 5
+#            min_obstacle_height: 0.25
+#            max_obstacle_height: 0.3
+#        z_voxels: 16
+#        z_resolution: 0.125
+#        max_obstacle_height: 2.0
+        

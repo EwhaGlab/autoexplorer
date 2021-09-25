@@ -1,0 +1,30 @@
+global_costmap:
+
+    global_frame: map
+    #robot_base_frame: base_link
+    
+    inflation_radius: 1.0 #0.55
+    cost_scaling_factor: 4.0 # steepness of inflation decay func
+
+    update_frequency: 2.0
+    publish_frequency: 2.0
+    static_map: true
+#    rolling_window: false
+
+    width: 200.0
+    height: 200.0
+    resolution: 0.05
+    
+    plugins:
+    - {name: static_map, type: "costmap_2d::StaticLayer"}
+    - {name: obstacles,  type: "costmap_2d::ObstacleLayer"}
+    - {name: inflater,   type: "costmap_2d::InflationLayer"}
+
+    #laser_scan_sensor:
+        #sensor_frame: laser_link
+        #topic: base_scan
+        
+    #obstacles:
+        #publish_observations: false
+
+    

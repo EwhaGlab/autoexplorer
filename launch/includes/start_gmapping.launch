@@ -1,0 +1,12 @@
+<launch>
+
+    <!-- start SLAM -->
+    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping"> 
+        <remap from="/scan"  to="/base_scan"/>
+        <param name="map_frame" value="/map"/>
+        <param name="odom_frame" value="/odom"/>
+        <param name="base_frame" value="/base_link"/>
+    </node>
+
+
+</launch>
