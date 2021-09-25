@@ -593,15 +593,15 @@ startTime = ros::WallTime::now();
 
 			if ( occupancy < 0 )
 			{
-				m_uMapImg.at<uchar>(ii,jj) = static_cast<uchar>(ffp::MapStatus::UNKNOWN) ;
+				m_uMapImg.data[ii * ncols + jj] = static_cast<uchar>(ffp::MapStatus::UNKNOWN) ;
 			}
 			else if( occupancy == 0 )
 			{
-				m_uMapImg.at<uchar>(ii,jj) = static_cast<uchar>(ffp::MapStatus::FREE) ;
+				m_uMapImg.data[ii * ncols + jj] = static_cast<uchar>(ffp::MapStatus::FREE) ;
 			}
 			else
 			{
-				m_uMapImg.at<uchar>(ii,jj) = static_cast<uchar>(ffp::MapStatus::OCCUPIED) ;
+				m_uMapImg.data[ii * ncols + jj] = static_cast<uchar>(ffp::MapStatus::OCCUPIED) ;
 			}
 		}
 	}

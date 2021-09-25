@@ -2,7 +2,7 @@
 <launch>
   <master auto="start"/>
 
-  <include file="$(find frontier_detector)/launch/includes/start_gmapping.launch">
+  <include file="$(find autoexplorer)/launch/includes/start_cartographer.launch">
   </include>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
@@ -18,11 +18,11 @@
     <!--remap from="cmd_vel" to="move_base_node/cmd_vel"/-->
         
     <!--param name="recovery_behavior_enabled" value="false" /-->
-    <rosparam file="$(find frontier_detector)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
-    <rosparam file="$(find frontier_detector)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
-    <rosparam file="$(find frontier_detector)/param/local_costmap_params.yaml" command="load" />
-    <rosparam file="$(find frontier_detector)/param/global_costmap_params.yaml" command="load" />
-    <rosparam file="$(find frontier_detector)/param/base_local_planner_params.yaml" command="load" />  
+    <rosparam file="$(find autoexplorer)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find autoexplorer)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find autoexplorer)/param/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find autoexplorer)/param/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find autoexplorer)/param/base_local_planner_params.yaml" command="load" />  
     <param name="global_costmap/global_frame" value="map"/>
     <param name="global_costmap/robot_base_frame" value="base_link"/> 
     <param name="local_costmap/global_frame" value="map"/>
