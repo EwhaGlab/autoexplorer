@@ -1,10 +1,16 @@
 <!-- move base -->
 <launch>
   <master auto="start"/>
-
-  <include file="$(find autoexplorer)/launch/includes/start_cartographer.launch">
+    
+  <arg name="slam_method" default="gmapping"/>   
+  <!--arg name="slam_method" value="$(arg slam_method)"/-->
+  <include file="$(find autoexplorer)/launch/includes/start_$(arg slam_method).launch">
   </include>
+  
+  <!--include file="$(find autoexplorer)/launch/includes/start_gmapping.launch">
+  </include-->
 
+  
   <node pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
     <!--remap from="odom" to="base_footprint"/-->
     <!--param name="footprint_padding" value="0.01" /-->

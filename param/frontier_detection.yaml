@@ -1,5 +1,0 @@
-%YAML:1.0
----
-
-DEBUG_IMAGE_SAVE_PATH: /home/hankm/catkin_ws/frontier_detector/
-FRONTIER_COST_THR: 0.1 # was 0.1 for tesse virutal scenario

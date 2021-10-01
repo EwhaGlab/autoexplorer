@@ -205,7 +205,7 @@ public:
 			}
 		}
 
-		printf("tot frontiers: %d \n", m_frontierContour.size());
+		//printf("tot frontiers: %u \n", m_frontierContour.size());
 		#ifdef DRAW_CONTOUR
 //			cv::namedWindow("frontier contour", 1);
 //			cv::imshow("frontier contour", cvFrontier);

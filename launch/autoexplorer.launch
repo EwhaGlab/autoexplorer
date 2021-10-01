@@ -4,16 +4,20 @@
 <launch>
     <env name="ROSCONSOLE_CONFIG_FILE"
        value="$(find autoexplorer)/config/ffd_rosconsole.conf"/>
-    <param name="use_sim_time" value="true"/> <!--by kmHan-->  
+       
+    <arg name="slam_method" default="gmapping"/>
+    <!--param name="use_sim_time" value="true"/--> <!--by kmHan-->  
+    <param name="slam_method" value="$(arg slam_method)"/>
     
     <arg name="rviz_config" value ="$(find autoexplorer)/launch/includes/rviz_config/autoexplorer.rviz"/>
+    <rosparam command="load" file="$(find autoexplorer)/param/autoexploration.yaml"/>
     
     <include file="$(find autoexplorer)/launch/includes/move_fetch.launch">
+        <arg name="slam_method"        value="$(arg slam_method)" />
     </include> 
     <param name="frame_id" type="string" value="map" />
-    <param name="num_downsamples" value="1" />
 
-	<node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" output="screen">
+	<node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" args="$(arg slam_method)" output="screen">
 
     </node>
        

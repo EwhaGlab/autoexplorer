@@ -133,7 +133,22 @@ include_directories(
   ~/catkin_ws/src/navigation/costmap_2d/include
 )
 
+set(AUTOEXPLORER_PROJ_DIRECTORY ${PROJECT_SOURCE_DIR} )
+file(GLOB_RECURSE SRC_FILES 
+${PROJECT_SOURCE_DIR}/src/*.cpp
+)
+
 message("pkg: " ${catkin_INCLUDE_DIRS})
+
+
+add_library(frontier_detector SHARED ${SRC_FILES})
+target_link_libraries(frontier_detector 
+${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
+)
+
+set_target_properties( frontier_detector PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${AUTOEXPLORER_PROJ_DIRECTORY}/lib 
+)
 
 ## Declare a C++ library
 #  add_library(${PROJECT_NAME}
@@ -151,8 +166,8 @@ message("pkg: " ${catkin_INCLUDE_DIRS})
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/autoexplorer_node.cpp src/frontier_detector.cpp )
-target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+add_executable(${PROJECT_NAME}_node example/autoexplorer_node.cpp)
+target_link_libraries(${PROJECT_NAME}_node frontier_detector)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -211,6 +226,10 @@ install(TARGETS ${PROJECT_NAME}_node
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
 
+install(DIRECTORY lib/
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/../
+  PATTERN ".git" EXCLUDE)
+
 install(DIRECTORY config/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
   PATTERN ".git" EXCLUDE)
@@ -220,8 +239,8 @@ install(DIRECTORY param/
   PATTERN ".git" EXCLUDE)
   
 install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  PATTERN ".git" EXCLUDE)
+DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+PATTERN ".git" EXCLUDE)
 
 
 #############

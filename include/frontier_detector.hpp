@@ -12,9 +12,9 @@
 #define OCCUPIED_BIN_THR 	(128)
 #define WEAK_COMPONENT_THR	(10)
 #define MIN_TARGET_DIST		(30) // to prevent relocating the current pose as the frontier point over and over again
-#define LEATHAL_COST_THR	(80)
+//#define LEATHAL_COST_THR	(80)
+//#define FD_DEBUG_MODE
 
-//#define FFD_DEBUG_MODE
 #include <ros/console.h>
 #include <mutex>
 #include <opencv2/core/core.hpp>
@@ -92,39 +92,26 @@ typedef enum{	ROBOT_IS_NOT_MOVING 	= -1,
 class FrontierDetector
 {
 public:
-	FrontierDetector(const ros::NodeHandle private_nh_, const ros::NodeHandle &nh_);
+	//FrontierDetector(const ros::NodeHandle private_nh_, const ros::NodeHandle &nh_);
+	FrontierDetector() ;
 	virtual ~FrontierDetector();
 
-	void initmotion( );
+	//void initmotion( );
 
-	virtual void gridmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg ) ;
-	virtual void globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg ) ;
-	virtual void robotPoseCallBack( const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg ) ;
-	virtual void robotVelCallBack( const geometry_msgs::Twist::ConstPtr& msg);
-	virtual void doneCB( const actionlib::SimpleClientGoalState& state ) ;
 	virtual void mapdataCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg); //const octomap_server::mapframedata& msg ) ;
-	//virtual void moveRobotCallback(const nav_msgs::Path::ConstPtr& msg ) ;
-	virtual void moveRobotCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg ) ;
-	virtual void unreachablefrontierCallback(const geometry_msgs::PoseStamped::ConstPtr& msg );
+	virtual vector<cv::Point> eliminateSupriousFrontiers( nav_msgs::OccupancyGrid &costmapData, vector<cv::Point> frontierCandidates, int winsize );
 
-	float Norm(cv::Point2f x1, cv::Point2f x2);
-	int8_t  gridValue(nav_msgs::OccupancyGrid &mapData, cv::Point2f Xp);
-	int  costmapValue( nav_msgs::OccupancyGrid &mapData, cv::Point2f Xp );
+	virtual cv::Point2f img2gridmap( cv::Point img_pt );
+	virtual cv::Point gridmap2img( cv::Point2f grid_pt );
 
-	vector<cv::Point> eliminateSupriousFrontiers( nav_msgs::OccupancyGrid &costmapData, vector<cv::Point> frontierCandidates, int winsize = 25 ) ;
-	int displayMapAndFrontiers(const cv::Mat& mapimg, const vector<cv::Point>& frontiers, const int winsize ) ;
-	bool isValidPlan( vector<cv::Point>  );
-	bool isDone(){ return isdone; };
-	void publishDone() ;
+//	virtual void globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg);
+//	virtual void robotPoseCallBack( const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg );
+//	virtual void robotVelCallBack( const geometry_msgs::Twist::ConstPtr& msg );
 
-	vector<FrontierInfo> assessFrontiers( vector<cv::Point> frontierCandidates ) ;
-	int  computeRevenue( nav_msgs::OccupancyGrid &mapData, cv::Point2f Xp, int winsize = 10 );
-
-	cv::Point estimateFrontierPointPose( vector<cv::Point> frontier_contour, cv::Point frontier_point );
-
-	geometry_msgs::PoseStamped StampedPosefromSE2( float x, float y, float yaw ) ;
-	geometry_msgs::PoseStamped GetCurrPose ( ) ;
-
+	float Norm(cv::Point2f x1, cv::Point2f x2)
+	{
+		return pow(	(pow((x2.x-x1.x),2)+pow((x2.y-x1.y),2))	,0.5);
+	}
 
 	void downSampleMap( cv::Mat& uImage )
 	{
@@ -167,13 +154,63 @@ public:
 #endif
 	}
 
-private:
+	geometry_msgs::PoseStamped StampedPosefromSE2( const float& x, const float& y, const float& yaw_radian )
+	{
+		geometry_msgs::PoseStamped outPose ;
+		outPose.pose.position.x = x ;
+		outPose.pose.position.y = y ;
 
-	ros::Subscriber m_mapsub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, m_globalplanSub, m_unreachablefrontierSub ;
-	ros::Publisher m_targetspub, m_markercandpub, m_markerfrontierpub,
-					m_makergoalpub, m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub ;
-	//vector<geometry_msgs::PoseWithCovarianceStamped> m_exploration_goal ;
-	//geometry_msgs::PoseWithCovarianceStamped  ;
+		float c[3] = {0,};
+		float s[3] = {0,};
+		c[0] = cos(yaw_radian/2) ;
+		c[1] = cos(0) ;
+		c[2] = cos(0) ;
+		s[0] = sin(yaw_radian/2) ;
+		s[1] = sin(0) ;
+		s[2] = sin(0) ;
+
+		float qout[4] = {0,};
+		qout[0] = c[0]*c[1]*c[2] + s[0]*s[1]*s[2];
+		qout[1] = c[0]*c[1]*s[2] - s[0]*s[1]*c[2];
+		qout[2] = c[0]*s[1]*c[2] + s[0]*c[1]*s[2];
+		qout[3] = s[0]*c[1]*c[2] - c[0]*s[1]*s[2];
+
+		outPose.pose.orientation.w = qout[0] ;
+		outPose.pose.orientation.x = qout[1] ;
+		outPose.pose.orientation.y = qout[2] ;
+		outPose.pose.orientation.z = qout[3] ;
+
+		outPose.header.frame_id = m_worldFrameId ;
+		outPose.header.stamp = ros::Time::now() ;
+
+		return outPose;
+	}
+
+	geometry_msgs::PoseStamped GetCurrPose ( )
+	{
+		geometry_msgs::PoseStamped outPose ;
+		outPose.header = m_robotpose.header ;
+		outPose.pose.position.x = m_robotpose.pose.pose.position.x ;
+		outPose.pose.position.y = m_robotpose.pose.pose.position.y ;
+		outPose.pose.position.z = 0.f ;
+
+		outPose.pose.orientation = m_robotpose.pose.pose.orientation ;
+
+		return outPose;
+	}
+
+protected:
+
+	string m_str_debugpath ;
+	string m_str_inputparams ;
+	cv::FileStorage m_fs;
+
+	int m_nNumPyrDownSample;
+	int m_nScale;
+	int m_nROISize ;
+	int m_nGlobalMapWidth, m_nGlobalMapHeight, m_nGlobalMapCentX, m_nGlobalMapCentY ; // global
+	float m_fResolution ;
+
 	visualization_msgs::Marker m_points, m_cands, m_exploration_goal, m_unreachable_points ;
 	nav_msgs::OccupancyGrid m_gridmap;
 	nav_msgs::OccupancyGrid m_globalcostmap ;
@@ -186,46 +223,30 @@ private:
 	std::string m_mapFrameId;
 	std::string m_baseFrameId ;
 
-	int m_nNumPyrDownSample;
-	int m_nScale;
-	int m_nROISize ;
-	int m_nGridMapWidth, m_nGridMapHeight ;
-	int m_nCannotFindFrontierCount ;
+	int m_ncols, m_nrows, m_nroi_origx, m_nroi_origy ;
+	//int m_nCannotFindFrontierCount ;
 	bool isdone ;
-	ros::NodeHandle m_nh;
-	ros::NodeHandle m_nh_private;
 
-	//tf::TransformListener m_tfListener;
-
-	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> m_move_client ;
-	//actionlib::ActionClient<move_base_msgs::MoveBaseAction> m_move_client ;
-	ros::ServiceClient m_makeplan_client;
-
-	cv::Mat m_uMapImgOcc, m_uMapImgUnk, m_uMapImg_buf, m_uMapImg ;
-	cv::Mat m_matCostMap ;
-	//cv::Mat m_morph_kernel ;
-
-	cv::Point2f img2gridmap( cv::Point img_pt );
-	cv::Point gridmap2img( cv::Point2f grid_pt );
-
-	vector<cv::Point> m_conquered_frontiers;
 	vector<cv::Point> m_frontiers;
-
 	int m_frontiers_region_thr ;
 	int m_globalcostmap_rows ;
 	int m_globalcostmap_cols ;
-	ROBOT_STATE m_eRobotState ;
+
+	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> m_move_client ;
+	ros::ServiceClient m_makeplan_client;
+//	cv::Mat m_uMapImg, m_uMapImgROI ;
 
 	geometry_msgs::PoseWithCovarianceStamped m_bestgoal ;
 	set<pointset, pointset> m_unreachable_frontier_set ;
-	cv::FileStorage m_fs;
 
 	// thrs
-	float m_frontier_cost_thr ;
+	float  m_frontier_cost_thr ;
+	int	m_noccupancy_thr ; // 0 ~ 100
+	int m_nlethal_cost_thr ;
+	double m_fRobotRadius ;
 
-	std::mutex mutex_robot_state;
-	std::mutex mutex_unreachable_points;
-	std::mutex mutex_gridmap_image;
+	ROBOT_STATE m_eRobotState ;
+
 };
 
 }

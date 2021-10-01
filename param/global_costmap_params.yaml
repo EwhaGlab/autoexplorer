@@ -3,8 +3,8 @@ global_costmap:
     global_frame: map
     #robot_base_frame: base_link
     
-    inflation_radius: 1.0 #0.55
-    cost_scaling_factor: 4.0 # steepness of inflation decay func
+    inflation_radius: 0.7 #0.55
+    cost_scaling_factor: 1.0 # steepness of inflation decay func
 
     update_frequency: 2.0
     publish_frequency: 2.0
