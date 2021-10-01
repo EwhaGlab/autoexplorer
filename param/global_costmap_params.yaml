@@ -4,8 +4,10 @@ global_costmap:
     #robot_base_frame: base_link
     
     inflation_radius: 0.7 #0.55
-    cost_scaling_factor: 1.0 # steepness of inflation decay func
-
+    cost_factor: 0.55 
+    neutral_cost: 66
+    lethal_cost: 253
+    
     update_frequency: 2.0
     publish_frequency: 2.0
     static_map: true

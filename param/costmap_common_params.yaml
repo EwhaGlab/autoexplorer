@@ -5,20 +5,6 @@
 
 robot_base_frame: base_link
 
-#hkm
-#START VOXEL STUFF
-#publish_voxel_map: true
-#map_type: voxel
-#origin_z: 0.0
-#z_resolution: 0.2
-#z_voxels: 10
-#unknown_threshold: 10
-#mark_threshold: 0
-
-#END VOXEL STUFF
-
-
-
 #Set the tolerance we're willing to have for tf transforms
 transform_tolerance: 0.5
 
@@ -30,10 +16,10 @@ footprint_padding: 0 #0.03
 #inflater:
 robot_radius: 0.28 #0.18
 inflation_radius: 0.7 #0.55
-cost_scaling_factor: 1.0 #5.0 # steepness of inflation decay func
+cost_scaling_factor: 1.0 #1.0 # steepness of inflation decay func
 
 #The cost at which a cell is considered an obstacle when a map is read from the map_server
-lethal_cost_threshold: 100
+lethal_cost_threshold: 253
 
 #Configuration for the sensors that the costmap will use to update a map
 obstacles:

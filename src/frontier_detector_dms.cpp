@@ -214,9 +214,10 @@ vector<cv::Point> FrontierDetectorDMS::eliminateSupriousFrontiers( nav_msgs::Occ
 	//ROS_INFO("in func width: %d %d %f\n", m_globalcostmap.info.width, m_globalcostmap_cols, m_globalcostmap.info.resolution);
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// 1) In cartographer, the size of occu gridmap and the size of global costmap are the same. so as their origins
+// The size of occu gridmap and the size of global costmap are the same. so as their origins
+// but there are the cases when two of them are different owing to the update freq.
 // 2) The gridmap coordinates are not intuitively the same as one showing rviz.
-// Rviz shows gridmap !!! but "Publish Point" interprets the gridmap position into the actual position in the world (in meters) !!
+// Rviz shows gridmap !!! but "Publish Point" interprets the gridmap position as the actual position in the world (in meters) !!
 // so dont get confused !!
 
 // For example, frontier point (20,20) might correspond to the (20,20) in the gridmap
@@ -244,6 +245,26 @@ ROS_INFO("cost map: (%f %f %d %d) gridmap: (%f %f %d %d)",
 	string str_front_in_costmap = m_str_debugpath + "/front_in_costmap.txt" ;
 //ROS_INFO("saving %s\n", str_front_in_costmap.c_str());
 	ofstream ofs_incostmap(str_front_in_costmap) ;
+
+	// save mapdata
+	string str_costmap_file = m_str_debugpath + "/costmap.txt";
+	ofstream ofs_costmap(str_costmap_file);
+	for(int ridx = 0; ridx < height; ridx++)
+	{
+		for(int cidx = 0; cidx < width; cidx++)
+		{
+			int cost = static_cast<int>( Data[ridx * width + cidx] ) ;
+
+			if(cost < 0 )
+				ofs_costmap << 127 << " ";
+			else if(cost == 0)
+				ofs_costmap << 0 << " ";
+			else
+				ofs_costmap << cost * 2 + 50 << " ";
+		}
+		ofs_costmap << endl;
+	}
+	ofs_costmap.close();
 #endif
 
 	for( size_t idx =0; idx < frontierCandidates.size(); idx++) // frontiers in image coord
@@ -253,39 +274,50 @@ ROS_INFO("cost map: (%f %f %d %d) gridmap: (%f %f %d %d)",
 		//returns grid value at "Xp" location
 		//map data:  100 occupied      -1 unknown       0 free
 //ROS_INFO("frontier in gridmap: %f %f origin: %f %f\n", frontier_in_Gridmap.x, frontier_in_Gridmap.y, fXstarty, fXstartx );
-		int py_c= floor( frontier_in_Gridmap.y); //  / resolution  ) ; // px in costmap
-		int px_c= floor( frontier_in_Gridmap.x); //  / resolution  ) ;
+		int py_c= frontierCandidates[idx].y * m_nScale; //floor( frontier_in_Gridmap.y); //  / resolution  ) ; // px in costmap
+		int px_c= frontierCandidates[idx].x * m_nScale ; //floor( frontier_in_Gridmap.x); //  / resolution  ) ;
 		int8_t cost ;
 		int32_t ncost = 0 ;
 
 #ifdef FD_DEBUG_MODE
-		ofs_incostmap << px_c << " " << py_c << endl;
+		ofs_incostmap << px_c << " " << py_c << " " ;
 #endif
 
 //ROS_INFO(" idx (px_c py_c) (px_i py_i) %u %d %d\n", idx, px_c, py_c);
-		cv::Mat roi = cv::Mat::zeros(winsize*2, winsize*2, CV_8U);
+//		cv::Mat roi = cv::Mat::zeros(winsize*2, winsize*2, CV_8U);
 
 		int sx = MAX(px_c - winsize, 0);
 		int ex = MIN(px_c + winsize, width) ;
 		int sy = MAX(py_c - winsize, 0);
 		int ey = MIN(py_c + winsize, height) ;
-
+ROS_INFO("px_c py_c width sx ex sy ey: %d %d %d (%d %d %d %d) \n",px_c, py_c, winsize, sx, ex, sy, ey);
+//CV_Assert( ex - sx == 2*winsize && ey - sy == 2*winsize );
 		int costcnt = 0;
+		int totcost = 0;
 		for( int ridx = sy; ridx < ey; ridx++)
 		{
 			for( int cidx= sx; cidx < ex; cidx++)
 			{
-				int dataidx = px_c + cidx + (py_c + ridx) * width ;
-				cost = Data[dataidx] ; // orig 0 ~ 254 --> mapped to 0 ~ 100
-				if(cost > m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
+				//int dataidx = px_c + cidx + (py_c + ridx) * width ;
+				int dataidx = cidx + ridx * width ;
+ROS_INFO("computing cost @ (%d %d)/(%d %d) dataidx: %d", ridx, cidx, height, width, dataidx);
+				cost = Data[dataidx] ; // cost -1 ~ 100
+ROS_INFO("cost: %d", cost);
+				if(cost > 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
 				{
-					ncost++;
+					//ncost++;
+					totcost += static_cast<int>(cost);
 				}
 				costcnt++;
 			}
 		}
-		float fcost = static_cast<float>(ncost) / static_cast<float>( costcnt ) ;
-		if( fcost < m_frontier_cost_thr  ) // 0 ~ 100
+		float fcost = static_cast<float>(totcost) / ( static_cast<float>( costcnt ) * 100  );
+
+#ifdef FD_DEBUG_MODE
+		ofs_incostmap << fcost << " " << totcost << " " << costcnt << " "
+		<< sx << " " << ex << " " << sy << " " << ey << endl;
+#endif
+		if( fcost < m_frontier_cost_thr  ) // 0. ~ 1.
 		{
 			cv::Point frontier_in_img = gridmap2img( frontier_in_Gridmap ) ;
 			outFrontiers.push_back( cv::Point(frontier_in_img.x / m_nScale, frontier_in_img.y / m_nScale)  );
@@ -468,7 +500,10 @@ startTime = ros::WallTime::now();
 
 	m_gridmap = *msg ;
 
-	if(m_gridmap.info.height == 0 || m_gridmap.info.width == 0)
+	if(m_gridmap.info.height == 0 || m_gridmap.info.width == 0
+		|| m_gridmap.info.width != m_globalcostmap.info.width
+		|| m_gridmap.info.height != m_globalcostmap.info.height
+		)
 	{
 		ROS_WARN("unreliable grid map input \n");
 		return;
@@ -524,7 +559,6 @@ startTime = ros::WallTime::now();
 //cv::namedWindow("roi",1);
 //cv::imshow("roi",m_uMapImgROI);
 //cv::waitKey(30);
-
 	m_markerfrontierpub.publish(m_points); // Publish frontiers to renew Rviz
 	m_makergoalpub.publish(m_exploration_goal);
 

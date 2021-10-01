@@ -226,8 +226,16 @@ vector<cv::Point> FrontierDetectorSMS::eliminateSupriousFrontiers( nav_msgs::Occ
 	float resolution = costmapData.info.resolution ;
 
 	int width= static_cast<int>(costmapData.info.width) ;
+	int height= static_cast<int>(costmapData.info.height) ;
+
 	std::vector<signed char> Data=costmapData.data;
 ROS_INFO("front cand size: %d \n", frontierCandidates.size());
+
+ROS_INFO("cost map: (%f %f %d %d) gridmap: (%f %f %d %d)",
+									 costmapData.info.origin.position.x, costmapData.info.origin.position.y,
+									 costmapData.info.width, costmapData.info.height,
+									 m_gridmap.info.origin.position.x, m_gridmap.info.origin.position.y,
+									 m_gridmap.info.width, m_gridmap.info.height);
 
 	for( size_t idx =0; idx < frontierCandidates.size(); idx++) // frontiers in image coord
 	{
@@ -241,30 +249,35 @@ ROS_INFO("front cand size: %d \n", frontierCandidates.size());
 		int8_t cost ;
 		int32_t ncost = 0;
 
+		int sx = MAX(px_c - winsize, 0);
+		int ex = MIN(px_c + winsize, width) ;
+		int sy = MAX(py_c - winsize, 0);
+		int ey = MIN(py_c + winsize, height) ;
+
 //ROS_INFO(" idx px py %u %d %d\n", idx, px_c, py_c);
 		cv::Mat roi = cv::Mat::zeros(winsize*2, winsize*2, CV_8U);
 
-		for( int ridx =-winsize; ridx < winsize; ridx++)
+		int costcnt = 0;
+		int totcost = 0;
+		for( int ridx =sy; ridx < ey; ridx++)
 		{
-			for( int cidx=-winsize; cidx < winsize; cidx++)
+			for( int cidx=sx; cidx < ex; cidx++)
 			{
-				int dataidx = px_c + cidx + (py_c + ridx) * width ;
+				//int dataidx = px_c + cidx + (py_c + ridx) * width ;
+				int dataidx = ridx * width + cidx ;
 //ROS_INFO("ind rix cidx %d %d %d ", idx, ridx, cidx);
 				cost = Data[dataidx] ; // orig 0 ~ 254 --> mapped to 0 ~ 100
-				if(cost > m_nlethal_cost_thr ) // unknown (-1)
+				if(cost > 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
 				{
-					ncost++; // = ncost + static_cast<float>(cost) ;
-					//roi.at<uint8_t>(ridx+winsize, cidx+winsize) = static_cast<uint8_t>(cost);
+					//ncost++;
+					totcost += static_cast<int>(cost);
 				}
+				costcnt++;
 			}
 		}
-//		const int roi_idx = px_c + py_c * width ;
-//		const string name = "/home/hankm/catkin_ws/src/frontier_detector/images/roi/frontier_patch_"
-//							+ std::to_string(px_c) + "_" + std::to_string(py_c) + ".png" ;
-//		cv::imwrite(name,  roi) ;
-//ROS_INFO("here 3 \n" ) ;
-		float fcost = static_cast<float>(ncost) / static_cast<float>( (winsize*2) * (winsize*2) ) ;
-		if( fcost < m_frontier_cost_thr  ) // 0 ~ 100
+		float fcost = static_cast<float>(totcost) / ( static_cast<float>( costcnt ) * 100  );
+//		float fcost = static_cast<float>(ncost) / static_cast<float>( (winsize*2) * (winsize*2) ) ;
+		if( fcost < m_frontier_cost_thr  ) // 0 ~ 1
 		{
 			// move back to image coord
 			//ROS_INFO("pts in cost map:  (%d  %d) in gridmap (%f %f) frontierCandidates: (%d  %d) res: %f  sx sy (%f %f)\n",
