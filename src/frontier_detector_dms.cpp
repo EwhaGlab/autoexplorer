@@ -17,7 +17,7 @@ FrontierDetectorDMS::FrontierDetectorDMS(const ros::NodeHandle private_nh_, cons
 
 m_nh_private(private_nh_),
 m_nh(nh_),
-m_isInitialized(false)
+m_isInitMotionCompleted(false)
 //m_worldFrameId("map"), m_baseFrameId("base_link"),
 //m_globalcostmap_rows(0), m_globalcostmap_cols(0), m_eRobotState(ROBOT_STATE::ROBOT_IS_NOT_MOVING),
 //m_move_client("move_base", true),
@@ -157,7 +157,6 @@ ROS_WARN("move_base action server is up");
 	m_unreachable_points.color.a = 1.0;
 	m_unreachable_points.lifetime = ros::Duration();
 
-	m_isInitialized = true;
 }
 
 FrontierDetectorDMS::~FrontierDetectorDMS()
@@ -290,8 +289,8 @@ ROS_INFO("cost map: (%f %f %d %d) gridmap: (%f %f %d %d)",
 		int ex = MIN(px_c + winsize, width) ;
 		int sy = MAX(py_c - winsize, 0);
 		int ey = MIN(py_c + winsize, height) ;
-ROS_INFO("px_c py_c width sx ex sy ey: %d %d %d (%d %d %d %d) \n",px_c, py_c, winsize, sx, ex, sy, ey);
-//CV_Assert( ex - sx == 2*winsize && ey - sy == 2*winsize );
+//ROS_INFO("px_c py_c width sx ex sy ey: %d %d %d (%d %d %d %d) \n",px_c, py_c, winsize, sx, ex, sy, ey);
+
 		int costcnt = 0;
 		int totcost = 0;
 		for( int ridx = sy; ridx < ey; ridx++)
@@ -300,9 +299,9 @@ ROS_INFO("px_c py_c width sx ex sy ey: %d %d %d (%d %d %d %d) \n",px_c, py_c, wi
 			{
 				//int dataidx = px_c + cidx + (py_c + ridx) * width ;
 				int dataidx = cidx + ridx * width ;
-ROS_INFO("computing cost @ (%d %d)/(%d %d) dataidx: %d", ridx, cidx, height, width, dataidx);
+//ROS_INFO("computing cost @ (%d %d)/(%d %d) dataidx: %d", ridx, cidx, height, width, dataidx);
 				cost = Data[dataidx] ; // cost -1 ~ 100
-ROS_INFO("cost: %d", cost);
+//ROS_INFO("cost: %d", cost);
 				if(cost > 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
 				{
 					//ncost++;
@@ -479,9 +478,9 @@ void FrontierDetectorDMS::robotVelCallBack( const geometry_msgs::Twist::ConstPtr
 // mapcallback for dynamic mapsize (i.e for the cartographer)
 void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) //const octomap_server::mapframedata& msg )
 {
-	if(!m_isInitialized)
+	if(!m_isInitMotionCompleted)
 	{
-		ROS_WARN("FD is not fully instantiated yet !");
+		ROS_WARN("FD has not fully instantiated yet !");
 		return;
 	}
 

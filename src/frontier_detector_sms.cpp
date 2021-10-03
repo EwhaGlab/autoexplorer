@@ -13,7 +13,8 @@ namespace frontier_detector
 
 FrontierDetectorSMS::FrontierDetectorSMS(const ros::NodeHandle private_nh_, const ros::NodeHandle &nh_):
 m_nh_private(private_nh_),
-m_nh(nh_)
+m_nh(nh_),
+m_isInitMotionCompleted(false)
 //m_worldFrameId("map"), m_baseFrameId("base_link"),
 //m_globalcostmap_rows(0), m_globalcostmap_cols(0), m_eRobotState(ROBOT_STATE::ROBOT_IS_NOT_MOVING),
 //m_move_client("move_base", true),
@@ -150,6 +151,7 @@ ROS_WARN("move_base action server is up");
 	m_unreachable_points.color.b = 0.0; //255.0/255.0;
 	m_unreachable_points.color.a = 1.0;
 	m_unreachable_points.lifetime = ros::Duration();
+
 }
 
 FrontierDetectorSMS::~FrontierDetectorSMS()
@@ -429,11 +431,18 @@ void FrontierDetectorSMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPt
 
 	ROS_INFO("Robot state in mapdataCallback: %d \n ",  m_eRobotState);
 
+	if(!m_isInitMotionCompleted)
+	{
+		ROS_WARN("FD has not fully instantiated yet !");
+		return;
+	}
+
 	if(m_eRobotState >= ROBOT_STATE::FORCE_TO_STOP )
 	{
 		ROS_WARN("Force to stop flag is up cannot proceed mapdataCallback() \n");
 		return;
 	}
+
 ros::WallTime startTime, endTime;
 startTime = ros::WallTime::now();
 

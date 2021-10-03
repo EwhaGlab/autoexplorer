@@ -57,7 +57,7 @@ int main(int argc, char** argv){
 		  FrontierDetectorSMS front_detector_sms(private_nh, nh);
 		  ros::spinOnce();
 		  front_detector_sms.initmotion();
-
+		  front_detector_sms.SetInitMotionCompleted();
 		  while( !front_detector_sms.isDone() && ros::ok() )
 		  {
 			  try{
@@ -79,6 +79,7 @@ int main(int argc, char** argv){
 		  FrontierDetectorDMS front_detector_dms(private_nh, nh);
 		  ros::spinOnce();
 		  front_detector_dms.initmotion();
+		  front_detector_dms.SetInitMotionCompleted();
 		  while( !front_detector_dms.isDone() && ros::ok() )
 		  {
 			  try{

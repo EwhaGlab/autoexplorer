@@ -11,7 +11,7 @@
 #include "frontier_detector.hpp"
 
 //#define OCCUPANCY_THR (60)
-#define FD_DEBUG_MODE
+//#define FD_DEBUG_MODE
 
 namespace frontier_detector
 {
@@ -25,6 +25,7 @@ public:
 	virtual ~FrontierDetectorDMS();
 
 	void initmotion( );
+	inline void SetInitMotionCompleted(){ m_isInitMotionCompleted = true;  }
 
 	void globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg ) ;
 	void robotPoseCallBack( const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg ) ;
@@ -68,7 +69,7 @@ protected:
 
 	string m_str_debugpath ;
 	string m_str_inputparams ;
-	bool m_isInitialized ;
+	bool m_isInitMotionCompleted ;
 
 	cv::Mat m_uMapImg, m_uMapImgROI ;
 

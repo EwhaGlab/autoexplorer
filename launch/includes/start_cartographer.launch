@@ -4,8 +4,8 @@
   <node name="cartographer" pkg="cartographer_ros"
       type="cartographer_node" args="
           -configuration_directory $(find cartographer_fetch)/configuration_files
-          -configuration_basename freight_simulation.lua"
-      output="screen">
+          -configuration_basename freight_simulation.lua">
+      <!--output="screen"-->
     <remap from="scan" to="base_scan" />
   </node>
 

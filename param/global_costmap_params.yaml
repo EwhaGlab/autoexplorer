@@ -3,7 +3,7 @@ global_costmap:
     global_frame: map
     #robot_base_frame: base_link
     
-    inflation_radius: 0.7 #0.55
+    #inflation_radius: 0.55 #0.7
     cost_factor: 0.55 
     neutral_cost: 66
     lethal_cost: 253

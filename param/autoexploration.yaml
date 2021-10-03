@@ -1,7 +1,7 @@
 
 autoexplorer:
     debug_data_save_path:   '/home/hankm/results/autoexploration'
-    frontier_cost_thr:      0.2     # 0.1 by default, (tesse virutal scenario)
+    frontier_cost_thr:      0.1     # 0.1 by default, (tesse virutal scenario)
     occupancy_thr:          50      # 0 ~ 100
     lethal_cost_thr:        80      
     global_width:           4000

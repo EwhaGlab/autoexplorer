@@ -14,8 +14,8 @@ footprint_padding: 0 #0.03
 
 #Cost function parameters
 #inflater:
-robot_radius: 0.28 #0.18
-inflation_radius: 0.7 #0.55
+robot_radius: 0.3 #0.18
+inflation_radius: 0.55 #0.7
 cost_scaling_factor: 1.0 #1.0 # steepness of inflation decay func
 
 #The cost at which a cell is considered an obstacle when a map is read from the map_server

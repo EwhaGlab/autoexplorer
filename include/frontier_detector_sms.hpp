@@ -47,7 +47,7 @@ public:
 	virtual ~FrontierDetectorSMS();
 
 	void initmotion( );
-
+	inline void SetInitMotionCompleted(){ m_isInitMotionCompleted = true;  }
 	//void gridmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg ) ;
 	void globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg ) ;
 	void robotPoseCallBack( const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg ) ;
@@ -82,6 +82,7 @@ protected:
 
 	string m_str_debugpath ;
 	string m_str_inputparams ;
+	bool m_isInitMotionCompleted ;
 
 	cv::Mat m_uMapImg, m_uMapImgROI ;
 
