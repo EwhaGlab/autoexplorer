@@ -45,7 +45,7 @@ ROS_INFO("datapath: %s \n",m_str_debugpath.c_str());
 //exit(-1);
 
 	m_nScale = pow(2, m_nNumPyrDownSample) ;
-	m_nROISize = round( m_fRobotRadius / 0.05 ) * 2 ; // we never downsample costmap !!! dont scale it with roisize !!
+	m_nROISize = round( m_fRobotRadius / 0.05 ) * 4 ; // we never downsample costmap !!! dont scale it with roisize !!
 
 	m_nGlobalMapCentX = m_nGlobalMapWidth  / 2 ;
 	m_nGlobalMapCentY = m_nGlobalMapHeight / 2 ;
