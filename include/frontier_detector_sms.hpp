@@ -60,6 +60,8 @@ public:
 	void unreachablefrontierCallback(const geometry_msgs::PoseStamped::ConstPtr& msg );
 
 	vector<cv::Point> eliminateSupriousFrontiers( nav_msgs::OccupancyGrid &costmapData, vector<cv::Point> frontierCandidates, int winsize = 25 ) ;
+	void accessFrontierPoint();
+
 	int displayMapAndFrontiers(const cv::Mat& mapimg, const vector<cv::Point>& frontiers, const int winsize ) ;
 	bool isValidPlan( vector<cv::Point>  );
 	bool isDone() const { return isdone; };
@@ -80,6 +82,7 @@ protected:
 	ros::Publisher m_targetspub, m_markercandpub, m_markerfrontierpub,
 					m_makergoalpub, m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub ;
 
+	int m_nglobalcostmapidx ;
 	string m_str_debugpath ;
 	string m_str_inputparams ;
 	bool m_isInitMotionCompleted ;

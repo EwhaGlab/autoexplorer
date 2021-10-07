@@ -302,7 +302,7 @@ ROS_INFO("cost map: (%f %f %d %d) gridmap: (%f %f %d %d)",
 //ROS_INFO("computing cost @ (%d %d)/(%d %d) dataidx: %d", ridx, cidx, height, width, dataidx);
 				cost = Data[dataidx] ; // cost -1 ~ 100
 //ROS_INFO("cost: %d", cost);
-				if(cost > 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
+				if(cost >= 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
 				{
 					//ncost++;
 					totcost += static_cast<int>(cost);
@@ -865,7 +865,7 @@ void FrontierDetectorDMS::doneCB( const actionlib::SimpleClientGoalState& state 
     if (m_move_client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
          // do something as goal was reached
-    	ROS_INFO("goal is reached \n");
+    	ROS_INFO("touch down  \n");
 		{
 			const std::unique_lock<mutex> lock(mutex_robot_state) ;
 			m_eRobotState = ROBOT_STATE::ROBOT_IS_NOT_MOVING ;

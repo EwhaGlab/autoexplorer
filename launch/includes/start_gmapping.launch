@@ -1,6 +1,7 @@
 <!--gmapping launcher-->
 <launch>
 
+    <param name="autoexplorer/occupancy_thr" value="0"/>
     <!-- start SLAM -->
     <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping"> 
         <remap from="/scan"  to="/base_scan"/>

@@ -101,6 +101,8 @@ public:
 	virtual void mapdataCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg); //const octomap_server::mapframedata& msg ) ;
 	virtual vector<cv::Point> eliminateSupriousFrontiers( nav_msgs::OccupancyGrid &costmapData, vector<cv::Point> frontierCandidates, int winsize );
 
+	//virtual void accessFrontierPoint( ) ;
+
 	virtual cv::Point2f img2gridmap( cv::Point img_pt );
 	virtual cv::Point gridmap2img( cv::Point2f grid_pt );
 

@@ -14,6 +14,7 @@ namespace frontier_detector
 FrontierDetectorSMS::FrontierDetectorSMS(const ros::NodeHandle private_nh_, const ros::NodeHandle &nh_):
 m_nh_private(private_nh_),
 m_nh(nh_),
+m_nglobalcostmapidx(0),
 m_isInitMotionCompleted(false)
 //m_worldFrameId("map"), m_baseFrameId("base_link"),
 //m_globalcostmap_rows(0), m_globalcostmap_cols(0), m_eRobotState(ROBOT_STATE::ROBOT_IS_NOT_MOVING),
@@ -66,6 +67,7 @@ m_isInitMotionCompleted(false)
 	m_unreachablefrontierSub = m_nh.subscribe("unreachable_frontier", 1, &FrontierDetectorSMS::unreachablefrontierCallback, this);
 	m_makeplan_client = m_nh.serviceClient<nav_msgs::GetPlan>("move_base_node/make_plan");
 ROS_WARN("allocating map buff \n");
+ROS_WARN("nscale: %d \n", m_nScale);
 
 	m_uMapImg  	  = cv::Mat::zeros(m_nGlobalMapHeight, m_nGlobalMapWidth, CV_8U);
 
@@ -218,7 +220,7 @@ cv::Point FrontierDetectorSMS::gridmap2img( cv::Point2f grid_pt)
 
 vector<cv::Point> FrontierDetectorSMS::eliminateSupriousFrontiers( nav_msgs::OccupancyGrid &costmapData, vector<cv::Point> frontierCandidates, int winsize)
 {
-//ROS_INFO("eliminating suprious frontiers \n");
+ROS_INFO("eliminating suprious frontiers \n");
 	//ROS_INFO("in func width: %d %d %f\n", m_globalcostmap.info.width, m_globalcostmap_cols, m_globalcostmap.info.resolution);
 
 	vector<cv::Point> outFrontiers ;
@@ -239,9 +241,49 @@ ROS_INFO("cost map: (%f %f %d %d) gridmap: (%f %f %d %d)",
 									 m_gridmap.info.origin.position.x, m_gridmap.info.origin.position.y,
 									 m_gridmap.info.width, m_gridmap.info.height);
 
+#ifdef FD_DEBUG_MODE
+	m_nglobalcostmapidx++;
+
+	char tmp0[200], tmp1[200], tmp2[200];
+	sprintf(tmp0, "%s/front_in_costmap%05d.txt", m_str_debugpath.c_str(), m_nglobalcostmapidx) ;
+	sprintf(tmp1, "%s/costmap%05d.txt", m_str_debugpath.c_str(), m_nglobalcostmapidx) ;
+	sprintf(tmp2, "%s/gridmap%05d.txt", m_str_debugpath.c_str(), m_nglobalcostmapidx) ;
+
+	string str_front_in_costmap(tmp0);
+	string str_costmap_file(tmp1);
+	string str_gridmap_file(tmp2);
+
+	//ROS_INFO("saving %s\n", str_front_in_costmap.c_str());
+
+	ofstream ofs_incostmap(str_front_in_costmap) ;
+	ofstream ofs_costmap(str_costmap_file) ;
+//	ofstream ofs_gridmap(str_gridmap_file) ;
+
+	for(int ridx = 0; ridx < height; ridx++)
+	{
+		for(int cidx = 0; cidx < width; cidx++)
+		{
+			int cost = static_cast<int>( Data[ridx * width + cidx] ) ;
+			ofs_costmap << cost << " ";
+//			ofs_gridmap << m_gridmap.data[ ridx * width + cidx ] << " ";
+	//		costmap.data[ridx * width + cidx] = cost ;
+//			if(cost < 0 )
+//				ofs_costmap << 127 << " ";
+//			else if(cost == 0)
+//				ofs_costmap << 0 << " ";
+//			else
+//				ofs_costmap << cost * 2 + 50 << " ";
+		}
+		ofs_costmap << endl;
+//		ofs_gridmap << endl;
+	}
+	ofs_costmap.close();
+//	ofs_gridmap.close();
+#endif
+
+
 	for( size_t idx =0; idx < frontierCandidates.size(); idx++) // frontiers in image coord
 	{
-//ROS_INFO("frontier cand: %d %d \n", frontierCandidates[idx].x, frontierCandidates[idx].y );
 		cv::Point2f frontier_in_Gridmap = img2gridmap( frontierCandidates[idx] * m_nScale );
 		//returns grid value at "Xp" location
 		//map data:  100 occupied      -1 unknown       0 free
@@ -256,8 +298,22 @@ ROS_INFO("cost map: (%f %f %d %d) gridmap: (%f %f %d %d)",
 		int sy = MAX(py_c - winsize, 0);
 		int ey = MIN(py_c + winsize, height) ;
 
+
+#ifdef FD_DEBUG_MODE
+//	std::ostringstream ss_fptroi_;
+//	ss_fptroi_ = m_str_debugpath + "/costmap" << std::setw(5)
+//			 					   << std::setfill(0) <<  m_nglobalcostmapidx << "_candpt_"
+//								   << std::setw(5) << std::setfill(0) <<  idx << ".txt" ;
+	char tmp[200];
+	sprintf(tmp,"%s/costmap%05d_candptroi_%05d.txt",m_str_debugpath.c_str(),m_nglobalcostmapidx, idx);
+	std::string str_fptroi( tmp );
+
+	ofstream ofs_fptroi(str_fptroi) ;
+	ofs_incostmap << px_c << " " << py_c << " " ;
+
+#endif
 //ROS_INFO(" idx px py %u %d %d\n", idx, px_c, py_c);
-		cv::Mat roi = cv::Mat::zeros(winsize*2, winsize*2, CV_8U);
+		cv::Mat roi = cv::Mat::zeros(ey - sy + 1, ex - sx + 1, CV_8S);
 
 		int costcnt = 0;
 		int totcost = 0;
@@ -269,13 +325,22 @@ ROS_INFO("cost map: (%f %f %d %d) gridmap: (%f %f %d %d)",
 				int dataidx = ridx * width + cidx ;
 //ROS_INFO("ind rix cidx %d %d %d ", idx, ridx, cidx);
 				cost = Data[dataidx] ; // orig 0 ~ 254 --> mapped to 0 ~ 100
-				if(cost > 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
+				if(cost >= 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
 				{
 					//ncost++;
 					totcost += static_cast<int>(cost);
 				}
+#ifdef FD_DEBUG_MODE
+	ofs_fptroi << cost << " ";
+#endif
+				//roi.data[ ridx * width + cidx ] = cost ;
 				costcnt++;
 			}
+
+#ifdef FD_DEBUG_MODE
+	ofs_fptroi << endl;
+#endif
+
 		}
 		float fcost = static_cast<float>(totcost) / ( static_cast<float>( costcnt ) * 100  );
 //		float fcost = static_cast<float>(ncost) / static_cast<float>( (winsize*2) * (winsize*2) ) ;
@@ -290,6 +355,12 @@ ROS_INFO("cost map: (%f %f %d %d) gridmap: (%f %f %d %d)",
 //ROS_INFO("in gridmap: %d %d in image: %f %f\n", frontier_in_Gridmap.x, frontier_in_Gridmap.y, frontier_in_img.x/m_nScale, frontier_in_img.y/m_nScale );
 			outFrontiers.push_back( cv::Point(frontier_in_img.x / m_nScale, frontier_in_img.y / m_nScale)  );
 		}
+
+#ifdef FD_DEBUG_MODE
+		ofs_fptroi.close();
+		ofs_incostmap.close();
+#endif
+
 	}
 
 //ROS_INFO("eliminating unreachable pts \n" ) ;
@@ -387,9 +458,9 @@ ROS_INFO("mapsize: %d %d %d %d %d %d\n", tmp.cols, tmp.rows, mapimg.cols, mapimg
 	cv::pyrDown(dstroi, dstroi, cv::Size(dstroi.cols/2, dstroi.rows/2) );
 
 #ifdef FD_DEBUG_MODE
-	cv::namedWindow("mapimg", 1);
-	cv::imshow("mapimg",dstroi);
-	cv::waitKey(30);
+//	cv::namedWindow("mapimg", 1);
+//	cv::imshow("mapimg",dstroi);
+//	cv::waitKey(30);
 #endif
 }
 
@@ -410,6 +481,7 @@ void FrontierDetectorSMS::globalCostmapCallBack(const nav_msgs::OccupancyGrid::C
 	m_globalcostmap = *msg ;
 	m_globalcostmap_rows = m_globalcostmap.info.height ;
 	m_globalcostmap_cols = m_globalcostmap.info.width ;
+	m_nglobalcostmapidx ;
 }
 
 void FrontierDetectorSMS::robotPoseCallBack( const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg )
@@ -457,6 +529,7 @@ startTime = ros::WallTime::now();
 
 	int nrows = m_gridmap.info.height ;
 	int ncols = m_gridmap.info.width ;
+
 
 	for( int ii =0 ; ii < nrows; ii++)
 	{
@@ -519,9 +592,9 @@ startTime = ros::WallTime::now();
 	cv::findContours( img_frontiers, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE );
 
 #ifdef FD_DEBUG_MODE
-	cv::imwrite(m_str_debugpath+"/input_img.png", m_uMapImg);
-	cv::imwrite(m_str_debugpath+"/labeled_img.png", img);
-	cv::imwrite(m_str_debugpath+"/img_frontiers.png",img_frontiers);
+	//cv::imwrite(m_str_debugpath+"/input_img.png", m_uMapImg);
+	//cv::imwrite(m_str_debugpath+"/labeled_img.png", img);
+	//cv::imwrite(m_str_debugpath+"/img_frontiers.png",img_frontiers);
 #endif
 
 	if( contours.size() == 0 )
@@ -672,7 +745,7 @@ ROS_INFO( "eliminating supurious frontiers \n" );
 	}
 
 #ifdef FD_DEBUG_MODE
-		imwrite(m_str_debugpath+"/frontier_cents.png", dst);
+		//imwrite(m_str_debugpath+"/frontier_cents.png", dst);
 #endif
 
 	// publish the "to be exploration goals" (detected points)
@@ -773,7 +846,7 @@ void FrontierDetectorSMS::doneCB( const actionlib::SimpleClientGoalState& state 
     if (m_move_client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
          // do something as goal was reached
-    	ROS_INFO("goal is reached \n");
+    	ROS_INFO("touch down \n");
 		{
 			const std::unique_lock<mutex> lock(mutex_robot_state) ;
 			m_eRobotState = ROBOT_STATE::ROBOT_IS_NOT_MOVING ;

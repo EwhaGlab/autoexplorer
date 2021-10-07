@@ -31,5 +31,8 @@ void FrontierDetector::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPtr& 
 vector<cv::Point> FrontierDetector::eliminateSupriousFrontiers( nav_msgs::OccupancyGrid &costmapData, vector<cv::Point> frontierCandidates, int winsize = 25)
 {}
 
+//void accessFrontierPoint( ){}
+
+
 }
 
