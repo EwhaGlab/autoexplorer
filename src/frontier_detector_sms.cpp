@@ -225,6 +225,12 @@ ROS_INFO("eliminating suprious frontiers \n");
 
 	vector<cv::Point> outFrontiers ;
 
+	cv::Point outFrontier;
+	for(size_t idx=0; idx < frontierCandidates.size(); idx++)
+	{
+		correctFrontierPosition( m_gridmap, frontierCandidates[idx], 5, outFrontier  );
+	}
+
 	float fXstartx=costmapData.info.origin.position.x; // world coordinate in the costmap
 	float fXstarty=costmapData.info.origin.position.y; // world coordinate in the costmap
 	float resolution = costmapData.info.resolution ;

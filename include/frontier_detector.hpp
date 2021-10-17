@@ -101,6 +101,7 @@ public:
 	virtual void mapdataCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg); //const octomap_server::mapframedata& msg ) ;
 	virtual vector<cv::Point> eliminateSupriousFrontiers( nav_msgs::OccupancyGrid &costmapData, vector<cv::Point> frontierCandidates, int winsize );
 
+	bool correctFrontierPosition( const nav_msgs::OccupancyGrid &gridmap, const cv::Point& frontierCandidate, const int& winsize, cv::Point& correctedPoint );
 	//virtual void accessFrontierPoint( ) ;
 
 	virtual cv::Point2f img2gridmap( cv::Point img_pt );
@@ -109,6 +110,9 @@ public:
 //	virtual void globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg);
 //	virtual void robotPoseCallBack( const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg );
 //	virtual void robotVelCallBack( const geometry_msgs::Twist::ConstPtr& msg );
+
+	const int nccxidx[6] = {0,-1,0,1} ;
+	const int nccyidx[6] = {-1,0,1,0} ;
 
 	float Norm(cv::Point2f x1, cv::Point2f x2)
 	{
