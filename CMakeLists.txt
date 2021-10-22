@@ -131,6 +131,7 @@ include_directories(
   ~/catkin_ws/src/navigation/move_base/include
   ~/catkin_ws/src/navigation/nav_core/include
   ~/catkin_ws/src/navigation/costmap_2d/include
+  ~/catkin_ws/src/autoexplorer/include
 )
 
 set(AUTOEXPLORER_PROJ_DIRECTORY ${PROJECT_SOURCE_DIR} )

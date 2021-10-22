@@ -10,7 +10,7 @@
 #include "frontier_detector_dms.hpp"
 
 
-namespace frontier_detector
+namespace autoexplorer
 {
 
 FrontierDetectorDMS::FrontierDetectorDMS(const ros::NodeHandle private_nh_, const ros::NodeHandle &nh_):
@@ -27,8 +27,11 @@ m_isInitMotionCompleted(false)
 {
 ROS_WARN("starting frontier detector dms instance \n");
 
+	float fgridmap_conf_thr, fcostmap_conf_thr;
+
 	m_nh.getParam("/autoexplorer/debug_data_save_path", m_str_debugpath);
-	m_nh.param("/autoexplorer/frontier_cost_thr", m_frontier_cost_thr, 0.1f);
+	m_nh.param("/autoexplorer/fcostmap_conf_thr", fcostmap_conf_thr, 0.1f);
+	m_nh.param("/autoexplorer/fgridmap_conf_thr", fgridmap_conf_thr, 0.1f);
 	m_nh.param("/autoexplorer/occupancy_thr", m_noccupancy_thr, 50);
 	m_nh.param("/autoexplorer/lethal_cost_thr", m_nlethal_cost_thr, 80);
 	m_nh.param("/autoexplorer/global_width", m_nGlobalMapWidth, 4000) ;
@@ -186,7 +189,7 @@ ROS_INFO("+++++++++++++++++ end of the init motion ++++++++++++++\n");
 }
 
 
-cv::Point2f FrontierDetectorDMS::img2gridmap( cv::Point img_pt_roi  )
+cv::Point2f FrontierDetectorDMS::gridmap2world( cv::Point img_pt_roi  )
 {
 	// grid_x = (map_x - map.info.origin.position.x) / map.info.resolution
 	// grid_y = (map_y - map.info.origin.position.y) / map.info.resolution
@@ -199,12 +202,12 @@ cv::Point2f FrontierDetectorDMS::img2gridmap( cv::Point img_pt_roi  )
 	return cv::Point2f( fgx, fgy );
 }
 
-cv::Point FrontierDetectorDMS::gridmap2img( cv::Point2f grid_pt)
+cv::Point FrontierDetectorDMS::world2gridmap( cv::Point2f grid_pt)
 {
 	float fx = (grid_pt.x - m_gridmap.info.origin.position.x) / m_gridmap.info.resolution ;
 	float fy = (grid_pt.y - m_gridmap.info.origin.position.y) / m_gridmap.info.resolution ;
 
-	return cv::Point2f( fx, fy );
+	return cv::Point( (int)fx, (int)fy );
 }
 
 vector<cv::Point> FrontierDetectorDMS::eliminateSupriousFrontiers( nav_msgs::OccupancyGrid &costmapData, vector<cv::Point> frontierCandidates, int winsize)
@@ -269,7 +272,7 @@ ROS_INFO("cost map: (%f %f %d %d) gridmap: (%f %f %d %d)",
 	for( size_t idx =0; idx < frontierCandidates.size(); idx++) // frontiers in image coord
 	{
 //ROS_INFO("frontier cand: %d %d \n", frontierCandidates[idx].x, frontierCandidates[idx].y );
-		cv::Point2f frontier_in_Gridmap = img2gridmap( frontierCandidates[idx] * m_nScale );
+		cv::Point2f frontier_in_world = gridmap2world( frontierCandidates[idx] * m_nScale );
 		//returns grid value at "Xp" location
 		//map data:  100 occupied      -1 unknown       0 free
 //ROS_INFO("frontier in gridmap: %f %f origin: %f %f\n", frontier_in_Gridmap.x, frontier_in_Gridmap.y, fXstarty, fXstartx );
@@ -318,7 +321,7 @@ ROS_INFO("cost map: (%f %f %d %d) gridmap: (%f %f %d %d)",
 #endif
 		if( fcost < m_frontier_cost_thr  ) // 0. ~ 1.
 		{
-			cv::Point frontier_in_img = gridmap2img( frontier_in_Gridmap ) ;
+			cv::Point frontier_in_img = world2gridmap( frontier_in_world ) ;
 			outFrontiers.push_back( cv::Point(frontier_in_img.x / m_nScale, frontier_in_img.y / m_nScale)  );
 		}
 	}

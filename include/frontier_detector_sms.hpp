@@ -10,11 +10,13 @@
 
 
 #include "frontier_detector.hpp"
+#include "frontier_point.hpp"
+#include "frontier_filter.hpp"
 
-//#define OCCUPANCY_THR (60)
 // #define FD_DEBUG_MODE
+#define TIMING_ANALYSIS
 
-namespace frontier_detector
+namespace autoexplorer
 {
 
 using namespace std;
@@ -59,7 +61,9 @@ public:
 	void moveRobotCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg ) ;
 	void unreachablefrontierCallback(const geometry_msgs::PoseStamped::ConstPtr& msg );
 
-	vector<cv::Point> eliminateSupriousFrontiers( nav_msgs::OccupancyGrid &costmapData, vector<cv::Point> frontierCandidates, int winsize = 25 ) ;
+	//vector<cv::Point> eliminateSupriousFrontiers( nav_msgs::OccupancyGrid &costmapData, vector<cv::Point> frontierCandidates, int winsize = 25 ) ;
+	void saveGridmap( string filename, const nav_msgs::OccupancyGrid &mapData );
+	void saveFrontierCandidates( string filename, vector<FrontierPoint> voFrontierCandidates );
 
 	int displayMapAndFrontiers(const cv::Mat& mapimg, const vector<cv::Point>& frontiers, const int winsize ) ;
 	bool isValidPlan( vector<cv::Point>  );
@@ -69,8 +73,8 @@ public:
 //	geometry_msgs::PoseStamped StampedPosefromSE2( float x, float y, float yaw ) ;
 //	geometry_msgs::PoseStamped GetCurrPose ( ) ;
 
-	cv::Point2f img2gridmap( cv::Point img_pt_roi );
-	cv::Point gridmap2img( cv::Point2f grid_pt );
+	cv::Point2f gridmap2world( cv::Point img_pt_roi );
+	cv::Point   world2gridmap( cv::Point2f grid_pt );
 
 protected:
 
@@ -88,43 +92,7 @@ protected:
 
 	cv::Mat m_uMapImg, m_uMapImgROI ;
 
-
-//	visualization_msgs::Marker m_points, m_cands, m_exploration_goal, m_unreachable_points ;
-//	nav_msgs::OccupancyGrid m_gridmap;
-//	nav_msgs::OccupancyGrid m_globalcostmap ;
-//	nav_msgs::Path			m_pathplan ;
-//
-//	geometry_msgs::PoseWithCovarianceStamped m_robotpose ; // (w.r.t world)
-//	geometry_msgs::Twist m_robotvel ;
-//
-//	std::string m_worldFrameId;
-//	std::string m_mapFrameId;
-//	std::string m_baseFrameId ;
-//
-//	int m_ncols, m_nrows, m_nroi_origx, m_nroi_origy ;
-//	//int m_nCannotFindFrontierCount ;
-//	bool isdone ;
-//
-//	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> m_move_client ;
-//	ros::ServiceClient m_makeplan_client;
-//	cv::Mat m_uMapImg, m_uMapImgROI ;
-//
-//	geometry_msgs::PoseWithCovarianceStamped m_bestgoal ;
-//	set<pointset, pointset> m_unreachable_frontier_set ;
-//	cv::FileStorage m_fs;
-
-
-//	// thrs
-//	float  m_frontier_cost_thr ;
-//	int	m_noccupancy_thr ; // 0 ~ 100
-//	int m_nlethal_cost_thr ;
-//	double m_fRobotRadius ;
-
-	//	vector<cv::Point> m_frontiers;
-	//	int m_frontiers_region_thr ;
-	//	int m_globalcostmap_rows ;
-	//	int m_globalcostmap_cols ;
-	//	ROBOT_STATE m_eRobotState ;
+	FrontierFilter m_oFrontierFilter;
 
 	std::mutex mutex_robot_state;
 	std::mutex mutex_unreachable_points;

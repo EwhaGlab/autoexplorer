@@ -13,7 +13,7 @@
 //#define OCCUPANCY_THR (60)
 //#define FD_DEBUG_MODE
 
-namespace frontier_detector
+namespace autoexplorer
 {
 
 using namespace std;
@@ -50,8 +50,8 @@ public:
 //	geometry_msgs::PoseStamped StampedPosefromSE2( float x, float y, float yaw ) ;
 //	geometry_msgs::PoseStamped GetCurrPose ( ) ;
 
-	cv::Point2f img2gridmap( cv::Point img_pt_roi );
-	cv::Point gridmap2img( cv::Point2f grid_pt );
+	cv::Point world2gridmap( cv::Point2f img_pt_roi );
+	cv::Point2f gridmap2world( cv::Point grid_pt );
 
 	inline int closestmultiple( const int num, const int sz )
 	{
@@ -73,54 +73,8 @@ protected:
 	string m_str_inputparams ;
 	bool m_isInitMotionCompleted ;
 
+	float m_frontier_cost_thr ;
 	cv::Mat m_uMapImg, m_uMapImgROI ;
-
-//	visualization_msgs::Marker m_points, m_cands, m_exploration_goal, m_unreachable_points ;
-//	nav_msgs::OccupancyGrid m_gridmap;
-//	nav_msgs::OccupancyGrid m_globalcostmap ;
-//	nav_msgs::Path			m_pathplan ;
-//
-//	geometry_msgs::PoseWithCovarianceStamped m_robotpose ; // (w.r.t world)
-//	geometry_msgs::Twist m_robotvel ;
-//
-//	std::string m_worldFrameId;
-//	std::string m_mapFrameId;
-//	std::string m_baseFrameId ;
-//
-//	int m_ncols, m_nrows, m_nroi_origx, m_nroi_origy ;
-//	//int m_nCannotFindFrontierCount ;
-//	bool isdone ;
-//	ros::NodeHandle m_nh;
-//	ros::NodeHandle m_nh_private;
-//
-//	//tf::TransformListener m_tfListener;
-//
-//	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> m_move_client ;
-//	//actionlib::ActionClient<move_base_msgs::MoveBaseAction> m_move_client ;
-//	ros::ServiceClient m_makeplan_client;
-//
-//	cv::Mat m_uMapImg, m_uMapImgROI ;
-//
-//	cv::Point2f img2gridmap( cv::Point img_pt_roi );
-//	cv::Point gridmap2img( cv::Point2f grid_pt );
-//
-//	vector<cv::Point> m_frontiers;
-//
-//	int m_frontiers_region_thr ;
-//	int m_globalcostmap_rows ;
-//	int m_globalcostmap_cols ;
-//	ROBOT_STATE m_eRobotState ;
-//
-//	geometry_msgs::PoseWithCovarianceStamped m_bestgoal ;
-//	set<pointset, pointset> m_unreachable_frontier_set ;
-//	cv::FileStorage m_fs;
-
-
-	// thrs
-//	float  m_frontier_cost_thr ;
-//	int	m_noccupancy_thr ; // 0 ~ 100
-//	int m_nlethal_cost_thr ;
-//	double m_fRobotRadius ;
 
 	std::mutex mutex_robot_state;
 	std::mutex mutex_unreachable_points;

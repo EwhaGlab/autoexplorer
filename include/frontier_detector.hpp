@@ -63,7 +63,7 @@ typedef struct _FrontierInfo {
 	int revenue ;
 }FrontierInfo ;
 
-namespace frontier_detector
+namespace autoexplorer
 {
 
 using namespace std;
@@ -216,6 +216,7 @@ protected:
 	int m_nROISize ;
 	int m_nGlobalMapWidth, m_nGlobalMapHeight, m_nGlobalMapCentX, m_nGlobalMapCentY ; // global
 	float m_fResolution ;
+	int m_nCorrectionWindowWidth ;
 
 	visualization_msgs::Marker m_points, m_cands, m_exploration_goal, m_unreachable_points ;
 	nav_msgs::OccupancyGrid m_gridmap;
@@ -246,7 +247,8 @@ protected:
 	set<pointset, pointset> m_unreachable_frontier_set ;
 
 	// thrs
-	float  m_frontier_cost_thr ;
+	//float	m_costmap_conf_thr ;
+	//float	m_gridmap_conf_thr ;
 	int	m_noccupancy_thr ; // 0 ~ 100
 	int m_nlethal_cost_thr ;
 	double m_fRobotRadius ;

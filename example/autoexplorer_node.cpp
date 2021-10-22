@@ -18,7 +18,7 @@
 #include "frontier_detector_sms.hpp"
 #include "frontier_detector_dms.hpp"
 
-using namespace frontier_detector;
+using namespace autoexplorer;
 
 enum SLAM_ID{GMAPPING=0, CARTOGRAPHER};
 

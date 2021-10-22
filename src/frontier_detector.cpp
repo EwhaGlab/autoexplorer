@@ -8,8 +8,7 @@
 
 #include "frontier_detector.hpp"
 
-
-namespace frontier_detector
+namespace autoexplorer
 {
 
 FrontierDetector::FrontierDetector():
@@ -39,7 +38,7 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 
 	correctedPoint = frontierCandidate;
 
-	CV_Assert( winsize % 2 > 0 ); // must be odd number
+	CV_Assert( winsize % 2 > 0 ); // must be an odd number
 
 	int height = gridmap.info.height ;
 	int width  = gridmap.info.width ;
@@ -48,32 +47,34 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 	int w = winsize ;
 	int h = winsize ;
 
-	int r = winsize - (winsize-1)/2 ;
-	int c = winsize - (winsize-1)/2 ;
-	int y = r - 1;
-	int x = c - 1;
+	int yc = winsize - (winsize-1)/2 ;
+	int xc = winsize - (winsize-1)/2 ;
+	int y = yc - 1;
+	int x = xc - 1;
+
 	int gy_ = frontierCandidate.y;
 	int gx_ = frontierCandidate.x;
-	int gx, gy;
+	int gx = gx_;
+	int gy = gy_;
 
 	//vector<vector<int>> dirs = { {0, -1}, {-1, 0}, {0, 1}, {1, 0} } ;
 
-	int size = w * h ;
+	int numcells = w * h ;
 
 	int i = 0;
 	int curridx = x + y * width ;
 	int cnt = 0;
 
-	int idx = gx_ + x + ( gy_ + y ) * width ;
+	int idx = gx_ + (gy_ ) * width ;
 
 	int8_t fpt_hat_occupancy = Data[idx] ;
 
-	//ROS_WARN(" width: %d \t w: %d \n", width, w);
-	//ROS_INFO(" %d (%d,%d) (%d,%d)", idx, (gx+x), (gy+y), 0, 0 );
+	ROS_INFO("orig idx: %d (%d,%d) (%d,%d)", idx, (gx_), (gy_), x, y );
 
 	if( fpt_hat_occupancy == 0 ) // is at the free region. thus, the closest unknown cell is the corrected fpt.
 	{
-		while ( cnt < size )
+		ROS_INFO("cent occupancy is 0\n");
+		while ( cnt < numcells )
 		{
 			for( int j = (i%2)*2; j < (i%2)*2+2; j++ )
 			{
@@ -82,30 +83,52 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 
 				for( int k=0; k < i+1; k++ )
 				{
-					x = x + dx;
-					y = y + dy;
-					if( (0 <= x && x < w) && (0 <= y && y < h) )
+					x = x + dx ;
+					y = y + dy ;
+					if( (0 <= x && x < w ) && (0 <= y && y < h ) )
 					{
-						gx = gx_ + x;
-						gy = gy_ + y;
+						gx = gx + dx;
+						gy = gy + dy;
 						idx = gx + gy * width ;
 						int8_t out = Data[idx] ;
-						//ROS_INFO(" %d (%d,%d) (%d,%d)", idx, (gx+x), (gy+y), dx, dy );
+						ROS_INFO(" %d (%d,%d) (%d,%d)", idx, gx, gy, dx, dy );
 						if( out == -1 ) // fpt_hat is a free cell. Thus, this pt is the corrected fpt.
 						{
-							break;
+							ROS_INFO(" corrected pixel is %d %d \n", gx, gy );
+							correctedPoint.x = gx ;
+							correctedPoint.y = gy ;
+							return true;
 						}
 					}
+					cnt++ ;
 				}
 			}
 			i++ ;
-			cnt++ ;
 		}
 	}
-	// if fpt_hat is already at the unknown region, we might need to correct the position of this point
+	// if fpt_hat is already at the unknown region, we might need to shift this position to a boundary cell position
 	else if( fpt_hat_occupancy < 0 )
 	{
-		while ( cnt < size )
+		ROS_INFO("cent occupancy is -1\n");
+
+		// see if there is a neighboring free cell
+		for(int ii=-1; ii <2; ii++ )
+		{
+			for(int jj=-1; jj <2; jj++ )
+			{
+				if(ii == 0 && jj == 0)
+					continue;
+
+				int8_t nn = Data[ gx + jj + (gy + ii)*width];
+				if(nn == 0)
+				{
+					ROS_INFO("nn pix %d %d is free, thus no need to do any correction \n", gx+jj, gy+ii);
+					return true;
+				}
+			}
+		}
+
+		while ( cnt < numcells )
 		{
 			for( int j = (i%2)*2; j < (i%2)*2+2; j++ )
 			{
@@ -114,22 +137,24 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 
 				for( int k=0; k < i+1; k++ )
 				{
-					x = x + dx;
-					y = y + dy;
-					if( (0 <= x && x < w) && (0 <= y && y < h) )
+					x = x + dx ;
+					y = y + dy ;
+					ROS_INFO("x y h w i cnt (%d %d) (%d %d) %d %d %d | ", x, y, h, w, j, i, cnt);
+					if( (0 <= x && x < w ) && (0 <= y && y < h ) )
 					{
-						gx = gx_ + x ;
-						gy = gy_ + y ;
+						gx = gx + dx;
+						gy = gy + dy;
 						idx = gx + gy * width ;
 						int8_t out = Data[idx] ;
-						//ROS_INFO(" %d (%d,%d) (%d,%d)", idx, (gx+x), (gy+y), dx, dy );
+						ROS_INFO(" %d (%d,%d) (%d,%d)", idx, gx, gy, dx, dy );
 
 						// ------------ //
 						// oooooooooooo //
 						// oooo x ooooo //
 
-						if( out == 0 ) // We found the nn (free) border line. go ahead check its 7 neighbors
+						if( out == 0 ) // We found the nn (free) border pixel. go ahead check its 7 neighbors
 						{
+							ROS_INFO(" found a free pixel at %d %d \n", gx, gy );
 							for(int ii=-1; ii <2; ii++ )
 							{
 								for(int jj=-1; jj <2; jj++ )
@@ -142,27 +167,19 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 									{
 										gx = gx + jj ;
 										gy = gy + ii ;
-										break;
+										ROS_INFO(" corrected pixel is %d %d \n", gx, gy );
+										correctedPoint.x = gx ;
+										correctedPoint.y = gy ;
+										return true;
 									}
 								}
 							}
-
-//							int8_t lu = Data[ gx-1 + (gy-1)*width ];
-//							int8_t cu = Data[ gx   + (gy-1)*width ];
-//							int8_t ru = Data[ gx+1 + (gy-1)*width ];
-//
-//							int8_t lc = Data[ gx-1 + (gy  )*width ];
-//							int8_t rc = Data[ gx+1 + (gy  )*width ];
-//
-//							int8_t ld = Data[ gx-1 + (gy+1)*width ];
-//							int8_t cd = Data[ gx   + (gy+1)*width ];
-//							int8_t rd = Data[ gx+1 + (gy+1)*width ];
 						}
 					}
+					cnt++ ;
 				}
 			}
 			i++ ;
-			cnt++ ;
 		}
 	}
 
@@ -170,9 +187,6 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 	{
 		return false ;
 	}
-
-	correctedPoint.x = gx ;
-	correctedPoint.y = gy ;
 
 	return true ;
 }
