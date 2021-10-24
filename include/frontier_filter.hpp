@@ -8,7 +8,7 @@
 #ifndef INCLUDE_FRONTIER_FILTER_HPP_
 #define INCLUDE_FRONTIER_FILTER_HPP_
 
-
+#include <fstream>
 #include <ros/console.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -21,6 +21,7 @@
 
 #include "frontier_point.hpp"
 
+using namespace std;
 namespace autoexplorer
 {
 
@@ -64,6 +65,16 @@ public:
 
 	void measureCostmapConfidence( const nav_msgs::OccupancyGrid& costmapData, std::vector<FrontierPoint>& voFrontierCandidates ) ;
 	void measureGridmapConfidence( const nav_msgs::OccupancyGrid& gridmapData, std::vector<FrontierPoint>& voFrontierCandidates ) ;
+
+	inline float GetCostmapConf() const
+	{
+		return m_fcostmap_conf_thr ;
+	}
+
+	inline float GetGridmapConf()
+	{
+		return m_fgridmap_conf_thr ;
+	}
 
 private:
 

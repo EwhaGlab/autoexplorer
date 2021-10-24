@@ -205,6 +205,9 @@ public:
 		return outPose;
 	}
 
+	void SetVizMarkers( const string& frame_id,	const float& fR, const float& fG, const float& fB,
+						const float& fscale, visualization_msgs::Marker&  viz_marker);
+
 protected:
 
 	string m_str_debugpath ;

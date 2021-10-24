@@ -69,11 +69,11 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 
 	int8_t fpt_hat_occupancy = Data[idx] ;
 
-	ROS_INFO("orig idx: %d (%d,%d) (%d,%d)", idx, (gx_), (gy_), x, y );
+	//ROS_INFO("orig idx: %d (%d,%d) (%d,%d)", idx, (gx_), (gy_), x, y );
 
 	if( fpt_hat_occupancy == 0 ) // is at the free region. thus, the closest unknown cell is the corrected fpt.
 	{
-		ROS_INFO("cent occupancy is 0\n");
+		//ROS_INFO("cent occupancy is 0\n");
 		while ( cnt < numcells )
 		{
 			for( int j = (i%2)*2; j < (i%2)*2+2; j++ )
@@ -91,10 +91,10 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 						gy = gy + dy;
 						idx = gx + gy * width ;
 						int8_t out = Data[idx] ;
-						ROS_INFO(" %d (%d,%d) (%d,%d)", idx, gx, gy, dx, dy );
+						//ROS_INFO(" %d (%d,%d) (%d,%d)", idx, gx, gy, dx, dy );
 						if( out == -1 ) // fpt_hat is a free cell. Thus, this pt is the corrected fpt.
 						{
-							ROS_INFO(" corrected pixel is %d %d \n", gx, gy );
+							//ROS_INFO(" corrected pixel is %d %d \n", gx, gy );
 							correctedPoint.x = gx ;
 							correctedPoint.y = gy ;
 							return true;
@@ -109,7 +109,7 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 	// if fpt_hat is already at the unknown region, we might need to shift this position to a boundary cell position
 	else if( fpt_hat_occupancy < 0 )
 	{
-		ROS_INFO("cent occupancy is -1\n");
+		//ROS_INFO("cent occupancy is -1\n");
 
 		// see if there is a neighboring free cell
 		for(int ii=-1; ii <2; ii++ )
@@ -122,7 +122,7 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 				int8_t nn = Data[ gx + jj + (gy + ii)*width];
 				if(nn == 0)
 				{
-					ROS_INFO("nn pix %d %d is free, thus no need to do any correction \n", gx+jj, gy+ii);
+					//ROS_INFO("nn pix %d %d is free, thus no need to do any correction \n", gx+jj, gy+ii);
 					return true;
 				}
 			}
@@ -139,14 +139,14 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 				{
 					x = x + dx ;
 					y = y + dy ;
-					ROS_INFO("x y h w i cnt (%d %d) (%d %d) %d %d %d | ", x, y, h, w, j, i, cnt);
+					//ROS_INFO("x y h w i cnt (%d %d) (%d %d) %d %d %d | ", x, y, h, w, j, i, cnt);
 					if( (0 <= x && x < w ) && (0 <= y && y < h ) )
 					{
 						gx = gx + dx;
 						gy = gy + dy;
 						idx = gx + gy * width ;
 						int8_t out = Data[idx] ;
-						ROS_INFO(" %d (%d,%d) (%d,%d)", idx, gx, gy, dx, dy );
+					//	ROS_INFO(" %d (%d,%d) (%d,%d)", idx, gx, gy, dx, dy );
 
 						// ------------ //
 						// oooooooooooo //
@@ -154,7 +154,7 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 
 						if( out == 0 ) // We found the nn (free) border pixel. go ahead check its 7 neighbors
 						{
-							ROS_INFO(" found a free pixel at %d %d \n", gx, gy );
+							//ROS_INFO(" found a free pixel at %d %d \n", gx, gy );
 							for(int ii=-1; ii <2; ii++ )
 							{
 								for(int jj=-1; jj <2; jj++ )
@@ -167,7 +167,7 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 									{
 										gx = gx + jj ;
 										gy = gy + ii ;
-										ROS_INFO(" corrected pixel is %d %d \n", gx, gy );
+										//ROS_INFO(" corrected pixel is %d %d \n", gx, gy );
 										correctedPoint.x = gx ;
 										correctedPoint.y = gy ;
 										return true;
@@ -192,6 +192,26 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 }
 
 
+void FrontierDetector::SetVizMarkers( const string& frame_id,
+					const float& fR, const float& fG, const float& fB, const float& fscale, visualization_msgs::Marker&  viz_marker)
+{
+	viz_marker.header.frame_id= frame_id;
+	viz_marker.header.stamp=ros::Time(0);
+	viz_marker.ns= "markers";
+	viz_marker.id = 0;
+	viz_marker.type = viz_marker.POINTS;
+
+	viz_marker.action = viz_marker.ADD;
+	viz_marker.pose.orientation.w =1.0;
+	viz_marker.scale.x= fscale;
+	viz_marker.scale.y= fscale;
+
+	viz_marker.color.r = fR;
+	viz_marker.color.g = fG;
+	viz_marker.color.b = fB;
+	viz_marker.color.a=1.0;
+	viz_marker.lifetime = ros::Duration();
+}
 
 //void accessFrontierPoint( ){}
 

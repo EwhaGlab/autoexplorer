@@ -91,76 +91,83 @@ ROS_WARN("nscale: %d \n", m_nScale);
 	}
 ROS_WARN("move_base action server is up");
 
+
 // Set markers
 
-	m_cands.header.frame_id= m_worldFrameId;
-	m_cands.header.stamp=ros::Time(0);
-	m_cands.ns= "markers";
-	m_cands.id = 0;
-	m_cands.type = m_cands.POINTS;
+	SetVizMarkers( m_worldFrameId, 1.f, 0.f, 0.f, 0.2, m_cands );
+	SetVizMarkers( m_worldFrameId, 0.f, 1.f, 0.f, 0.3, m_points );
+	SetVizMarkers( m_worldFrameId, 1.f, 0.f, 1.f, 0.5, m_exploration_goal );
+	SetVizMarkers( m_worldFrameId, 1.f, 1.f, 0.f, 0.5, m_unreachable_points );
 
-	m_cands.action = m_cands.ADD;
-	m_cands.pose.orientation.w =1.0;
-	m_cands.scale.x=0.2;
-	m_cands.scale.y=0.2;
 
-	m_cands.color.r = 255.0/255.0;
-	m_cands.color.g = 0.0/255.0;
-	m_cands.color.b = 0.0/255.0;
-	m_cands.color.a=1.0;
-	m_cands.lifetime = ros::Duration();
-
-	m_points.header.frame_id= m_worldFrameId;
-	m_points.header.stamp=ros::Time(0);
-	m_points.ns= "markers";
-	m_points.id = 0;
-	m_points.type = m_points.POINTS;
-
-	//Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
-	m_points.action = m_points.ADD;
-	m_points.pose.orientation.w =1.0;
-	m_points.scale.x= 0.3;
-	m_points.scale.y= 0.3;
-
-	m_points.color.r = 0.0/255.0;
-	m_points.color.g = 255.0/255.0;
-	m_points.color.b = 0.0/255.0;
-	m_points.color.a = 1.0;
-	m_points.lifetime = ros::Duration();
-
-	// set the goal marker
-	m_exploration_goal.header.frame_id= m_worldFrameId;
-	m_exploration_goal.header.stamp=ros::Time(0);
-	m_exploration_goal.ns= "markers";
-	m_exploration_goal.id = 0;
-	m_exploration_goal.type = m_exploration_goal.POINTS;
-
-	m_exploration_goal.action = m_exploration_goal.ADD;
-	m_exploration_goal.pose.orientation.w =1.0;
-	m_exploration_goal.scale.x=0.5;
-	m_exploration_goal.scale.y=0.5;
-	m_exploration_goal.color.r = 255.0/255.0;
-	m_exploration_goal.color.g = 0.0/255.0;
-	m_exploration_goal.color.b = 255.0/255.0;
-	m_exploration_goal.color.a = 1.0;
-	m_exploration_goal.lifetime = ros::Duration();
-
-	// set invalid frontier marker
-	m_unreachable_points.header.frame_id= m_worldFrameId;
-	m_unreachable_points.header.stamp=ros::Time(0);
-	m_unreachable_points.ns= "markers";
-	m_unreachable_points.id = 0;
-	m_unreachable_points.type = m_unreachable_points.POINTS;
-
-	m_unreachable_points.action = m_unreachable_points.ADD;
-	m_unreachable_points.pose.orientation.w =1.0;
-	m_unreachable_points.scale.x=0.5;
-	m_unreachable_points.scale.y=0.5;
-	m_unreachable_points.color.r = 1.0;
-	m_unreachable_points.color.g = 1.0;
-	m_unreachable_points.color.b = 0.0; //255.0/255.0;
-	m_unreachable_points.color.a = 1.0;
-	m_unreachable_points.lifetime = ros::Duration();
+//	m_cands.header.frame_id= m_worldFrameId;
+//	m_cands.header.stamp=ros::Time(0);
+//	m_cands.ns= "markers";
+//	m_cands.id = 0;
+//	m_cands.type = m_cands.POINTS;
+//
+//	m_cands.action = m_cands.ADD;
+//	m_cands.pose.orientation.w =1.0;
+//	m_cands.scale.x=0.2;
+//	m_cands.scale.y=0.2;
+//
+//	m_cands.color.r = 255.0/255.0;
+//	m_cands.color.g = 0.0/255.0;
+//	m_cands.color.b = 0.0/255.0;
+//	m_cands.color.a=1.0;
+//	m_cands.lifetime = ros::Duration();
+//
+//	m_points.header.frame_id= m_worldFrameId;
+//	m_points.header.stamp=ros::Time(0);
+//	m_points.ns= "markers";
+//	m_points.id = 0;
+//	m_points.type = m_points.POINTS;
+//
+//	//Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
+//	m_points.action = m_points.ADD;
+//	m_points.pose.orientation.w =1.0;
+//	m_points.scale.x= 0.3;
+//	m_points.scale.y= 0.3;
+//
+//	m_points.color.r = 0.0/255.0;
+//	m_points.color.g = 255.0/255.0;
+//	m_points.color.b = 0.0/255.0;
+//	m_points.color.a = 1.0;
+//	m_points.lifetime = ros::Duration();
+//
+//	// set the goal marker
+//	m_exploration_goal.header.frame_id= m_worldFrameId;
+//	m_exploration_goal.header.stamp=ros::Time(0);
+//	m_exploration_goal.ns= "markers";
+//	m_exploration_goal.id = 0;
+//	m_exploration_goal.type = m_exploration_goal.POINTS;
+//
+//	m_exploration_goal.action = m_exploration_goal.ADD;
+//	m_exploration_goal.pose.orientation.w =1.0;
+//	m_exploration_goal.scale.x=0.5;
+//	m_exploration_goal.scale.y=0.5;
+//	m_exploration_goal.color.r = 255.0/255.0;
+//	m_exploration_goal.color.g = 0.0/255.0;
+//	m_exploration_goal.color.b = 255.0/255.0;
+//	m_exploration_goal.color.a = 1.0;
+//	m_exploration_goal.lifetime = ros::Duration();
+//
+//	// set invalid frontier marker
+//	m_unreachable_points.header.frame_id= m_worldFrameId;
+//	m_unreachable_points.header.stamp=ros::Time(0);
+//	m_unreachable_points.ns= "markers";
+//	m_unreachable_points.id = 0;
+//	m_unreachable_points.type = m_unreachable_points.POINTS;
+//
+//	m_unreachable_points.action = m_unreachable_points.ADD;
+//	m_unreachable_points.pose.orientation.w =1.0;
+//	m_unreachable_points.scale.x=0.5;
+//	m_unreachable_points.scale.y=0.5;
+//	m_unreachable_points.color.r = 1.0;
+//	m_unreachable_points.color.g = 1.0;
+//	m_unreachable_points.color.b = 0.0; //255.0/255.0;
+//	m_unreachable_points.color.a = 1.0;
+//	m_unreachable_points.lifetime = ros::Duration();
 
 }
 
@@ -490,9 +497,12 @@ void FrontierDetectorSMS::publishDone( )
 
 void FrontierDetectorSMS::globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 {
+	static int costmap_cnt = 0;
 	m_globalcostmap = *msg ;
 	m_globalcostmap_rows = m_globalcostmap.info.height ;
 	m_globalcostmap_cols = m_globalcostmap.info.width ;
+
+	ROS_INFO("\n costmap update cnt : %d \n", costmap_cnt++);
 }
 
 void FrontierDetectorSMS::robotPoseCallBack( const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg )
@@ -689,17 +699,6 @@ startTime = ros::WallTime::now();
 		voFrontierCands.push_back(oPoint);
 	}
 
-static int mapidx = 0;
-char cgridmapfile[100];
-char cfptfile[100];
-sprintf(cgridmapfile,"%s/tmp/gm%04d.txt", m_str_debugpath.c_str(), mapidx );
-std::string strgridmapfile(cgridmapfile) ;
-sprintf(cfptfile,"%s/tmp/fpt%04d.txt", m_str_debugpath.c_str(), mapidx );
-std::string strfptfile(cfptfile) ;
-
-saveGridmap( strgridmapfile, m_gridmap ) ;
-saveFrontierCandidates( strfptfile, voFrontierCands );
-mapidx++;
 
 // save gridmap and frontier candidates
 //ROS_INFO("costmap msg width: %d \n", m_globalcostmap.info.width );
@@ -709,6 +708,9 @@ mapidx++;
 	m_exploration_goal.points.clear();
 	m_points.points.clear();
 //	m_unreachable_points.points.clear();
+
+	const float fcm_conf = m_oFrontierFilter.GetCostmapConf() ;
+	const float fgm_conf = m_oFrontierFilter.GetGridmapConf() ;
 
 	for(size_t idx=0; idx < voFrontierCands.size(); idx++)
 	{
@@ -729,12 +731,34 @@ ROS_INFO( "eliminating supurious frontiers \n" );
 
 		m_oFrontierFilter.measureCostmapConfidence(m_globalcostmap, voFrontierCands);
 		m_oFrontierFilter.measureGridmapConfidence(m_gridmap, 		voFrontierCands);
+
+		for(size_t idx=0; idx < voFrontierCands.size(); idx++)
+			voFrontierCands[idx].SetFrontierFlag( fcm_conf, fgm_conf );
 	}
 	else
 	{
 		ROS_INFO("costmap hasn't updated \n");
 		//frontiers = frontiers_cand ; // points in img coord
 	}
+
+static int mapidx = 0;
+char cgridmapfile[100];
+char costmapfile[100];
+char cfptfile[100];
+sprintf(cgridmapfile,"%s/tmp/gm%04d.txt", m_str_debugpath.c_str(), mapidx );
+std::string strgridmapfile(cgridmapfile) ;
+
+sprintf(costmapfile,"%s/tmp/cm%04d.txt", m_str_debugpath.c_str(), mapidx );
+std::string strcostmapfile(costmapfile) ;
+
+sprintf(cfptfile,"%s/tmp/fpt%04d.txt", m_str_debugpath.c_str(), mapidx );
+std::string strfptfile(cfptfile) ;
+
+saveGridmap( strgridmapfile, m_gridmap ) ;
+saveGridmap( strcostmapfile, m_globalcostmap ) ;
+saveFrontierCandidates( strfptfile, voFrontierCands );
+mapidx++;
+
 
 	for (size_t idx=0; idx < voFrontierCands.size(); idx++)
 	{
@@ -1031,7 +1055,10 @@ void FrontierDetectorSMS::saveFrontierCandidates( string filename, vector<Fronti
 		FrontierPoint oFP = voFrontierCandidates[idx];
 		cv::Point initposition = oFP.GetInitGridmapPosition() ;
 		cv::Point correctedposition = oFP.GetCorrectedGridmapPosition() ;
-		ofs_fpts << initposition.x << " " << initposition.y << " " << correctedposition.x << " " << correctedposition.y << endl;
+		float fcmconf = oFP.GetCMConfidence() ;
+		float fgmconf = oFP.GetGMConfidence() ;
+		ofs_fpts << fcmconf << " " << fgmconf << " " << oFP.isConfidentFrontierPoint() << " " <<
+		initposition.x << " " << initposition.y << " " << correctedposition.x << " " << correctedposition.y << endl;
 	}
 	ofs_fpts.close();
 }

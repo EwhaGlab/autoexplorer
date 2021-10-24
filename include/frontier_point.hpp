@@ -100,9 +100,9 @@ public:
 	}
 
 
-	void SetFrontierFlag()
+	void SetFrontierFlag( const float& fcm_conf, const float& fgm_conf)
 	{
-		if( mf_gridmap_confidence < mf_gridmap_conf_thr || mf_costmap_confidence < mf_costmap_conf_thr)
+		if( mf_gridmap_confidence < fgm_conf || mf_costmap_confidence < fcm_conf)
 			mb_isfrontierpoint = false;
 	};
 

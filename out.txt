@@ -1,0 +1,428 @@
+... logging to /home/hankm/.ros/log/1999acce-3473-11ec-a228-107b448e8cda/roslaunch-prometheus-24515.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+]2;/home/hankm/catkin_ws/install_isolated/share/autoexplorer/launch/autoexplorer.launch
+[1mstarted roslaunch server http://prometheus:40171/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /autoexplorer/costmap_conf_thr: 0.9
+ * /autoexplorer/debug_data_save_path: /home/hankm/resul...
+ * /autoexplorer/global_height: 4000
+ * /autoexplorer/global_width: 4000
+ * /autoexplorer/gridmap_conf_thr: 0.8
+ * /autoexplorer/lethal_cost_thr: 80
+ * /autoexplorer/num_downsamples: 1
+ * /autoexplorer/occupancy_thr: 0
+ * /autoexplorer/weak_comp_thr: 10
+ * /frame_id: map
+ * /move_base_node/TrajectoryPlannerROS/acc_lim_theta: 2.0
+ * /move_base_node/TrajectoryPlannerROS/acc_lim_x: 0.1
+ * /move_base_node/TrajectoryPlannerROS/acc_lim_y: 0.2
+ * /move_base_node/TrajectoryPlannerROS/clearing_rotation_allowed: True
+ * /move_base_node/TrajectoryPlannerROS/holonomic_robot: False
+ * /move_base_node/TrajectoryPlannerROS/max_vel_theta: 0.9
+ * /move_base_node/TrajectoryPlannerROS/max_vel_x: 0.5
+ * /move_base_node/TrajectoryPlannerROS/meter_scoring: True
+ * /move_base_node/TrajectoryPlannerROS/min_in_place_vel_theta: 0.7
+ * /move_base_node/TrajectoryPlannerROS/min_vel_x: 0.05
+ * /move_base_node/TrajectoryPlannerROS/recovery_behavior_enabled: True
+ * /move_base_node/TrajectoryPlannerROS/xy_goal_tolerance: 0.6
+ * /move_base_node/TrajectoryPlannerROS/yaw_goal_tolerance: 2.0
+ * /move_base_node/controller_frequency: 5.0
+ * /move_base_node/controller_patience: 1
+ * /move_base_node/global_costmap/cost_factor: 0.55
+ * /move_base_node/global_costmap/cost_scaling_factor: 1.0
+ * /move_base_node/global_costmap/footprint_padding: 0
+ * /move_base_node/global_costmap/global_frame: map
+ * /move_base_node/global_costmap/height: 200.0
+ * /move_base_node/global_costmap/inflation_radius: 0.55
+ * /move_base_node/global_costmap/lethal_cost: 253
+ * /move_base_node/global_costmap/lethal_cost_threshold: 253
+ * /move_base_node/global_costmap/neutral_cost: 66
+ * /move_base_node/global_costmap/obstacles/base_scan/clearing: True
+ * /move_base_node/global_costmap/obstacles/base_scan/data_type: LaserScan
+ * /move_base_node/global_costmap/obstacles/base_scan/marking: True
+ * /move_base_node/global_costmap/obstacles/base_scan/max_obstacle_height: 0.3
+ * /move_base_node/global_costmap/obstacles/base_scan/min_obstacle_height: 0.25
+ * /move_base_node/global_costmap/obstacles/base_scan/obstacle_range: 4.0
+ * /move_base_node/global_costmap/obstacles/base_scan/raytrace_range: 5.0
+ * /move_base_node/global_costmap/obstacles/base_scan/topic: base_scan
+ * /move_base_node/global_costmap/obstacles/max_obstacle_height: 2.0
+ * /move_base_node/global_costmap/obstacles/observation_sources: base_scan
+ * /move_base_node/global_costmap/obstacles/z_resolution: 0.125
+ * /move_base_node/global_costmap/obstacles/z_voxels: 16
+ * /move_base_node/global_costmap/plugins: [{'type': 'costma...
+ * /move_base_node/global_costmap/publish_frequency: 2.0
+ * /move_base_node/global_costmap/resolution: 0.05
+ * /move_base_node/global_costmap/robot_base_frame: base_link
+ * /move_base_node/global_costmap/robot_radius: 0.3
+ * /move_base_node/global_costmap/static_map: True
+ * /move_base_node/global_costmap/transform_tolerance: 0.5
+ * /move_base_node/global_costmap/update_frequency: 2.0
+ * /move_base_node/global_costmap/width: 200.0
+ * /move_base_node/local_costmap/cost_scaling_factor: 1.0
+ * /move_base_node/local_costmap/footprint_padding: 0
+ * /move_base_node/local_costmap/global_frame: map
+ * /move_base_node/local_costmap/height: 4.0
+ * /move_base_node/local_costmap/inflation_radius: 0.55
+ * /move_base_node/local_costmap/lethal_cost_threshold: 253
+ * /move_base_node/local_costmap/obstacles/base_scan/clearing: True
+ * /move_base_node/local_costmap/obstacles/base_scan/data_type: LaserScan
+ * /move_base_node/local_costmap/obstacles/base_scan/marking: True
+ * /move_base_node/local_costmap/obstacles/base_scan/max_obstacle_height: 0.3
+ * /move_base_no[0m[ INFO] [1635050441.381028757]: args: /home/hankm/catkin_ws/install_isolated/lib/autoexplorer/autoexplorer_node gmapping ??? 
+[0m
+[0m[ INFO] [1635050441.383083476]: slamid: gmapping 0 
+[0m
+[0m[ INFO] [1635050441.383104435]: Initializing frontier_detector_sms 
+[0m
+[0m[ INFO] [1635050442.647105200, 7142.518000000]: Robot state in mapdataCallback: -1 
+ [0m
+[0m[ INFO] [1635050442.647916972, 7142.518000000]: +++++++++++++++++ Start the init motion ++++++++++++++
+[0m
+[0m[ INFO] [1635050455.512837756, 7154.000000000]: +++++++++++++++++ end of the init motion ++++++++++++++
+[0m
+[0m[ INFO] [1635050455.524708808, 7154.011000000]: 
+ costmap update cnt : 0 
+[0m
+[0m[ INFO] [1635050455.527738404, 7154.012000000]: Robot state in mapdataCallback: -1 
+ [0m
+[0m[ INFO] [1635050455.532886498, 7154.017000000]: in mapdataCallback (map info: -100.000000 -100.000000 4000 4000)
+[0m
+[0m[ INFO] [1635050455.622915170, 7154.098000000]: ******* Begin mapdataCallback procedure ******** 
+[0m
+[0m[ INFO] [1635050456.160467012, 7154.575000000]: eliminating supurious frontiers 
+[0m
+[0m[ INFO] [1635050456.160500144, 7154.575000000]: eliminating suprious frontiers in the costmap 
+[0m
+[0m[ INFO] [1635050456.162279510, 7154.576000000]: origin in costmap: -100.000000 -100.000000
+[0m
+[0m[ INFO] [1635050459.145442356, 7157.329000000]: Looking for a new plan 
+[0m
+[0m[ INFO] [1635050464.495110654, 7162.244000000]: @mapDataCallback start(0.000000 0.000000) found the best goal(6.600000 -20.300001) best_len (175)
+[0m
+[0m[ INFO] [1635050464.495149376, 7162.244000000]: 
+  ****************************************************** 
+ 	 mapDataCallback exec time (ms): 8967.358955 
+  ****************************************************** 
+ [0m
+[0m[ INFO] [1635050464.496735853, 7162.245000000]: Robot state in moveRobotCallback: -1 
+ [0m
+[0m[ INFO] [1635050464.496769215, 7162.245000000]: @moveRobotCallback received a plan
+[0m
+[0m[ INFO] [1635050479.543931533, 7175.462000000]: DONECB: Finished in state [SUCCEEDED][0m
+[0m[ INFO] [1635050479.543970055, 7175.462000000]: touch down 
+[0m
+[0m[ INFO] [1635050479.547222276, 7175.465000000]: Robot state in mapdataCallback: -1 
+ [0m
+[0m[ INFO] [1635050479.548727271, 7175.466000000]: in mapdataCallback (map info: -100.000000 -100.000000 4000 4000)
+[0m
+[0m[ INFO] [1635050479.651517388, 7175.555000000]: ******* Begin mapdataCallback procedure ******** 
+[0m
+[0m[ INFO] [1635050480.202353717, 7176.037000000]: eliminating supurious frontiers 
+[0m
+[0m[ INFO] [1635050480.202382080, 7176.037000000]: eliminating suprious frontiers in the costmap 
+[0m
+[0m[ INFO] [1635050480.203857409, 7176.038000000]: origin in costmap: -100.000000 -100.000000
+[0m
+[0m[ INFO] [1635050483.154604846, 7178.670000000]: Looking for a new plan 
+[0m
+[0m[ INFO] [1635050492.124513918, 7186.653000000]: @mapDataCallback start(0.000000 0.000000) found the best goal(2.500000 -22.800001) best_len (223)
+[0m
+[0m[ INFO] [1635050492.124544876, 7186.653000000]: 
+  ****************************************************** 
+ 	 mapDataCallback exec time (ms): 12577.291291 
+  ****************************************************** 
+ [0m
+[0m[ INFO] [1635050492.126734175, 7186.654000000]: Robot state in moveRobotCallback: -1 
+ [0m
+[0m[ INFO] [1635050492.126765123, 7186.654000000]: @moveRobotCallback received a plan
+[0m
+[0m[ INFO] [1635050507.312516632, 7199.869000000]: DONECB: Finished in state [SUCCEEDED][0m
+[0m[ INFO] [1635050507.312564051, 7199.869000000]: touch down 
+[0m
+[0m[ INFO] [1635050507.316039397, 7199.872000000]: Robot state in mapdataCallback: -1 
+ [0m
+[0m[ INFO] [1635050507.317693269, 7199.874000000]: in mapdataCallback (map info: -100.000000 -100.000000 4000 4000)
+[0m
+[0m[ INFO] [1635050507.416781152, 7199.963000000]: ******* Begin mapdataCallback procedure ******** 
+[0m
+[0m[ INFO] [1635050508.010751478, 7200.381000000]: eliminating supurious frontiers 
+[0m
+[0m[ INFO] [1635050508.010780813, 7200.381000000]: eliminating suprious frontiers in the costmap 
+[0m
+[0m[ INFO] [1635050508.012399749, 7200.383000000]: origin in costmap: -100.000000 -100.000000
+[0m
+[0m[ INFO] [1635050511.206031541, 7203.085000000]: Looking for a new plan 
+[0m
+[0m[ INFO] [1635050520.294241252, 7210.922000000]: @mapDataCallback start(0.000000 0.000000) found the best goal(3.500000 -24.500000) best_len (106)
+[0m
+[0m[ INFO] [1635050520.294276367, 7210.922000000]: 
+  ****************************************************** 
+ 	 mapDataCallback exec time (ms): 12978.202776 
+  ****************************************************** 
+ [0m
+[0m[ INFO] [1635050520.296126425, 7210.924000000]: Robot state in moveRobotCallback: -1 
+ [0m
+[0m[ INFO] [1635050520.296146803, 7210.924000000]: @moveRobotCallback received a plan
+[0m
+[0m[ INFO] [1635050526.725414820, 7216.419000000]: DONECB: Finished in state [SUCCEEDED][0m
+[0m[ INFO] [1635050526.725444565, 7216.419000000]: touch down 
+[0m
+[0m[ INFO] [1635050526.729067027, 7216.421000000]: Robot state in mapdataCallback: -1 
+ [0m
+[0m[ INFO] [1635050526.730818190, 7216.421000000]: in mapdataCallback (map info: -100.000000 -100.000000 4000 4000)
+[0m
+[0m[ INFO] [1635050526.824950950, 7216.504000000]: ******* Begin mapdataCallback procedure ******** 
+[0m
+[0m[ INFO] [1635050527.369328589, 7216.953000000]: eliminating supurious frontiers 
+[0m
+[0m[ INFO] [1635050527.369356892, 7216.953000000]: eliminating suprious frontiers in the costmap 
+[0m
+[0m[ INFO] [1635050527.370918733, 7216.954000000]: origin in costmap: -100.000000 -100.000000
+[0m
+[0m[ INFO] [1635050530.328022062, 7219.456000000]: Looking for a new plan 
+[0m
+[0m[ INFO] [1635050536.065970601, 7224.481000000]: @mapDataCallback start(0.000000 0.000000) found the best goal(4.100000 -24.600000) best_len (39)
+[0m
+[0m[ INFO] [1635050536.066004785, 7224.481000000]: 
+  ****************************************************** 
+ 	 mapDataCallback exec time (ms): 9336.901100 
+  ****************************************************** 
+ [0m
+[0m[ INFO] [1635050536.068836562, 7224.483000000]: Robot state in moveRobotCallback: -1 
+ [0m
+[0m[ INFO] [1635050536.068869183, 7224.483000000]: @moveRobotCallback received a plan
+[0m
+[0m[ INFO] [1635050538.680860935, 7226.693000000]: DONECB: Finished in state [SUCCEEDED][0m
+[0m[ INFO] [1635050538.680905388, 7226.693000000]: touch down 
+[0m
+[0m[ INFO] [1635050538.684207482, 7226.696000000]: Robot state in mapdataCallback: -1 
+ [0m
+[0m[ INFO] [1635050538.685864099, 7226.697000000]: in mapdataCallback (map info: -100.000000 -100.000000 4000 4000)
+[0m
+[0m[ INFO] [1635050538.779229511, 7226.778000000]: ******* Begin mapdataCallback procedure ******** 
+[0m
+[0m[ INFO] [1635050539.303229221, 7227.227000000]: eliminating supurious frontiers 
+[0m
+[0m[ INFO] [1635050539.303257002, 7227.227000000]: eliminating suprious frontiers in the costmap 
+[0m
+[0m[ INFO] [1635050539.304754143, 7227.228000000]: origin in costmap: -100.000000 -100.000000
+[0m
+[0m[ INFO] [1635050542.264065845, 7229.788000000]: Looking for a new plan 
+[0m
+[0m[ INFO] [1635050550.647166047, 7237.253000000]: @mapDataCallback start(0.000000 0.000000) found the best goal(0.500000 -24.400000) best_len (237)
+[0m
+[0m[ INFO] [1635050550.647201453, 7237.253000000]: 
+  ****************************************************** 
+ 	 mapDataCallback exec time (ms): 11962.955460 
+  ****************************************************** 
+ [0m
+[0m[ INFO] [1635050550.649611264, 7237.256000000]: Robot state in moveRobotCallback: -1 
+ [0m
+[0m[ INFO] [1635050550.649643625, 7237.256000000]: @moveRobotCallback received a plan
+[0m
+[0m[ INFO] [1635050590.438554673, 7271.475000000]: DONECB: Finished in state [SUCCEEDED][0m
+[0m[ INFO] [1635050590.438587654, 7271.475000000]: touch down 
+[0m
+[0m[ INFO] [1635050590.441930074, 7271.477000000]: Robot state in mapdataCallback: -1 
+ [0m
+[0m[ INFO] [1635050590.443785932, 7271.478000000]: in mapdataCallback (map info: -100.000000 -100.000000 4000 4000)
+[0m
+[0m[ INFO] [1635050590.539367781, 7271.557000000]: ******* Begin mapdataCallback procedure ******** 
+[0m
+[0m[ INFO] [1635050591.097454034, 7272.060000000]: eliminating supurious frontiers 
+[0m
+[0m[ INFO] [1635050591.097519786, 7272.061000000]: eliminating suprious frontiers in the costmap 
+[0m
+[0m[ INFO] [1635050591.098975750, 7272.062000000]: origin in costmap: -100.000000 -100.000000
+[0m
+[0m[ INFO] [1635050594.122144047, 7274.839000000]: Looking for a new plan 
+[0m
+[0m[ INFO] [1635050598.554470788, 7278.900000000]: @mapDataCallback start(0.000000 0.000000) found the best goal(1.400000 -17.650000) best_len (271)
+[0m
+[0m[ INFO] [1635050598.554500464, 7278.900000000]: 
+  ****************************************************** 
+ 	 mapDataCallback exec time (ms): 8112.527159 
+  ****************************************************** 
+ [0m
+[0m[ INFO] [1635050598.556797174, 7278.901000000]: Robot state in moveRobotCallback: -1 
+ [0m
+[0m[ INFO] [1635050598.556826158, 7278.901000000]: @moveRobotCallback received a plan
+[0m
+[0m[ INFO] [1635050622.440082960, 7300.351000000]: DONECB: Finished in state [ABORTED][0m
+[0m[ INFO] [1635050622.443731781, 7300.353000000]: Robot state in mapdataCallback: -1 
+ [0m
+[0m[ INFO] [1635050622.445545722, 7300.354000000]: in mapdataCallback (map info: -100.000000 -100.000000 4000 4000)
+[0m
+[0m[ INFO] [1635050622.539229557, 7300.444000000]: ******* Begin mapdataCallback procedure ******** 
+[0m
+[0m[ INFO] [1635050623.072376669, 7300.934000000]: eliminating supurious frontiers 
+[0m
+[0m[ INFO] [1635050623.072415992, 7300.934000000]: eliminating suprious frontiers in the costmap 
+[0m
+[0m[ INFO] [1635050623.074619479, 7300.935000000]: origin in costmap: -100.000000 -100.000000
+[0m
+[0m[ INFO] [1635050626.125405742, 7303.800000000]: Looking for a new plan 
+[0m
+[0m[ INFO] [1635050637.193132501, 7313.988000000]: @mapDataCallback start(0.000000 0.000000) found the best goal(-2.800000 -18.000000) best_len (206)
+[0m
+[0m[ INFO] [1635050637.193167727, 7313.988000000]: 
+  ****************************************************** 
+ 	 mapDataCallback exec time (ms): 14749.395381 
+  ****************************************************** 
+ [0m
+[0m[ INFO] [1635050637.195678747, 7313.991000000]: Robot state in moveRobotCallback: -1 
+ [0m
+[0m[ INFO] [1635050637.195718911, 7313.991000000]: @moveRobotCallback received a plan
+[0m
+[0m[ INFO] [1635050679.181903682, 7352.505000000]: DONECB: Finished in state [SUCCEEDED][0m
+[0m[ INFO] [1635050679.181939849, 7352.505000000]: touch down 
+[0m
+[0m[ INFO] [1635050679.184944269, 7352.507000000]: Robot state in mapdataCallback: -1 
+ [0m
+[0m[ INFO] [1635050679.186440798, 7352.508000000]: in mapdataCallback (map info: -100.000000 -100.000000 4000 4000)
+[0m
+[0m[ INFO] [1635050679.280374183, 7352.594000000]: ******* Begin mapdataCallback procedure ******** 
+[0m
+[0m[ INFO] [1635050679.825919406, 7353.070000000]: eliminating supurious frontiers 
+[0m
+[0m[ INFO] [1635050679.825956626, 7353.070000000]: eliminating suprious frontiers in the costmap 
+[0m
+[0m[ INFO] [1635050679.827497197, 7353.071000000]: origin in costmap: -100.000000 -100.000000
+[0m
+[0m[ INFO] [1635050682.887773691, 7355.832000000]: Looking for a new plan 
+[0m
+[0m[ INFO] [1635050697.313372990, 7368.615000000]: @mapDataCallback start(0.000000 0.000000) found the best goal(10.900001 -19.150000) best_len (619)
+[0m
+[0m[ INFO] [1635050697.313415450, 7368.615000000]: 
+  ****************************************************** 
+ 	 mapDataCallback exec time (ms): 18128.430806 
+  ****************************************************** 
+ [0m
+[0m[ INFO] [1635050697.315681754, 7368.617000000]: Robot state in unreachablefrontierCallback: -1 
+ [0m
+[0m[ INFO] [1635050697.315950054, 7368.618000000]: +++++++++++ Robot is ready for motion +++++++++++++
+[0m
+[0m[ INFO] [1635050697.319140019, 7368.621000000]: Robot state in mapdataCallback: -1 
+ [0m
+[0m[ INFO] [1635050697.320634625, 7368.622000000]: in mapdataCallback (map info: -100.000000 -100.000000 4000 4000)
+[0m
+[0m[ INFO] [1635050697.412484009, 7368.704000000]: ******* Begin mapdataCallback procedure ******** 
+[0m
+[0m[ INFO] [1635050697.938704071, 7369.171000000]: eliminating supurious frontiers 
+[0m
+[0m[ INFO] [1635050697.938762230, 7369.171000000]: eliminating suprious frontiers in the costmap 
+[0m
+[0m[ INFO] [1635050697.940368073, 7369.172000000]: origin in costmap: -100.000000 -100.000000
+[0m
+[0m[ INFO] [1635050700.866377479, 7371.812000000]: Looking for a new plan 
+[0m
+[0m[ INFO] [1635050713.674079822, 7383.648000000]: @mapDataCallback start(0.000000 0.000000) found the best goal(10.900001 -19.150000) best_len (619)
+[0m
+[0m[ INFO] [1635050713.674130026, 7383.648000000]: 
+  ****************************************************** 
+ 	 mapDataCallback exec time (ms): 16354.953349 
+  ****************************************************** 
+ [0m
+[0m[ INFO] [1635050713.677780249, 7383.651000000]: Robot state in moveRobotCallback: -1 
+ [0m
+[0m[ INFO] [1635050713.677846924, 7383.651000000]: @moveRobotCallback received a plan
+[0m
+[0m[ INFO] [1635050758.544148914, 7423.956000000]: DONECB: Finished in state [SUCCEEDED][0m
+[0m[ INFO] [1635050758.544174963, 7423.956000000]: touch down 
+[0m
+[0m[ INFO] [1635050758.547065571, 7423.956000000]: Robot state in mapdataCallback: -1 
+ [0m
+[0m[ INFO] [1635050758.548534479, 7423.956000000]: in mapdataCallback (map info: -100.000000 -100.000000 4000 4000)
+[0m
+[0m[ INFO] [1635050758.645692652, 7424.038000000]: ******* Begin mapdataCallback procedure ******** 
+[0m
+[0m[ INFO] [1635050759.147880942, 7424.488000000]: eliminating supurious frontiers 
+[0m
+[0m[ INFO] [1635050759.147909605, 7424.488000000]: eliminating suprious frontiers in the costmap 
+[0m
+[0m[ INFO] [1635050759.149393371, 7424.489000000]: origin in costmap: -100.000000 -100.000000
+[0m
+[0m[ INFO] [1635050762.135043445, 7427.161000000]: Looking for a new plan 
+[0m
+[0m[ INFO] [1635050763.246048043, 7428.177000000]: @mapDataCallback start(0.000000 0.000000) found the best goal(10.900001 -19.150000) best_len (100000000)
+[0m
+[0m[ INFO] [1635050763.246088809, 7428.177000000]: 
+  ****************************************************** 
+ 	 mapDataCallback exec time (ms): 4698.983484 
+  ****************************************************** 
+ [0m
+[0m[ INFO] [1635050763.248953889, 7428.180000000]: Robot state in moveRobotCallback: -1 
+ [0m
+[0m[ INFO] [1635050763.248982402, 7428.180000000]: @moveRobotCallback received a plan
+[0m
+[0m[ INFO] [1635050763.934285793, 7428.806000000]: DONECB: Finished in state [SUCCEEDED][0m
+[0m[ INFO] [1635050763.934315478, 7428.806000000]: touch down 
+[0m
+[0m[ INFO] [1635050441.751656580, 7141.715000000]: global_costmap: Using plugin "static_map"[0m
+[0m[ INFO] [1635050441.758976751, 7141.722000000]: Requesting the map...[0m
+[0m[ INFO] [1635050441.990932386, 7141.930000000]: Resizing costmap to 4000 X 4000 at 0.050000 m/pix[0m
+[0m[ INFO] [1635050442.143145018, 7142.068000000]: Received a 4000 X 4000 map at 0.050000 m/pix[0m
+[0m[ INFO] [1635050442.148269457, 7142.073000000]: global_costmap: Using plugin "obstacles"[0m
+[0m[ INFO] [1635050442.155916758, 7142.080000000]:     Subscribed to Topics: base_scan[0m
+[0m[ INFO] [1635050442.174710220, 7142.092000000]: global_costmap: Using plugin "inflater"[0m
+[0m[ INFO] [1635050442.222655067, 7142.138000000]: local_costmap: Using plugin "obstacles"[0m
+[0m[ INFO] [1635050442.224877529, 7142.140000000]:     Subscribed to Topics: base_scan[0m
+[0m[ INFO] [1635050442.241025180, 7142.153000000]: local_costmap: Using plugin "inflater"[0m
+[0m[ INFO] [1635050442.271787517, 7142.181000000]: Created local_planner base_local_planner/TrajectoryPlannerROS[0m
+[0m[ INFO] [1635050442.280091852, 7142.189000000]: Sim period is set to 0.20[0m
+[0m[ INFO] [1635050442.640825257, 7142.515000000]: odom received![0m
+de/local_costmap/obstacles/base_scan/min_obstacle_height: 0.25
+ * /move_base_node/local_costmap/obstacles/base_scan/obstacle_range: 4.0
+ * /move_base_node/local_costmap/obstacles/base_scan/raytrace_range: 5.0
+ * /move_base_node/local_costmap/obstacles/base_scan/topic: base_scan
+ * /move_base_node/local_costmap/obstacles/max_obstacle_height: 2.0
+ * /move_base_node/local_costmap/obstacles/observation_sources: base_scan
+ * /move_base_node/local_costmap/obstacles/z_resolution: 0.125
+ * /move_base_node/local_costmap/obstacles/z_voxels: 16
+ * /move_base_node/local_costmap/plugins: [{'type': 'costma...
+ * /move_base_node/local_costmap/publish_frequency: 2.0
+ * /move_base_node/local_costmap/resolution: 0.025
+ * /move_base_node/local_costmap/robot_base_frame: base_link
+ * /move_base_node/local_costmap/robot_radius: 0.3
+ * /move_base_node/local_costmap/rolling_window: True
+ * /move_base_node/local_costmap/static_map: False
+ * /move_base_node/local_costmap/transform_tolerance: 0.5
+ * /move_base_node/local_costmap/width: 4.0
+ * /move_base_node/oscillation_distance: 0.5
+ * /move_base_node/oscillation_timeout: 30.0
+ * /move_base_node/planner_patience: 1
+ * /move_base_node/recovery_behaviors: [{'type': 'rotate...
+ * /rosdistro: melodic
+ * /rosversion: 1.14.12
+ * /slam_gmapping/base_frame: /base_link
+ * /slam_gmapping/map_frame: /map
+ * /slam_gmapping/map_update_interval: 3
+ * /slam_gmapping/maxUrange: 60
+ * /slam_gmapping/odom_frame: /odom
+ * /slam_method: gmapping
+
+NODES
+  /
+    autoexplorer (autoexplorer/autoexplorer_node)
+    move_base_node (move_base/move_base)
+    rviz (rviz/rviz)
+    slam_gmapping (gmapping/slam_gmapping)
+
+[1mROS_MASTER_URI=http://localhost:11311[0m
+]2;/home/hankm/catkin_ws/install_isolated/share/autoexplorer/launch/autoexplorer.launch http://localhost:11311
+[1mprocess[slam_gmapping-1]: started with pid [24530][0m
+[1mprocess[move_base_node-2]: started with pid [24531][0m
+[1mprocess[autoexplorer-3]: started with pid [24532][0m
+[1mprocess[rviz-4]: started with pid [24542][0m
+[rviz-4] killing on exit
+[autoexplorer-3] killing on exit
+[slam_gmapping-1] killing on exit
+[move_base_node-2] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

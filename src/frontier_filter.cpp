@@ -33,17 +33,18 @@ FrontierFilter::~FrontierFilter()
 void FrontierFilter::measureCostmapConfidence( const nav_msgs::OccupancyGrid& costmapData, std::vector<FrontierPoint>& voFrontierCandidates )
 {
 ROS_INFO("eliminating suprious frontiers in the costmap \n");
+static int cmapidx = 0;
 
-	float fXstartx=costmapData.info.origin.position.x; // world coordinate in the costmap
-	float fXstarty=costmapData.info.origin.position.y; // world coordinate in the costmap
+	float fXstart=costmapData.info.origin.position.x; // world coordinate in the costmap
+	float fYstart=costmapData.info.origin.position.y; // world coordinate in the costmap
 	float resolution = costmapData.info.resolution ;
 
 	int width= static_cast<int>(costmapData.info.width) ;
 	int height= static_cast<int>(costmapData.info.height) ;
 
 	std::vector<signed char> Data=costmapData.data;
-ROS_INFO("front cand size: %d \n", voFrontierCandidates.size());
 
+ROS_INFO("origin in costmap: %f %f\n", fXstart, fXstart );
 
 #ifdef FD_DEBUG_MODE
 	m_nglobalcostmapidx++;
@@ -85,15 +86,22 @@ ROS_INFO("front cand size: %d \n", voFrontierCandidates.size());
 //	ofs_gridmap.close();
 #endif
 
+char tmp[200];
+sprintf(tmp, "/home/hankm/results/autoexploration/tmp/fpt_c%04d.txt", cmapidx++);
+std::string str_filename(tmp);
+std::ofstream ofs_fpc( str_filename ) ;
 
 	for( size_t idx =0; idx < voFrontierCandidates.size(); idx++) // frontiers in image coord
 	{
-		cv::Point2f frontier_in_world = voFrontierCandidates[idx].GetCorrectedWorldPosition() ;
+		cv::Point frontier_in_gridmap = voFrontierCandidates[idx].GetCorrectedGridmapPosition() ;
+
 		//returns grid value at "Xp" location
 		//map data:  100 occupied      -1 unknown       0 free
-//ROS_INFO("frontier in gridmap: %f %f origin: %f %f\n", frontier_in_Gridmap.x, frontier_in_Gridmap.y, fXstarty, fXstartx );
-		int py_c= floor( (frontier_in_world.y - fXstarty ) / resolution  ) ; // px in costmap
-		int px_c= floor( (frontier_in_world.x - fXstartx ) / resolution  ) ;
+		int py_c = frontier_in_gridmap.y ;
+		int px_c = frontier_in_gridmap.x ;
+
+		//int py_c=  floor( (frontier_in_world.y - fYstart ) / resolution  ) ; // px in costmap
+		//int px_c=  floor( (frontier_in_world.x - fXstart ) / resolution  ) ;
 		int8_t cost ;
 		int32_t ncost = 0;
 
@@ -102,24 +110,20 @@ ROS_INFO("front cand size: %d \n", voFrontierCandidates.size());
 		int sy = MAX(py_c - m_ncostmap_roi_size, 0);
 		int ey = MIN(py_c + m_ncostmap_roi_size, height) ;
 
+		ofs_fpc << px_c << " " << py_c << endl;
 
+//	char tmp[200];
+//	sprintf(tmp,"%s/costmap%05d_candptroi_%05d.txt",m_str_debugpath.c_str(),mapidx, idx);
+//	std::string str_fptroi( tmp );
+//
+//	std::ofstream ofs_fptroi(str_fptroi) ;
+//	str_fptroi << px_c << " " << py_c << " " ;
 #ifdef FD_DEBUG_MODE
-//	std::ostringstream ss_fptroi_;
-//	ss_fptroi_ = m_str_debugpath + "/costmap" << std::setw(5)
-//			 					   << std::setfill(0) <<  m_nglobalcostmapidx << "_candpt_"
-//								   << std::setw(5) << std::setfill(0) <<  idx << ".txt" ;
-	char tmp[200];
-	sprintf(tmp,"%s/costmap%05d_candptroi_%05d.txt",m_str_debugpath.c_str(),m_nglobalcostmapidx, idx);
-	std::string str_fptroi( tmp );
-
-	ofstream ofs_fptroi(str_fptroi) ;
-	ofs_incostmap << px_c << " " << py_c << " " ;
-
 #endif
 //ROS_INFO(" idx px py %u %d %d\n", idx, px_c, py_c);
 		cv::Mat roi = cv::Mat::zeros(ey - sy + 1, ex - sx + 1, CV_8S);
 
-		int costcnt = 0;
+		int cellcnt = 0;
 		int totcost = 0;
 		for( int ridx =sy; ridx < ey; ridx++)
 		{
@@ -138,7 +142,7 @@ ROS_INFO("front cand size: %d \n", voFrontierCandidates.size());
 	ofs_fptroi << cost << " ";
 #endif
 				//roi.data[ ridx * width + cidx ] = cost ;
-				costcnt++;
+				cellcnt++;
 			}
 
 #ifdef FD_DEBUG_MODE
@@ -146,8 +150,9 @@ ROS_INFO("front cand size: %d \n", voFrontierCandidates.size());
 #endif
 
 		}
-		float fcost = static_cast<float>(totcost) / ( static_cast<float>( costcnt ) * 100  );
-		voFrontierCandidates[idx].SetCostmapConfidence(fcost);
+		float fcost = static_cast<float>(totcost) / ( static_cast<float>( cellcnt ) * 100  );
+		float fcm_conf = 1.f - fcost ;
+		voFrontierCandidates[idx].SetCostmapConfidence(fcm_conf);
 
 #ifdef FD_DEBUG_MODE
 		ofs_fptroi.close();
@@ -156,20 +161,22 @@ ROS_INFO("front cand size: %d \n", voFrontierCandidates.size());
 
 	}
 
+	ofs_fpc.close();
+
 }
 
 void FrontierFilter::measureGridmapConfidence( const nav_msgs::OccupancyGrid& gridmapData, std::vector<FrontierPoint>& voFrontierCandidates )
 {
 
-	float fXstartx=gridmapData.info.origin.position.x; // world coordinate in the costmap
-	float fXstarty=gridmapData.info.origin.position.y; // world coordinate in the costmap
+	float fXstart=gridmapData.info.origin.position.x; // world coordinate in the costmap
+	float fYstart=gridmapData.info.origin.position.y; // world coordinate in the costmap
 	float resolution = gridmapData.info.resolution ;
 
 	int width= static_cast<int>(gridmapData.info.width) ;
 	int height= static_cast<int>(gridmapData.info.height) ;
 
 	std::vector<signed char> Data=gridmapData.data;
-ROS_INFO("front cand size: %d \n", voFrontierCandidates.size());
+//ROS_INFO("origin in gridmap: %f %f\n", fYstart, fXstart );
 
 	for( size_t idx =0; idx < voFrontierCandidates.size(); idx++) // frontiers in image coord
 	{
@@ -190,7 +197,7 @@ ROS_INFO("front cand size: %d \n", voFrontierCandidates.size());
 //ROS_INFO(" idx px py %u %d %d\n", idx, px_c, py_c);
 		cv::Mat roi = cv::Mat::zeros(ey - sy + 1, ex - sx + 1, CV_8S);
 
-		int costcnt = 0;
+		int cellcnt = 0;
 		int unkncnt = 0;
 		for( int ridx =sy; ridx < ey; ridx++)
 		{
@@ -204,10 +211,10 @@ ROS_INFO("front cand size: %d \n", voFrontierCandidates.size());
 					unkncnt++;
 				}
 				//roi.data[ ridx * width + cidx ] = cost ;
-				costcnt++;
+				cellcnt++;
 			}
 		}
-		float fscore = static_cast<float>(unkncnt) / ( static_cast<float>( costcnt ) * 100  );
+		float fscore = static_cast<float>(unkncnt) / ( static_cast<float>( cellcnt ) );
 		float fconfd = 1.f - std::abs( fscore - 0.5 )/0.5 ;  // fscore = 0 ~ 1  best: 0.5
 		voFrontierCandidates[idx].SetGridmapConfidence( fconfd );
 
