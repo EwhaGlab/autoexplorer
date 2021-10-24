@@ -52,6 +52,7 @@ public:
 	inline void SetInitMotionCompleted(){ m_isInitMotionCompleted = true;  }
 	//void gridmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg ) ;
 	void globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg ) ;
+	//void globalCostmapUpdateCallback(const map_msgs::OccupancyGridUpdate::ConstPtr& msg );
 	void robotPoseCallBack( const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg ) ;
 	void robotVelCallBack( const geometry_msgs::Twist::ConstPtr& msg);
 	void doneCB( const actionlib::SimpleClientGoalState& state ) ;
@@ -81,7 +82,8 @@ protected:
 	ros::NodeHandle m_nh;
 	ros::NodeHandle m_nh_private;
 
-	ros::Subscriber m_mapsub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, m_globalplanSub, m_unreachablefrontierSub ;
+	ros::Subscriber m_mapsub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, //m_globalCostmapUpdateSub,
+					m_globalplanSub, m_unreachablefrontierSub ;
 	ros::Publisher m_targetspub, m_markercandpub, m_markerfrontierpub,
 					m_makergoalpub, m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub ;
 

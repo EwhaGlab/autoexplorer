@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   cv_bridge
   nav_msgs
+  map_msgs
   roscpp
   rospy
   std_msgs

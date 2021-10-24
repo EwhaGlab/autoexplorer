@@ -65,6 +65,9 @@ m_isInitMotionCompleted(false)
 	//m_globalplanSub 	= m_nh.subscribe("move_base_node/NavfnROS/plan",1 , &FrontierDetectorDMS::moveRobotCallback, this) ; // kmHan
 	m_globalplanSub 	= m_nh.subscribe("curr_goalpose",1 , &FrontierDetectorSMS::moveRobotCallback, this) ; // kmHan
 	m_globalCostmapSub 	= m_nh.subscribe("move_base_node/global_costmap/costmap", 1, &FrontierDetectorSMS::globalCostmapCallBack, this );
+//	m_globalCostmapUpdateSub
+//				= m_nh.subscribe("move_base_node/global_costmap/costmap_updates", 1, &FrontierDetectorSMS::globalCostmapUpdateCallback, this );
+
 	m_poseSub		   	= m_nh.subscribe("pose", 10, &FrontierDetectorSMS::robotPoseCallBack, this);
 	m_velSub			= m_nh.subscribe("cmd_vel", 10, &FrontierDetectorSMS::robotVelCallBack, this);
 	m_unreachablefrontierSub = m_nh.subscribe("unreachable_frontier", 1, &FrontierDetectorSMS::unreachablefrontierCallback, this);
@@ -497,13 +500,24 @@ void FrontierDetectorSMS::publishDone( )
 
 void FrontierDetectorSMS::globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 {
-	static int costmap_cnt = 0;
 	m_globalcostmap = *msg ;
 	m_globalcostmap_rows = m_globalcostmap.info.height ;
 	m_globalcostmap_cols = m_globalcostmap.info.width ;
-
-	ROS_INFO("\n costmap update cnt : %d \n", costmap_cnt++);
 }
+
+//void FrontierDetectorSMS::globalCostmapUpdateCallback(const map_msgs::OccupancyGridUpdate::ConstPtr& msg )
+//{
+//	map_msgs::OccupancyGridUpdate cm_updates = *msg;
+////	std::vector<signed char> Data=cm_updates.data;
+////
+////	ROS_INFO("cm updates size: %d \n", Data.size() );
+////	ROS_INFO("info: x y h w (%d %d %d %d) \n", cm_updates.x, cm_updates.y,
+////				cm_updates.height, cm_updates.width  );
+////	{
+////		const std::unique_lock<mutex> lock(mutex_global_costmap) ;
+////	}
+//}
+
 
 void FrontierDetectorSMS::robotPoseCallBack( const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg )
 {
