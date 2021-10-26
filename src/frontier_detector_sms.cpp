@@ -728,7 +728,6 @@ startTime = ros::WallTime::now();
 		voFrontierCands.push_back(oPoint);
 	}
 
-
 // save gridmap and frontier candidates
 //ROS_INFO("costmap msg width: %d \n", m_globalcostmap.info.width );
 
@@ -809,9 +808,6 @@ mapidx++;
 //	{
 //		displayMapAndFrontiers( img_frontiers, frontiers, m_nROISize );
 //	}
-
-//	if(m_globalcostmap.info.width > 0 &&  m_globalcostmap.info.height > 0 )
-//		assessFrontiers( frontiers );
 
 	// set exploration goals
 	for(size_t idx=0; idx < valid_frontier_indexs.size(); idx++)
