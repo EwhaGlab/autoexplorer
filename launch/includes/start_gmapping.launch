@@ -8,8 +8,8 @@
         <param name="map_frame" value="/map"/>
         <param name="odom_frame" value="/odom"/>
         <param name="base_frame" value="/base_link"/>
-        <param name="maxUrange" value="60"/>          <!-- 80 -->
-        <param name="map_update_interval" value="3"/> <!-- 5 -->
+        <!--param name="maxUrange" value="60"/-->          <!-- 80 -->
+        <!--param name="map_update_interval" value="3"/--> <!-- 5 -->
     </node>
 
 

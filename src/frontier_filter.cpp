@@ -27,7 +27,6 @@ m_nGlobalMapWidth(nGlobalMapWidth), m_nGlobalMapHeight(nGlobalMapHeight), m_fGMR
 }
 FrontierFilter::~FrontierFilter()
 {
-
 }
 
 void FrontierFilter::measureCostmapConfidence( const nav_msgs::OccupancyGrid& costmapData, std::vector<FrontierPoint>& voFrontierCandidates )
@@ -86,10 +85,10 @@ ROS_INFO("origin in costmap: %f %f\n", fXstart, fXstart );
 //	ofs_gridmap.close();
 #endif
 
-char tmp[200];
-sprintf(tmp, "/home/hankm/results/autoexploration/tmp/fpt_c%04d.txt", cmapidx++);
-std::string str_filename(tmp);
-std::ofstream ofs_fpc( str_filename ) ;
+//char tmp[200];
+//sprintf(tmp, "/home/hankm/results/autoexploration/tmp/fpt_c%04d.txt", cmapidx++);
+//std::string str_filename(tmp);
+//std::ofstream ofs_fpc( str_filename ) ;
 
 	for( size_t idx =0; idx < voFrontierCandidates.size(); idx++) // frontiers in image coord
 	{
@@ -110,7 +109,7 @@ std::ofstream ofs_fpc( str_filename ) ;
 		int sy = MAX(py_c - m_ncostmap_roi_size, 0);
 		int ey = MIN(py_c + m_ncostmap_roi_size, height) ;
 
-		ofs_fpc << px_c << " " << py_c << endl;
+		//ofs_fpc << px_c << " " << py_c << endl;
 
 //	char tmp[200];
 //	sprintf(tmp,"%s/costmap%05d_candptroi_%05d.txt",m_str_debugpath.c_str(),mapidx, idx);
@@ -161,7 +160,7 @@ std::ofstream ofs_fpc( str_filename ) ;
 
 	}
 
-	ofs_fpc.close();
+//ofs_fpc.close();
 
 }
 

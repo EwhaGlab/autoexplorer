@@ -21,27 +21,6 @@ namespace autoexplorer
 
 using namespace std;
 
-//struct pointset
-//{
-//  float d[2];
-//
-//  bool operator()( const pointset & dia, const pointset & dib) const
-//  {
-//    for (size_t n=0; n<2; ++n)
-//    {
-//      if ( dia.d[n] < dib.d[n] ) return true;
-//      if ( dia.d[n] > dib.d[n] ) return false;
-//    }
-//    return false;
-//  }
-//};
-//
-//typedef enum{	ROBOT_IS_NOT_MOVING 	= -1,
-//				ROBOT_IS_READY_TO_MOVE	= 0,
-//				FORCE_TO_STOP    		= 1, // is moving but needs to be stopped
-//				ROBOT_IS_MOVING  		= 2
-//			} ROBOT_STATE ;
-
 class FrontierDetectorSMS: public FrontierDetector
 {
 public:
@@ -52,7 +31,7 @@ public:
 	inline void SetInitMotionCompleted(){ m_isInitMotionCompleted = true;  }
 	//void gridmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg ) ;
 	void globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg ) ;
-	//void globalCostmapUpdateCallback(const map_msgs::OccupancyGridUpdate::ConstPtr& msg );
+	void globalCostmapUpdateCallback(const map_msgs::OccupancyGridUpdate::ConstPtr& msg );
 	void robotPoseCallBack( const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg ) ;
 	void robotVelCallBack( const geometry_msgs::Twist::ConstPtr& msg);
 	void doneCB( const actionlib::SimpleClientGoalState& state ) ;
@@ -82,7 +61,7 @@ protected:
 	ros::NodeHandle m_nh;
 	ros::NodeHandle m_nh_private;
 
-	ros::Subscriber m_mapsub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, //m_globalCostmapUpdateSub,
+	ros::Subscriber m_mapsub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, m_globalCostmapUpdateSub,
 					m_globalplanSub, m_unreachablefrontierSub ;
 	ros::Publisher m_targetspub, m_markercandpub, m_markerfrontierpub,
 					m_makergoalpub, m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub ;
@@ -96,9 +75,11 @@ protected:
 
 	FrontierFilter m_oFrontierFilter;
 
+private:
 	std::mutex mutex_robot_state;
 	std::mutex mutex_unreachable_points;
-	std::mutex mutex_gridmap_image;
+	///std::mutex mutex_global_costmap;
+
 };
 
 }

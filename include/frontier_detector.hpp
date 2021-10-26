@@ -27,7 +27,7 @@
 #include <cv_bridge/cv_bridge.h>
 
 #include "nav_msgs/OccupancyGrid.h"
-//#include "map_msgs/OccupancyGridUpdate.h"
+#include "map_msgs/OccupancyGridUpdate.h"
 #include "geometry_msgs/PointStamped.h"
 #include "std_msgs/Header.h"
 #include "std_msgs/Bool.h"
@@ -259,7 +259,6 @@ protected:
 
 	ROBOT_STATE m_eRobotState ;
 
-	std::mutex mutex_global_costmap;
 };
 
 }
