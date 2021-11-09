@@ -23,18 +23,21 @@
 namespace autoexplorer
 {
 
-//typedef struct AutoexplorerParameters
-//{
-//	std::string str_debugpath;
-//	float ffrontier_cost_thr ;
-//	int noccupancy_thr;
-//	int nlethal_cost_thr;
-//	int nGlobalMapWidth ;
-//	int nGlobalMapHeight ;
-//
-//	int nWeakCompThreshold;
-//	int nNumPyrDownSample ;
-//}AP;
+struct pointset
+{
+  float d[2];
+
+  bool operator()( const pointset & dia, const pointset & dib) const
+  {
+    for (size_t n=0; n<2; ++n)
+    {
+      if ( dia.d[n] < dib.d[n] ) return true;
+      if ( dia.d[n] > dib.d[n] ) return false;
+    }
+    return false;
+  }
+};
+
 
 enum PointState{ NOT_TESTED = 0, GM_TESTED, CM_FILTERED, FULL_TESTED };
 
@@ -46,15 +49,15 @@ public:
 	mf_gridmap_confidence(1.f), mf_costmap_confidence(1.f),
 	//m_bcostmap_consent(true), m_bgridmap_consent(true),
 	mn_initposition_dsgm( FrontierCandidate_dsn ), // dsgm refers to n down-sampled gridmap image
-	mb_isfrontierpoint(true),
+	mb_isfrontierpoint(true), mb_isreachable(true),
 	m_ePointstate( PointState::NOT_TESTED ),
 	//m_fgridmap_conf_thr(fgridmap_conf_thr), m_fcostmap_conf_thr(fcostmap_conf_thr),
 	mn_height(mapheight), mn_width(mapwidth),
 	mf_origx(fmaporigx), mf_origy(fmaporigy),
 	mf_res(fmapres), m_nNumPyrDownSample(num_pyrdown)
 	{
-		mn_globalcentx = mn_width / 2 ;
-		mn_globalcenty = mn_height/ 2 ;
+		//mn_globalcentx = mn_width / 2 ;
+		//mn_globalcenty = mn_height/ 2 ;
 		//SetWorldCoordiate();
 		m_nScale = pow(2, m_nNumPyrDownSample) ;
 
@@ -73,17 +76,19 @@ public:
 	float GetGMConfidence() const { return mf_gridmap_confidence; }
 
 	cv::Point world2gridmap( cv::Point2f point_w)
-	{}
+	{
+		int ngmx = static_cast<int>( (point_w.x - mf_origx) / mf_res ) ;
+		int ngmy = static_cast<int>( (point_w.y - mf_origy) / mf_res ) ;
+		return cv::Point( ngmx, ngmy );
+	}
 
 	cv::Point2f gridmap2world( cv::Point img_pt_ds0 )
 	{
-		float fpx = static_cast<float>(img_pt_ds0.x) - mn_globalcentx;
-		float fpy = static_cast<float>(img_pt_ds0.y) - mn_globalcenty;
+		float fgmx = static_cast<float>(img_pt_ds0.x) ;
+		float fgmy = static_cast<float>(img_pt_ds0.y) ;
 
-	//	ROS_INFO("%f %f %f %d %d\n", fpx, fResolution, fXstart, m_nScale, m_nNumPyrDownSample );
-	//	ROS_INFO("%f %f %f %d \n", fpy, fResolution, fYstart, m_nScale );
-		float fgx = ( fpx * mf_res ); // + fXstart ) ;
-		float fgy = ( fpy * mf_res ); // - fYstart ) ;
+		float fgx = ( fgmx * mf_res ) + mf_origx ; // + fXstart ) ;
+		float fgy = ( fgmy * mf_res ) + mf_origy ; // - fYstart ) ;
 		return cv::Point2f( fgx, fgy );
 	}
 
@@ -106,7 +111,13 @@ public:
 			mb_isfrontierpoint = false;
 	};
 
+	void SetReachability( const bool& bisreachable )
+	{
+		mb_isreachable = bisreachable;
+	}
+
 	bool isConfidentFrontierPoint() const { return mb_isfrontierpoint; }
+	bool isReachable() const { return mb_isreachable; }
 
 	cv::Point GetInitGridmapPosition()		const {return mn_initposition_gm; };
 	cv::Point GetCorrectedGridmapPosition() const {return mn_correctedposition_gm; };
@@ -129,6 +140,7 @@ private:
 	int8_t m_ePointstate;
 
 	bool mb_isfrontierpoint ;
+	bool mb_isreachable ;
 	int mn_height;
 	int mn_width;
 	int mn_globalcentx ;

@@ -35,6 +35,7 @@
 #include "geometry_msgs/Point.h"
 #include "visualization_msgs/Marker.h"
 #include <tf/transform_listener.h>
+#include <fstream>
 
 #include <move_base/move_base.h>
 #include <move_base_msgs/MoveBaseAction.h>
@@ -50,6 +51,8 @@
 #include "ffp.hpp"
 #include <experimental/filesystem>
 #include <set>
+
+#include "frontier_point.hpp"
 
 // global path planner
 //#include "navigation/costmap_2d/include/costmap_2d/costmap_2d.h"
@@ -69,20 +72,6 @@ namespace autoexplorer
 
 using namespace std;
 
-struct pointset
-{
-  float d[2];
-
-  bool operator()( const pointset & dia, const pointset & dib) const
-  {
-    for (size_t n=0; n<2; ++n)
-    {
-      if ( dia.d[n] < dib.d[n] ) return true;
-      if ( dia.d[n] > dib.d[n] ) return false;
-    }
-    return false;
-  }
-};
 
 typedef enum{	ROBOT_IS_NOT_MOVING 	= -1,
 				ROBOT_IS_READY_TO_MOVE	= 0,
@@ -208,6 +197,9 @@ public:
 
 	void SetVizMarkers( const string& frame_id,	const float& fR, const float& fG, const float& fB,
 						const float& fscale, visualization_msgs::Marker&  viz_marker);
+
+	void saveGridmap( string filename, const nav_msgs::OccupancyGrid &mapData );
+	void saveFrontierCandidates( string filename, vector<FrontierPoint> voFrontierCandidates );
 
 protected:
 

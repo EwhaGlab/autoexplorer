@@ -2,8 +2,8 @@
 autoexplorer:
     debug_data_save_path:   '/home/hankm/results/autoexploration'
     costmap_conf_thr:       0.4     # 0.1 by default, (tesse virutal scenario)
-    gridmap_conf_thr:       0.8
-    occupancy_thr:          60      # 0 ~ 100
+    gridmap_conf_thr:       0.6     # 0.8 for (gmapping)
+    occupancy_thr:          40      # 0 ~ 100
     lethal_cost_thr:        80      
     global_width:           4000
     global_height:          4000

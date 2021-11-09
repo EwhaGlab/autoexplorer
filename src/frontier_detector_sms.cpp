@@ -35,8 +35,7 @@ m_isInitMotionCompleted(false)
 	m_nh.param("/autoexplorer/global_height", m_nGlobalMapHeight, 4000) ;
 	m_nh.param("/move_base_node/global_costmap/resolution", m_fResolution, 0.05f) ;
 
-	int _nWeakCompThreshold	= m_fs["WEAK_COMP_THR"];
-	m_frontiers_region_thr = _nWeakCompThreshold / m_nScale ;
+	int _nWeakCompThreshold; //	= m_fs["WEAK_COMP_THR"];
 
 	m_nh.param("/autoexplorer/weak_comp_thr", _nWeakCompThreshold, 10);
 	m_nh.param("/autoexplorer/num_downsamples", m_nNumPyrDownSample, 0);
@@ -44,6 +43,8 @@ m_isInitMotionCompleted(false)
 	m_nh.param("move_base_node/global_costmap/robot_radius", m_fRobotRadius, 0.3);
 
 	m_nScale = pow(2, m_nNumPyrDownSample) ;
+	m_frontiers_region_thr = _nWeakCompThreshold / m_nScale ;
+
 	m_nROISize = static_cast<int>( round( m_fRobotRadius / m_fResolution ) ) * 2 ; // we never downsample costmap !!! dont scale it with roisize !!
 
 	m_nGlobalMapCentX = m_nGlobalMapWidth  / 2 ;
@@ -714,6 +715,7 @@ startTime = ros::WallTime::now();
 		cv::Point frontier = contour[nmindistidx];
 		//frontiers_cand.push_back(frontier) ;
 		FrontierPoint oPoint( frontier, m_gridmap.info.height, m_gridmap.info.width,
+					   //m_nGlobalMapCentY, m_nGlobalMapCentX,
 					   m_gridmap.info.origin.position.y, m_gridmap.info.origin.position.x,
 					   m_gridmap.info.resolution, m_nNumPyrDownSample );
 
@@ -762,6 +764,26 @@ ROS_INFO( "eliminating supurious frontiers \n" );
 
 		for(size_t idx=0; idx < voFrontierCands.size(); idx++)
 			voFrontierCands[idx].SetFrontierFlag( fcm_conf, fgm_conf );
+
+		set<pointset, pointset> unreachable_frontiers;
+		{
+			const std::unique_lock<mutex> lock(mutex_unreachable_points) ;
+			unreachable_frontiers = m_unreachable_frontier_set ;
+			m_oFrontierFilter.computeReachability( unreachable_frontiers, voFrontierCands );
+
+			for( size_t idx=0; idx < voFrontierCands.size(); idx++)
+			{
+				if( !voFrontierCands[idx].isConfidentFrontierPoint() )
+					continue ;
+
+				cv::Point frontier_in_gridmap = voFrontierCands[idx].GetCorrectedGridmapPosition();
+				geometry_msgs::Point p;
+				p.x = frontier_in_gridmap.x ;
+				p.y = frontier_in_gridmap.y ;
+				p.z = 0.0 ;
+				m_unreachable_points.points.push_back(p) ;
+			}
+		}
 	}
 	else
 	{
@@ -1054,39 +1076,39 @@ void FrontierDetectorSMS::unreachablefrontierCallback(const geometry_msgs::PoseS
 	}
 }
 
-void FrontierDetectorSMS::saveGridmap( string filename, const nav_msgs::OccupancyGrid &mapData )
-{
-	ofstream ofs_map(filename) ;
-	int height = mapData.info.height ;
-	int width  = mapData.info.width ;
-	std::vector<signed char> Data=mapData.data;
-	ofs_map << height << " " << width << " ";
-	for(int ridx = 0; ridx < height; ridx++)
-	{
-		for(int cidx = 0; cidx < width; cidx++)
-		{
-			int value = static_cast<int>( Data[ridx * width + cidx] ) ;
-			ofs_map << value << " ";
-		}
-	}
-	ofs_map.close();
-}
-
-void FrontierDetectorSMS::saveFrontierCandidates( string filename, vector<FrontierPoint> voFrontierCandidates )
-{
-	ofstream ofs_fpts(filename) ;
-	for(size_t idx=0; idx < voFrontierCandidates.size(); idx++)
-	{
-		FrontierPoint oFP = voFrontierCandidates[idx];
-		cv::Point initposition = oFP.GetInitGridmapPosition() ;
-		cv::Point correctedposition = oFP.GetCorrectedGridmapPosition() ;
-		float fcmconf = oFP.GetCMConfidence() ;
-		float fgmconf = oFP.GetGMConfidence() ;
-		ofs_fpts << fcmconf << " " << fgmconf << " " << oFP.isConfidentFrontierPoint() << " " <<
-		initposition.x << " " << initposition.y << " " << correctedposition.x << " " << correctedposition.y << endl;
-	}
-	ofs_fpts.close();
-}
+//void FrontierDetectorSMS::saveGridmap( string filename, const nav_msgs::OccupancyGrid &mapData )
+//{
+//	ofstream ofs_map(filename) ;
+//	int height = mapData.info.height ;
+//	int width  = mapData.info.width ;
+//	std::vector<signed char> Data=mapData.data;
+//	ofs_map << height << " " << width << " ";
+//	for(int ridx = 0; ridx < height; ridx++)
+//	{
+//		for(int cidx = 0; cidx < width; cidx++)
+//		{
+//			int value = static_cast<int>( Data[ridx * width + cidx] ) ;
+//			ofs_map << value << " ";
+//		}
+//	}
+//	ofs_map.close();
+//}
+//
+//void FrontierDetectorSMS::saveFrontierCandidates( string filename, vector<FrontierPoint> voFrontierCandidates )
+//{
+//	ofstream ofs_fpts(filename) ;
+//	for(size_t idx=0; idx < voFrontierCandidates.size(); idx++)
+//	{
+//		FrontierPoint oFP = voFrontierCandidates[idx];
+//		cv::Point initposition = oFP.GetInitGridmapPosition() ;
+//		cv::Point correctedposition = oFP.GetCorrectedGridmapPosition() ;
+//		float fcmconf = oFP.GetCMConfidence() ;
+//		float fgmconf = oFP.GetGMConfidence() ;
+//		ofs_fpts << fcmconf << " " << fgmconf << " " << oFP.isConfidentFrontierPoint() << " " <<
+//		initposition.x << " " << initposition.y << " " << correctedposition.x << " " << correctedposition.y << endl;
+//	}
+//	ofs_fpts.close();
+//}
 
 }
 

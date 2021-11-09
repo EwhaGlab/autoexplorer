@@ -215,5 +215,40 @@ void FrontierDetector::SetVizMarkers( const string& frame_id,
 
 //void accessFrontierPoint( ){}
 
+void FrontierDetector::saveGridmap( string filename, const nav_msgs::OccupancyGrid &mapData )
+{
+	ofstream ofs_map(filename) ;
+	int height = mapData.info.height ;
+	int width  = mapData.info.width ;
+	std::vector<signed char> Data=mapData.data;
+	ofs_map << height << " " << width << " ";
+	for(int ridx = 0; ridx < height; ridx++)
+	{
+		for(int cidx = 0; cidx < width; cidx++)
+		{
+			int value = static_cast<int>( Data[ridx * width + cidx] ) ;
+			ofs_map << value << " ";
+		}
+	}
+	ofs_map.close();
+}
+
+void FrontierDetector::saveFrontierCandidates( string filename, vector<FrontierPoint> voFrontierCandidates )
+{
+	ofstream ofs_fpts(filename) ;
+	for(size_t idx=0; idx < voFrontierCandidates.size(); idx++)
+	{
+		FrontierPoint oFP = voFrontierCandidates[idx];
+		cv::Point initposition = oFP.GetInitGridmapPosition() ;
+		cv::Point correctedposition = oFP.GetCorrectedGridmapPosition() ;
+		float fcmconf = oFP.GetCMConfidence() ;
+		float fgmconf = oFP.GetGMConfidence() ;
+		ofs_fpts << fcmconf << " " << fgmconf << " " << oFP.isConfidentFrontierPoint() << " " <<
+		initposition.x << " " << initposition.y << " " << correctedposition.x << " " << correctedposition.y << endl;
+	}
+	ofs_fpts.close();
+}
+
+
 }
 

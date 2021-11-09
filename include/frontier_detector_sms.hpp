@@ -10,7 +10,6 @@
 
 
 #include "frontier_detector.hpp"
-#include "frontier_point.hpp"
 #include "frontier_filter.hpp"
 
 // #define FD_DEBUG_MODE
@@ -42,8 +41,8 @@ public:
 	void unreachablefrontierCallback(const geometry_msgs::PoseStamped::ConstPtr& msg );
 
 	//vector<cv::Point> eliminateSupriousFrontiers( nav_msgs::OccupancyGrid &costmapData, vector<cv::Point> frontierCandidates, int winsize = 25 ) ;
-	void saveGridmap( string filename, const nav_msgs::OccupancyGrid &mapData );
-	void saveFrontierCandidates( string filename, vector<FrontierPoint> voFrontierCandidates );
+//	void saveGridmap( string filename, const nav_msgs::OccupancyGrid &mapData );
+//	void saveFrontierCandidates( string filename, vector<FrontierPoint> voFrontierCandidates );
 
 	int displayMapAndFrontiers(const cv::Mat& mapimg, const vector<cv::Point>& frontiers, const int winsize ) ;
 	bool isValidPlan( vector<cv::Point>  );

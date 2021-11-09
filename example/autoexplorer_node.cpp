@@ -20,7 +20,7 @@
 
 using namespace autoexplorer;
 
-enum SLAM_ID{GMAPPING=0, CARTOGRAPHER};
+enum SLAM_ID{GMAPPING=0, CARTOGRAPHER, SLAM_TOOLBOX};
 
 int main(int argc, char** argv){
   ros::init(argc, argv, "frontier_detector");
@@ -45,6 +45,7 @@ int main(int argc, char** argv){
   static map<string, int> slamid;
   slamid["gmapping"] = SLAM_ID::GMAPPING;
   slamid["cartographer"] = SLAM_ID::CARTOGRAPHER;
+  slamid["slam_toolbox"] = SLAM_ID::SLAM_TOOLBOX;
 
   ROS_INFO("slamid: %s %d \n", slam_method.c_str(), slamid[slam_method.c_str()]);
 //  exit(-1);
@@ -74,6 +75,7 @@ int main(int argc, char** argv){
   	  }
 
   	  case CARTOGRAPHER:
+  	  case SLAM_TOOLBOX:
   	  {
 		  ROS_INFO("Initializing frontier_detector_dms \n");
 		  FrontierDetectorDMS front_detector_dms(private_nh, nh);

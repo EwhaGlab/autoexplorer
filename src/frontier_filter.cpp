@@ -31,7 +31,7 @@ FrontierFilter::~FrontierFilter()
 
 void FrontierFilter::measureCostmapConfidence( const nav_msgs::OccupancyGrid& costmapData, std::vector<FrontierPoint>& voFrontierCandidates )
 {
-ROS_INFO("eliminating suprious frontiers in the costmap \n");
+//ROS_INFO("eliminating suprious frontiers in the costmap \n");
 static int cmapidx = 0;
 
 	float fXstart=costmapData.info.origin.position.x; // world coordinate in the costmap
@@ -43,7 +43,7 @@ static int cmapidx = 0;
 
 	std::vector<signed char> Data=costmapData.data;
 
-ROS_INFO("origin in costmap: %f %f\n", fXstart, fXstart );
+//ROS_INFO("origin in costmap: %f %f\n", fXstart, fXstart );
 
 #ifdef FD_DEBUG_MODE
 	m_nglobalcostmapidx++;
@@ -108,7 +108,7 @@ ROS_INFO("origin in costmap: %f %f\n", fXstart, fXstart );
 		int ex = MIN(px_c + m_ncostmap_roi_size, width) ;
 		int sy = MAX(py_c - m_ncostmap_roi_size, 0);
 		int ey = MIN(py_c + m_ncostmap_roi_size, height) ;
-
+//ROS_INFO("cm test window: %d %d %d %d \n", sx, ex, sy, ey);
 		//ofs_fpc << px_c << " " << py_c << endl;
 
 //	char tmp[200];
@@ -225,5 +225,40 @@ void FrontierFilter::measureGridmapConfidence( const nav_msgs::OccupancyGrid& gr
 	}
 
 }
+
+void FrontierFilter::computeReachability( const set<pointset, pointset>& unreachable_frontiers, std::vector<FrontierPoint>& voFrontierCandidates )
+{
+
+// classify unreachable points
+
+	if( !unreachable_frontiers.empty() )
+	{
+		vector<cv::Point> validFrontiers ;
+		cv::Point pt_img;
+		for (size_t i=0; i < voFrontierCandidates.size(); i++ )
+		{
+			FrontierPoint pt = voFrontierCandidates[i];
+			if( !pt.isConfidentFrontierPoint() )
+				continue ;
+
+			cv::Point2f frontier_in_world = pt.GetCorrectedWorldPosition() ;
+			float fx = frontier_in_world.x ;
+			float fy = frontier_in_world.y ;
+			for (const auto & di : unreachable_frontiers)
+			{
+				float fdist = std::sqrt( (fx - di.d[0]) * (fx - di.d[0]) + (fy - di.d[1]) * (fy - di.d[1]) ) ;
+				if(fdist < 0.05)
+				{
+					ROS_WARN("(%f %f) and (%f %f) are the same? unreachable point? \n",
+								fx, fy, di.d[0], di.d[1]);
+					voFrontierCandidates[i].SetReachability(false);
+				}
+			}
+		}
+	}
+
+}
+
+
 
 }
