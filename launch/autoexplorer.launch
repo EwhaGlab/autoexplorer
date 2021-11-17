@@ -15,10 +15,9 @@
     <include file="$(find autoexplorer)/launch/includes/move_fetch.launch">
         <arg name="slam_method"        value="$(arg slam_method)" />
     </include> 
-    <param name="frame_id" type="string" value="map" />
 
 	<node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" args="$(arg slam_method)" output="screen">
-
+        <param name="frame_id" type="string" value="map" />
     </node>
        
     <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/>

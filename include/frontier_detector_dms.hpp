@@ -11,6 +11,8 @@
 #include "frontier_detector.hpp"
 #include "frontier_point.hpp"
 #include "frontier_filter.hpp"
+#include "global_planning_handler.hpp"
+#include <omp.h>
 
 //#define OCCUPANCY_THR (60)
 //#define FD_DEBUG_MODE
@@ -54,7 +56,6 @@ public:
 
 protected:
 
-
 	ros::NodeHandle m_nh;
 	ros::NodeHandle m_nh_private;
 
@@ -72,10 +73,18 @@ protected:
 
 	FrontierFilter m_oFrontierFilter;
 
+	GlobalPlanningHandler* mpo_gph ;
+	GlobalPlanningHandler mo_gph ;
+	costmap_2d::Costmap2D* mpo_costmap;
+
+	uint8_t* mp_cost_translation_table;
+
+	ofstream m_ofs_time ;
 private:
 	std::mutex mutex_robot_state;
 	std::mutex mutex_unreachable_points;
 	std::mutex mutex_gridmap;
+	std::mutex mutex_costmap;
 };
 
 }

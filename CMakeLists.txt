@@ -16,6 +16,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  costmap_2d
+  navfn
 )
 
 find_package(OpenCV 3.2 REQUIRED)
@@ -109,11 +111,20 @@ find_package(OpenCV 3.2 REQUIRED)
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+
+find_package(OpenMP REQUIRED)
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
+
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS std_msgs nav_msgs roscpp rospy std_msgs
-  DEPENDS OpenCV
+  CATKIN_DEPENDS std_msgs nav_msgs roscpp rospy std_msgs costmap_2d navfn
+  DEPENDS OpenCV OpenMP
 )
 
 ###########
@@ -133,6 +144,8 @@ include_directories(
   ~/catkin_ws/src/navigation/nav_core/include
   ~/catkin_ws/src/navigation/costmap_2d/include
   ~/catkin_ws/src/autoexplorer/include
+  ~/catkin_ws/src/navigation/costmap_2d/include 
+  ~/catkin_ws/src/navigation/navfn/include 
 )
 
 set(AUTOEXPLORER_PROJ_DIRECTORY ${PROJECT_SOURCE_DIR} )
@@ -142,13 +155,12 @@ ${PROJECT_SOURCE_DIR}/src/*.cpp
 
 message("pkg: " ${catkin_INCLUDE_DIRS})
 
-
-add_library(frontier_detector SHARED ${SRC_FILES})
-target_link_libraries(frontier_detector 
-${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
+add_library(autoexplorer SHARED ${SRC_FILES})
+target_link_libraries(autoexplorer 
+${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${OpenMP_LIBS}
 )
 
-set_target_properties( frontier_detector PROPERTIES
+set_target_properties( autoexplorer PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${AUTOEXPLORER_PROJ_DIRECTORY}/lib 
 )
 
@@ -169,7 +181,11 @@ set_target_properties( frontier_detector PROPERTIES
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node example/autoexplorer_node.cpp)
-target_link_libraries(${PROJECT_NAME}_node frontier_detector)
+
+#target_compile_options(autoexplorer PRIVATE ${OpenMP_FLAGS})
+#add_dependencies(autoexplorer ${catkin_EXPORTED_TARGETS})
+
+target_link_libraries(${PROJECT_NAME}_node autoexplorer)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

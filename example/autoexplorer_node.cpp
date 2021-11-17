@@ -22,7 +22,8 @@ using namespace autoexplorer;
 
 enum SLAM_ID{GMAPPING=0, CARTOGRAPHER, SLAM_TOOLBOX};
 
-int main(int argc, char** argv){
+int main(int argc, char** argv)
+{
   ros::init(argc, argv, "frontier_detector");
   const ros::NodeHandle nh;
   const ros::NodeHandle private_nh("~");
