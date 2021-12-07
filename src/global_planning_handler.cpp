@@ -327,51 +327,89 @@ ROS_INFO("setting planner costmap \n");
     bool success = planner_->calcNavFnAstar();
     //bool success = planner_->calcNavFnDijkstra(true);
 
-    double resolution = mp_costmap->getResolution();
-    geometry_msgs::PoseStamped p, best_pose;
-    p = goal;
-
-    bool found_legal = false;
-    double best_sdist = DBL_MAX;
-
-    p.pose.position.y = goal.pose.position.y - mf_tolerance;
-
-    while(p.pose.position.y <= goal.pose.position.y + mf_tolerance)
+    if(success)
     {
-      p.pose.position.x = goal.pose.position.x - mf_tolerance;
-      while(p.pose.position.x <= goal.pose.position.x + mf_tolerance)
-      {
-        double potential = getPointPotential(p.pose.position);
-        double sdist = sq_distance(p, goal);
-        if(potential < POT_HIGH && sdist < best_sdist)
-        {
-          best_sdist = sdist;
-          best_pose = p;
-          found_legal = true;
-        }
-        p.pose.position.x += resolution;
-      }
-      p.pose.position.y += resolution;
+		//planner_->calcPath(mp_costmap->getSizeInCellsX() * 4);
+
+		//extract the plan
+		float *x = planner_->getPathX();
+		float *y = planner_->getPathY();
+		int len = planner_->getPathLen();
+		ros::Time plan_time = ros::Time::now();
+
+		for(int i = len - 1; i >= 0; --i)
+		{
+		  //convert the plan to world coordinates
+		  double world_x, world_y;
+		  mapToWorld(x[i], y[i], world_x, world_y);
+
+		  geometry_msgs::PoseStamped pose;
+		  pose.header.stamp = plan_time;
+		  pose.header.frame_id = global_frame_;
+		  pose.pose.position.x = world_x;
+		  pose.pose.position.y = world_y;
+		  pose.pose.position.z = 0.0;
+		  pose.pose.orientation.x = 0.0;
+		  pose.pose.orientation.y = 0.0;
+		  pose.pose.orientation.z = 0.0;
+		  pose.pose.orientation.w = 1.0;
+		  plan.push_back(pose);
+		}
+		ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
+		return true;
+    }
+    else
+    {
+    	ROS_ERROR("@GPH: Failed to get a plan from the Astar search");
+    	return false;
     }
 
-    if(found_legal)
-    {
-      //extract the plan
-      if(getPlanFromPotential(best_pose, plan))
-      {
-        //make sure the goal we push on has the same timestamp as the rest of the plan
-        geometry_msgs::PoseStamped goal_copy = best_pose;
-        goal_copy.header.stamp = ros::Time::now();
-        plan.push_back(goal_copy);
 
-        ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
-
-      }
-      else
-      {
-        ROS_ERROR("@GPH: Failed to get a plan from potential when a legal potential was found. This shouldn't happen.");
-      }
-    }
+//    double resolution = mp_costmap->getResolution();
+//    geometry_msgs::PoseStamped p, best_pose;
+//    p = goal;
+//
+//    bool found_legal = false;
+//    double best_sdist = DBL_MAX;
+//
+//    p.pose.position.y = goal.pose.position.y - mf_tolerance;
+//
+//    while(p.pose.position.y <= goal.pose.position.y + mf_tolerance)
+//    {
+//      p.pose.position.x = goal.pose.position.x - mf_tolerance;
+//      while(p.pose.position.x <= goal.pose.position.x + mf_tolerance)
+//      {
+//        double potential = getPointPotential(p.pose.position);
+//        double sdist = sq_distance(p, goal);
+//        if(potential < POT_HIGH && sdist < best_sdist)
+//        {
+//          best_sdist = sdist;
+//          best_pose = p;
+//          found_legal = true;
+//        }
+//        p.pose.position.x += resolution;
+//      }
+//      p.pose.position.y += resolution;
+//    }
+//
+//    if(found_legal)
+//    {
+//      //extract the plan
+//      if(getPlanFromPotential(best_pose, plan))
+//      {
+//        //make sure the goal we push on has the same timestamp as the rest of the plan
+//        geometry_msgs::PoseStamped goal_copy = best_pose;
+//        goal_copy.header.stamp = ros::Time::now();
+//        plan.push_back(goal_copy);
+//
+//        ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
+//
+//      }
+//      else
+//      {
+//        ROS_ERROR("@GPH: Failed to get a plan from potential when a legal potential was found. This shouldn't happen.");
+//      }
+//    }
 
 
 //    if (mb_visualize_potential)
@@ -409,7 +447,7 @@ ROS_INFO("setting planner costmap \n");
 //    }
 //ROS_WARN("Astar was successful (%d) found a legal plan: (%d) is plan empty: (%d)\n", success, found_legal, plan.empty() );
 
-    return !plan.empty();
+    //return !plan.empty();
 }
 
 bool GlobalPlanningHandler::getPlanFromPotential(const geometry_msgs::PoseStamped& goal, std::vector<geometry_msgs::PoseStamped>& plan)

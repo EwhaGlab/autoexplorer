@@ -18,7 +18,8 @@ m_nh_private(private_nh_),
 m_nh(nh_),
 m_nglobalcostmapidx(0),
 m_isInitMotionCompleted(false),
-mpo_gph(NULL)
+mpo_gph(NULL),
+mp_cost_translation_table(NULL)
 {
 	// gridmap generated from octomap might be downsampled !!
 
@@ -334,7 +335,7 @@ ROS_INFO("b4 map assigned  \n ");
 		cmresolution=globalcostmap.info.resolution;
 		cmstartx=globalcostmap.info.origin.position.x;
 		cmstarty=globalcostmap.info.origin.position.y;
-		cmwidth= globalcostmap.info.width;
+		cmwidth =globalcostmap.info.width;
 		cmheight=globalcostmap.info.height;
 		cmdata  =globalcostmap.data;
 	}
@@ -757,15 +758,17 @@ mpo_costmap->resizeMap( cmwidth, cmheight, cmresolution,
 ROS_INFO("mpo_costmap has been reset \n");
 unsigned char* pmap = mpo_costmap->getCharMap() ;
 ROS_INFO("w h datlen : %d %d %d \n", cmwidth, cmheight, cmdata.size() );
+
 for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 {
 	for(uint32_t cidx=0; cidx < cmwidth; cidx++)
 	{
 		uint32_t idx = ridx * cmwidth + cidx ;
 //ROS_INFO("here idx: %d \n", idx);
-		int8_t val = cmdata[idx];
-//ROS_INFO("idx val tablev : %d %d %d\t", idx, val, mp_cost_translation_table[val] );
+		signed char val = cmdata[idx];
+
 		pmap[idx] = val < 0 ? 255 : mp_cost_translation_table[val];
+//ROS_INFO("idx val tablev : %d %d %u\t", idx, val, mp_cost_translation_table[val] );
 //ROS_INFO(" %d %d\n", pmap[idx], mp_cost_translation_table[val]);
 	}
 }
@@ -774,7 +777,9 @@ ROS_INFO("mpo_costmap has been set\n");
 
 vector< uint32_t > gplansizes( m_points.points.size(), 0 ) ;
 startTime = ros::WallTime::now();
-omp_set_num_threads(12);
+//omp_set_num_threads(4);
+int numthreads; // = omp_get_num_threads() ;
+
 #pragma omp parallel firstprivate( mpo_gph ) shared( mpo_costmap, gplansizes )
 {
 	mpo_gph = new GlobalPlanningHandler();
@@ -782,6 +787,9 @@ omp_set_num_threads(12);
 	#pragma omp for
 	for (size_t idx=0; idx < m_points.points.size(); idx++)
 	{
+		int threadidx = omp_get_thread_num() ;
+		numthreads = omp_get_num_threads() ;
+
 ROS_INFO("processing (%f %f) with thread %d/%d : %d", p.x, p.y, omp_get_thread_num(), omp_get_num_threads(), idx );
 		//#pragma omp atomic
 
@@ -796,9 +804,18 @@ ROS_INFO("processing (%f %f) with thread %d/%d : %d", p.x, p.y, omp_get_thread_n
 		geometry_msgs::PoseStamped goal = StampedPosefromSE2( p.x, p.y, 0.f );
 		goal.header.frame_id = m_worldFrameId ;
 		std::vector<geometry_msgs::PoseStamped> plan;
+ros::WallTime mpStartTime = ros::WallTime::now();
 		mpo_gph->makePlan(start, goal, plan);
+ros::WallTime mpEndTime = ros::WallTime::now();
+		//ROS_INFO("thread: %d %p %p \n", omp_get_thread_num(), mpo_gph, mpo_costmap);
+double mp_time = (mpEndTime - mpStartTime).toNSec() * 1e-6;
+{
+	const std::unique_lock<mutex> lock(mutex_timing_profile) ;
+	m_ofs_time << idx << " " << threadidx << " " << plan.size() << " " << mp_time << endl;
+}
 
 		gplansizes[idx] = plan.size();
+
 //ROS_INFO("planning completed \n");
 if( plan.size() > 0 )
 	ROS_INFO("%d /%d th goal marked %d length plan \n", idx, m_points.points.size(), plan.size() );
@@ -837,7 +854,8 @@ endTime = ros::WallTime::now();
 // print results
 double gp_time = (endTime - startTime).toNSec() * 1e-6;
 ROS_INFO(" %u planning time \t %f \n",m_points.points.size(), gp_time);
-m_ofs_time << m_points.points.size() << "    " << gp_time << endl;
+m_ofs_time << numthreads << " " << m_points.points.size() << " " << gp_time << endl;
+m_ofs_time << endl;
 
 	p.x = m_bestgoal.pose.pose.position.x ;
 	p.y = m_bestgoal.pose.pose.position.y ;
@@ -845,14 +863,12 @@ m_ofs_time << m_points.points.size() << "    " << gp_time << endl;
 	m_exploration_goal.points.push_back(p);
 
 	m_markercandpub.publish(m_cands);
-
-	m_markerfrontierpub.publish(m_points);
+	m_markerfrontierpub.publish(m_points);		// for viz
 //////////////////////////////////////////////////////
 // lets disable publishing goal if Fetch robot is not used
-	m_currentgoalpub.publish(m_bestgoal);
+	m_currentgoalpub.publish(m_bestgoal);		// for control
 /////////////////////////////////////////////////////
-
-	m_makergoalpub.publish(m_exploration_goal);
+	m_makergoalpub.publish(m_exploration_goal); // for viz
 
 	// publish the best goal of the path plan
 	ROS_INFO("@mapDataCallback start(%f %f) found the best goal(%f %f) best_len (%u)\n",

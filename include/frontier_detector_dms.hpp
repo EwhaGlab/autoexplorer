@@ -85,6 +85,7 @@ private:
 	std::mutex mutex_unreachable_points;
 	std::mutex mutex_gridmap;
 	std::mutex mutex_costmap;
+	std::mutex mutex_timing_profile;
 };
 
 }
