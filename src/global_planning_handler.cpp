@@ -450,6 +450,140 @@ ROS_INFO("setting planner costmap \n");
     //return !plan.empty();
 }
 
+bool GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const bool& boneqgrid,
+			  const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
+		  	  std::vector<geometry_msgs::PoseStamped>& plan, float& fendpotential )
+{
+// does makePlan(), but breaks when f(n) > ubound occurs.
+// we don't need such path since f(n') >= f(n) which is the consistency property of Euclidean heuristic.
+
+    if(!mb_initialized)
+    {
+      ROS_ERROR("@GPH: This planner has not been initialized yet, but it is being used, please call initialize() before use");
+      return false;
+    }
+ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f) to the goal (%f %f) \n",
+		start.pose.position.x, start.pose.position.y, goal.pose.position.x, goal.pose.position.y );
+    //clear the plan, just in case
+    plan.clear();
+
+    ros::NodeHandle n;
+
+    //until tf can handle transforming things that are way in the past... we'll require the goal to be in our global frame
+    if(goal.header.frame_id != global_frame_)
+    {
+      ROS_ERROR("@GPH: The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
+                global_frame_.c_str(), goal.header.frame_id.c_str());
+      return false;
+    }
+
+    if(start.header.frame_id != global_frame_)
+    {
+      ROS_ERROR("@GPH: The start pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
+                global_frame_.c_str(), start.header.frame_id.c_str());
+      return false;
+    }
+
+    double wx = start.pose.position.x;
+    double wy = start.pose.position.y;
+
+    unsigned int mx, my;
+    if(!mp_costmap->worldToMap(wx, wy, mx, my))
+    {
+      ROS_WARN("The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
+      return false;
+    }
+
+    //clear the starting cell within the costmap because we know it can't be an obstacle
+ROS_DEBUG("[tid %d] clearing robot cell \n", tid);
+    clearRobotCell(start, mx, my);
+    //make sure to resize the underlying array that Navfn uses
+ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY(), tid);
+    planner_->setNavArr(mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY());
+
+	if(boneqgrid)
+	{
+    	planner_->setEqGridCostmap(mp_costmap->getCharMap(), mb_allow_unknown);
+	}
+	else
+	{
+    	planner_->setCostmap(mp_costmap->getCharMap(), true, mb_allow_unknown);
+	}
+//costmap_->saveMap("/home/hankm/catkin_ws/src/frontier_detector/launch/cstmap.dat");
+
+    int map_start[2];
+    map_start[0] = mx;
+    map_start[1] = my;
+
+    wx = goal.pose.position.x;
+    wy = goal.pose.position.y;
+
+    if(!mp_costmap->worldToMap(wx, wy, mx, my))
+    {
+      if(mf_tolerance <= 0.0)
+      {
+        ROS_WARN_THROTTLE(1.0, "The goal sent to the global_planning_handler is off the global costmap. Planning will always fail to this goal.");
+        return false;
+      }
+      mx = 0;
+      my = 0;
+    }
+
+    int map_goal[2];
+    map_goal[0] = mx;
+    map_goal[1] = my;
+//ROS_WARN("wx wy (%f %f) mx my (%u %u) mapstart(%d %d) mapgoal(%d %d):\n",
+//		wx, wy, mx, my, map_start[0], map_start[1], map_goal[0], map_goal[1] );
+
+    planner_->setStart(map_goal);
+    planner_->setGoal(map_start);
+
+    //bool success = planner_->calcNavFnAstar(   );
+    //bool success = planner_->calcNavFnDijkstra(true);
+
+    bool success = planner_->calcNavFnBoundedAstar( tid, fbound, fendpotential );
+
+    if(success)
+    {
+		//planner_->calcPath(mp_costmap->getSizeInCellsX() * 4);
+
+		//extract the plan
+		float *x = planner_->getPathX();
+		float *y = planner_->getPathY();
+		int len = planner_->getPathLen();
+		ros::Time plan_time = ros::Time::now();
+
+		for(int i = len - 1; i >= 0; --i)
+		{
+		  //convert the plan to world coordinates
+		  double world_x, world_y;
+		  mapToWorld(x[i], y[i], world_x, world_y);
+
+		  geometry_msgs::PoseStamped pose;
+		  pose.header.stamp = plan_time;
+		  pose.header.frame_id = global_frame_;
+		  pose.pose.position.x = world_x;
+		  pose.pose.position.y = world_y;
+		  pose.pose.position.z = 0.0;
+		  pose.pose.orientation.x = 0.0;
+		  pose.pose.orientation.y = 0.0;
+		  pose.pose.orientation.z = 0.0;
+		  pose.pose.orientation.w = 1.0;
+		  plan.push_back(pose);
+		}
+
+		ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
+		return true;
+    }
+    else
+    {
+    	ROS_ERROR("@GPH: Failed to get a plan from the Astar search");
+    	return false;
+    }
+
+}
+
+
 bool GlobalPlanningHandler::getPlanFromPotential(const geometry_msgs::PoseStamped& goal, std::vector<geometry_msgs::PoseStamped>& plan)
 {
   if(!mb_initialized)

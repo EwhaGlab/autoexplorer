@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   costmap_2d
-  navfn
+#  navfn
 )
 
 find_package(OpenCV 3.2 REQUIRED)
@@ -123,7 +123,7 @@ endif()
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS std_msgs nav_msgs roscpp rospy std_msgs costmap_2d navfn
+  CATKIN_DEPENDS std_msgs nav_msgs roscpp rospy std_msgs costmap_2d #navfn
   DEPENDS OpenCV OpenMP
 )
 
@@ -145,7 +145,7 @@ include_directories(
   ~/catkin_ws/src/navigation/costmap_2d/include
   ~/catkin_ws/src/autoexplorer/include
   ~/catkin_ws/src/navigation/costmap_2d/include 
-  ~/catkin_ws/src/navigation/navfn/include 
+  #~/catkin_ws/src/navigation/navfn/include 
 )
 
 set(AUTOEXPLORER_PROJ_DIRECTORY ${PROJECT_SOURCE_DIR} )

@@ -17,6 +17,7 @@
 //#define OCCUPANCY_THR (60)
 //#define FD_DEBUG_MODE
 #define ROI_OFFSET (10)
+#define DIST_HIGH  (1.0e10)
 
 namespace autoexplorer
 {
@@ -85,6 +86,7 @@ private:
 	std::mutex mutex_unreachable_points;
 	std::mutex mutex_gridmap;
 	std::mutex mutex_costmap;
+	std::mutex mutex_upperbound;
 	std::mutex mutex_timing_profile;
 };
 

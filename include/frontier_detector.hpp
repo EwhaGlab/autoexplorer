@@ -195,6 +195,11 @@ public:
 		return outPose;
 	}
 
+//	bool comparator ( const std::pair<float,float>& lv, const std::pair<float,float>& rv)
+//	{
+//		return lv.first < rv.first;
+//	}
+
 	void SetVizMarkers( const string& frame_id,	const float& fR, const float& fG, const float& fB,
 						const float& fscale, visualization_msgs::Marker&  viz_marker);
 

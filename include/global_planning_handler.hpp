@@ -10,7 +10,7 @@
 #define INCLUDE_GLOBAL_PLANNING_HANDLER_HPP_
 
 #include <ros/ros.h>
-#include <navfn/navfn.h>
+#include <nav_fn/navfn.h>
 #include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
@@ -37,6 +37,10 @@ public:
 
 	bool makePlan( const geometry_msgs::PoseStamped start, const geometry_msgs::PoseStamped goal,
 			  	  std::vector<geometry_msgs::PoseStamped>& plan );
+
+	bool makePlan(  const int& tid, const float& fbound, const bool& boneqgrid,
+					const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
+					std::vector<geometry_msgs::PoseStamped>& plan, float& fendpotential );
 
     /**
      * @brief Get the potential, or naviagation cost, at a given point in the world (Note: You should call computePotential first)
@@ -81,7 +85,7 @@ private:
     bool mb_initialized ;
     bool mb_allow_unknown;
     bool mb_visualize_potential ;
-
+    float mf_endpotential ; // pot @ start ( pot propagates from the goal )
 };
 
 }
