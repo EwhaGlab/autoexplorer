@@ -853,7 +853,7 @@ double init_time = (initEndTime - initStartTime).toNSec() * 1e-6;
 	m_ofs_time << "init time: " << init_time << " init bound " << fupperbound << " initplan len " << initplan.size() << endl;
 	m_ofs_time << "pid \t" << "tid \t" << "plan size \t" << "mp_time " << "min_heuristic_idx " << "fendpot " << "fupperbound \t" << endl;
 }
-ROS_INFO("(%d) init bound %f init plan time %f  init plan len %d",tmpidx, min_heuristic_idx, fupperbound, init_time, initplan.size() );
+//ROS_INFO("(%d) init bound %f init plan time %f  init plan len %d",tmpidx, min_heuristic_idx, fupperbound, init_time, initplan.size() );
 
 
 //exit(-1);
@@ -926,7 +926,7 @@ double mp_atomictime = (mpAtomicEndTime - mpAtomicStartTime).toNSec() * 1e-6;
 
 {
 	const std::unique_lock<mutex> lock(mutex_timing_profile) ;
-	m_ofs_time << idx << "\t" << tid << "\t" << plan.size() << "\t" << mp_time << "/" << mp_atomictime <<" " << min_heuristic_idx << "\t" << fendpot << " " << fupperbound << endl;
+	m_ofs_time << idx << "\t" << tid << "\t" << plan.size() << "\t" << mp_time << "\t" << min_heuristic_idx << "\t" << fendpot << " " << fupperbound << endl;
 }
 
 //ROS_INFO("planning completed \n");

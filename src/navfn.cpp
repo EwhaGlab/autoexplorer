@@ -906,7 +906,7 @@ ROS_DEBUG("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0],
         	  fminpot = fcurpot;
         }
 //mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << fminpot << "/" << fboundpot << std::endl;
-ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
+//ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
 
 		// B&B evaluation
 		fcurrnodepot = fminpot ;
@@ -914,7 +914,7 @@ ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
 		if( fcurrnodepot > fboundpot + COST_NEUTRAL )
 		{
 //mofs_astarlog << "aborting condition detected " << std::endl;
-ROS_INFO("[tid:%d] thread detected that the pot of currnode (%f) > bound (%f)\n", tid, fcurrnodepot, fboundpot);
+//ROS_INFO("[tid:%d] thread detected that the pot of currnode (%f) > bound (%f)\n", tid, fcurrnodepot, fboundpot);
 			break;
 		}
 
