@@ -782,6 +782,8 @@ ROS_INFO("mpo_costmap has been set\n");
 	float fmindist = DIST_HIGH ;
 	size_t min_heuristic_idx = 0;
 
+ros::WallTime GPstartTime = ros::WallTime::now();
+
 	vector< pair<size_t, float> > init_heuristic;
 	for(size_t idx=0; idx < m_points.points.size(); idx++)
 	{
@@ -818,7 +820,6 @@ ROS_INFO("mpo_costmap has been set\n");
 	float fendpot = POT_HIGH;
 	const float initbound = static_cast<float>(DIST_HIGH) ;
 
-ros::WallTime GPstartTime = ros::WallTime::now();
 ros::WallTime initStartTime = ros::WallTime::now();
 
 	size_t tmpidx;
