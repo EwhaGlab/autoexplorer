@@ -15,7 +15,7 @@ FrontierDetector::FrontierDetector():
 m_worldFrameId("map"), m_baseFrameId("base_link"),
 m_globalcostmap_rows(0), m_globalcostmap_cols(0), m_eRobotState(ROBOT_STATE::ROBOT_IS_NOT_MOVING),
 m_move_client("move_base", true),
-m_fRobotRadius(0.3), isdone(false), m_nroi_origx(0), m_nroi_origy(0), m_nrows(0), m_ncols(0)
+m_fRobotRadius(0.3), mb_explorationisdone(false), m_nroi_origx(0), m_nroi_origy(0), m_nrows(0), m_ncols(0)
 {
 
 }

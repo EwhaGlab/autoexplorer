@@ -46,7 +46,7 @@ public:
 
 	int displayMapAndFrontiers(const cv::Mat& mapimg, const vector<cv::Point>& frontiers, const int winsize ) ;
 	bool isValidPlan( vector<cv::Point>  );
-	bool isDone() const { return isdone; };
+	bool explorationisdone() const { return mb_explorationisdone; };
 	void publishDone() ;
 
 //	geometry_msgs::PoseStamped StampedPosefromSE2( float x, float y, float yaw ) ;

@@ -56,7 +56,8 @@ mp_cost_translation_table(NULL)
 	m_unreachpointpub = m_nh.advertise<visualization_msgs::Marker>("unreachable_shapes", 10);
 
 	m_velpub		= m_nh.advertise<geometry_msgs::Twist>("cmd_vel",10);
-	m_donepub		= m_nh.advertise<std_msgs::Bool>("move_base_simple/mapping_is_done",1);
+	m_donepub		= m_nh.advertise<std_msgs::Bool>("exploration_is_done",1);
+	//m_resetgazebopub = m_nh.advertise<std_msgs::Empty>("exploration_is_done",1);
 
 	//---------------------------------------------------------------
 	//m_mapsub = m_nh.subscribe("map", 1, &FrontierDetectorDMS::gridmapCallBack, this);  // "projected_map" if octomap is on
@@ -229,11 +230,17 @@ bool FrontierDetectorDMS::isValidPlan( vector<cv::Point>  )
 
 }
 
-void FrontierDetectorDMS::publishDone( )
+void FrontierDetectorDMS::publishDoneExploration( )
 {
 	std_msgs::Bool done_task;
 	done_task.data = true;
 	m_donepub.publish( done_task );
+}
+
+void FrontierDetectorDMS::publishResetGazebo( )
+{
+	std_msgs::Empty reset_gazebo;
+	m_resetgazebopub.publish( reset_gazebo );
 }
 
 
@@ -623,18 +630,18 @@ ROS_INFO("costmap msg width: %d \n", gmwidth );
 			unreachable_frontiers = m_unreachable_frontier_set ;
 			m_oFrontierFilter.computeReachability( unreachable_frontiers, voFrontierCands );
 
-			for( size_t idx=0; idx < voFrontierCands.size(); idx++)
-			{
-				if( !voFrontierCands[idx].isConfidentFrontierPoint() )
-					continue ;
-
-				cv::Point frontier_in_gridmap = voFrontierCands[idx].GetCorrectedGridmapPosition();
-				geometry_msgs::Point p;
-				p.x = frontier_in_gridmap.x ;
-				p.y = frontier_in_gridmap.y ;
-				p.z = 0.0 ;
-				m_unreachable_points.points.push_back(p) ;
-			}
+//			for( size_t idx=0; idx < voFrontierCands.size(); idx++)
+//			{
+//				if( !voFrontierCands[idx].isConfidentFrontierPoint() )
+//					continue ;
+//
+//				cv::Point frontier_in_gridmap = voFrontierCands[idx].GetCorrectedGridmapPosition();
+//				geometry_msgs::Point p;
+//				p.x = frontier_in_gridmap.x ;
+//				p.y = frontier_in_gridmap.y ;
+//				p.z = 0.0 ;
+//				m_unreachable_points.points.push_back(p) ;
+//			}
 		}
 	}
 	else
@@ -683,7 +690,12 @@ ROS_INFO("costmap msg width: %d \n", gmwidth );
 	if( valid_frontier_indexs.size() == 0 )
 	{
 		ROS_WARN("no valid frontiers \n");
-		//isdone = true;
+		mb_explorationisdone = true;
+
+		ROS_INFO("Exploration is done. Set exploraiton done flag \n");
+
+		//publishResetGazebo();
+		//publishDoneExploration();
 		return;
 	}
 
@@ -1042,7 +1054,8 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 // robot is ready to move
 	ROS_INFO("Robot state in moveRobotCallback: %d \n ",  m_eRobotState);
 
-	if( m_eRobotState >= ROBOT_STATE::FORCE_TO_STOP ) //|| isdone )
+
+	if( m_eRobotState >= ROBOT_STATE::FORCE_TO_STOP   )
 		return;
 
 	geometry_msgs::PoseWithCovarianceStamped goalpose = *msg ;
@@ -1105,7 +1118,7 @@ void FrontierDetectorDMS::unreachablefrontierCallback(const geometry_msgs::PoseS
 
 	// stop the robot and restart frontier detection procedure
 
-	ROS_WARN("+++++++++++Cancling the unreachable goal +++++++++++++\n");
+	ROS_WARN("+++++++++++Canceling the unreachable goal +++++++++++++\n");
 
 	{
 		const std::unique_lock<mutex> lock(mutex_robot_state) ;

@@ -195,6 +195,8 @@ public:
 		return outPose;
 	}
 
+	inline bool isDone() const { return mb_explorationisdone; }
+
 //	bool comparator ( const std::pair<float,float>& lv, const std::pair<float,float>& rv)
 //	{
 //		return lv.first < rv.first;
@@ -233,7 +235,7 @@ protected:
 
 	int m_ncols, m_nrows, m_nroi_origx, m_nroi_origy ;
 	//int m_nCannotFindFrontierCount ;
-	bool isdone ;
+	bool mb_explorationisdone ;
 
 	vector<cv::Point> m_frontiers;
 	int m_frontiers_region_thr ;

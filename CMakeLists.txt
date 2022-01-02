@@ -181,6 +181,7 @@ set_target_properties( autoexplorer PROPERTIES
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node example/autoexplorer_node.cpp)
+#add_executable(resetgazebo_node example/resetgazebo_node.cpp)
 
 #target_compile_options(autoexplorer PRIVATE ${OpenMP_FLAGS})
 #add_dependencies(autoexplorer ${catkin_EXPORTED_TARGETS})

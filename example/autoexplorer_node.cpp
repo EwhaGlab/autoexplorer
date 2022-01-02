@@ -94,14 +94,15 @@ int main(int argc, char** argv)
 				return -1;
 			  }
 		  }
-		  front_detector_dms.publishDone();
+		  //front_detector_dms.publishDone();
+		  front_detector_dms.publishDoneExploration();
 		  break;
   	  }
   	  default: ROS_ERROR("Invalid slam method \n");
   }
 
   ROS_WARN(" Sutting down frontier detection process \n");
-  ros::shutdown();
+  //ros::shutdown(); lets shutdown from outside
 
   return 0;
 }

@@ -13,6 +13,7 @@
 #include "frontier_filter.hpp"
 #include "global_planning_handler.hpp"
 #include <omp.h>
+#include "std_msgs/Empty.h"
 
 //#define OCCUPANCY_THR (60)
 //#define FD_DEBUG_MODE
@@ -46,8 +47,9 @@ public:
 
 	int displayMapAndFrontiers(const cv::Mat& mapimg, const vector<cv::Point>& frontiers, const int winsize ) ;
 	bool isValidPlan( vector<cv::Point>  );
-	bool isDone() const { return isdone; };
-	void publishDone() ;
+	bool explorationisdone() const { return mb_explorationisdone; };
+	void publishDoneExploration() ;
+	void publishResetGazebo() ;
 
 //	geometry_msgs::PoseStamped StampedPosefromSE2( float x, float y, float yaw ) ;
 //	geometry_msgs::PoseStamped GetCurrPose ( ) ;
@@ -63,7 +65,7 @@ protected:
 	ros::Subscriber m_mapsub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, m_globalCostmapUpdateSub,
 					m_globalplanSub, m_unreachablefrontierSub ;
 	ros::Publisher m_targetspub, m_markercandpub, m_markerfrontierpub,
-					m_makergoalpub, m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub ;
+					m_makergoalpub, m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub, m_resetgazebopub ;
 
 	int m_nglobalcostmapidx ;
 	string m_str_debugpath ;

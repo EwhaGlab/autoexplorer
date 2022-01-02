@@ -20,6 +20,6 @@
         <param name="frame_id" type="string" value="map" />
     </node>
        
-    <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/>
+    <!--node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/-->
 
 </launch>
