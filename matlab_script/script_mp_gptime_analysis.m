@@ -4,10 +4,10 @@ filepath = '/home/hankm/results/autoexploration/numthreads_vs_timing';
 gptime_per_thread = zeros(16,1);
 stdata = struct ;
 
-for ntidx=1:16
+for ntidx=1:5:16
     timedata = [];
     cnt = 1;
-    for nround=1:8
+    for nround=1 %:8
         filename = sprintf('%s/planning_time_%d_%d.txt',filepath,ntidx, nround);
         mydata = importdata(filename) ;
         %cnt = 1;
@@ -27,10 +27,10 @@ for ntidx=1:16
 end
 
 figure(1); clf; hold on;
-plot(stdata(1).X(:,2), stdata(1).fitest, 'r--' );
-plot(stdata(6).X(:,2), stdata(6).fitest, 'g--' );
-plot(stdata(12).X(:,2), stdata(12).fitest, 'b--' );
-plot(stdata(16).X(:,2), stdata(16).fitest, 'c--' );
+plot(stdata(1).X(:,2), stdata(1).fitest, 'r-' );
+plot(stdata(6).X(:,2), stdata(6).fitest, 'g-' );
+plot(stdata(11).X(:,2), stdata(11).fitest, 'b-' );
+plot(stdata(16).X(:,2), stdata(16).fitest, 'c-' );
 xlabel('num fpts to process')
 ylabel('runtime (ms)')
 title('mp BB performance w/o init heuristic')

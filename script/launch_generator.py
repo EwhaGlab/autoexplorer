@@ -84,12 +84,11 @@ def main(argv):
     
     global exploration_status
     num_rounds  = int(argv[1])
-    roscore = Roscore()
 
-    for num_threads in range(1,17):
+    for num_threads in range(1,17,5):
     
         for roundidx in range(1,num_rounds+1):
-            
+            roscore = Roscore()
             start_time = time.time()
             elapsed_time = time.time() - start_time
 
@@ -112,6 +111,7 @@ def main(argv):
             gz_launch = init_launch(gazebo_launch_file )
             gz_launch.start()
             rospy.sleep(12)
+            
             print('{}th gz has been started \n'.format(roundidx))
                     
         
@@ -140,17 +140,18 @@ def main(argv):
             #exploration_status = False
             print('ae is dead... waiting for 10 secs \n')
             rospy.sleep(12)
-
+            os.system("killall -9 lifelong_slam_toolbox_node & killall -9 autoexplorer_node & killall -9 move_base & killall -9 robot_state_publisher & killall -9 nodelet")
     #        rospy.wait_for_service('/gazebo/reset_world')
     #        reset_world = rospy.ServiceProxy('/gazebo/reset_world', Empty)
     #        reset_world()
             
             # kill gazebo
-            os.system("killall -9 gazebo & killall -9 gzserver  & killall -9 gzclient")
+            os.system("killall -9 gazebo & killall -9 gzserver & killall -9 gzclient")
             print('kill gazebo... waiting for 10 sec')
             rospy.sleep(12)
             roscore.terminate()
             rospy.sleep(2)
+            os.system('killall -9 roscore & killall -9 rosmaster')
             
             exploration_status = False
 
