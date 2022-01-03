@@ -16,7 +16,7 @@ namespace autoexplorer
 FrontierDetectorDMS::FrontierDetectorDMS(const ros::NodeHandle private_nh_, const ros::NodeHandle &nh_):
 m_nh_private(private_nh_),
 m_nh(nh_),
-m_nglobalcostmapidx(0),
+m_nglobalcostmapidx(0), mn_numthreads(16),
 m_isInitMotionCompleted(false),
 mpo_gph(NULL),
 mp_cost_translation_table(NULL)
@@ -796,28 +796,28 @@ ROS_INFO("mpo_costmap has been set\n");
 
 ros::WallTime GPstartTime = ros::WallTime::now();
 
-	vector< pair<size_t, float> > init_heuristic;
-	for(size_t idx=0; idx < m_points.points.size(); idx++)
-	{
-		//size_t vidx = valid_frontier_indexs[idx];
-		//cv::Point2f frontier_in_world = voFrontierCands[vidx].GetCorrectedWorldPosition();
-
-		geometry_msgs::Point point = m_points.points[idx] ;
-
-		float fxd = fstartx - (float)point.x ;
-		float fyd = fstarty - (float)point.y ;
-		float hxsq  =  sqrt( fxd * fxd + fyd * fyd ) ;
-		init_heuristic.push_back( pair<size_t, float>(idx, hxsq) );
-//		if(hxsq < fmindist)
-//		{
-//			min_heuristic_idx = vidx ;
-//			fmindist = hxsq ;
-//		}
-	}
-
-	std::stable_sort(init_heuristic.begin(), init_heuristic.end(),
-			[&init_heuristic](pair<size_t, float> i1, pair<size_t, float> i2)
-			{return i1.second < i2.second; } );
+//	vector< pair<size_t, float> > init_heuristic;
+//	for(size_t idx=0; idx < m_points.points.size(); idx++)
+//	{
+//		//size_t vidx = valid_frontier_indexs[idx];
+//		//cv::Point2f frontier_in_world = voFrontierCands[vidx].GetCorrectedWorldPosition();
+//
+//		geometry_msgs::Point point = m_points.points[idx] ;
+//
+//		float fxd = fstartx - (float)point.x ;
+//		float fyd = fstarty - (float)point.y ;
+//		float hxsq  =  sqrt( fxd * fxd + fyd * fyd ) ;
+//		init_heuristic.push_back( pair<size_t, float>(idx, hxsq) );
+////		if(hxsq < fmindist)
+////		{
+////			min_heuristic_idx = vidx ;
+////			fmindist = hxsq ;
+////		}
+//	}
+//
+//	std::stable_sort(init_heuristic.begin(), init_heuristic.end(),
+//			[&init_heuristic](pair<size_t, float> i1, pair<size_t, float> i2)
+//			{return i1.second < i2.second; } );
 
 //////////////////////////////////////////////////////////////////////////////////
 // 2. use the fp corresponds to the min distance as the init fp. epsilon = A*(fp)
@@ -825,48 +825,49 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 // 	ii) We need to sort them b/c the one with best heuristic could fail
 //////////////////////////////////////////////////////////////////////////////////
 
-	mpo_gph = new GlobalPlanningHandler();
+	//mpo_gph = new GlobalPlanningHandler();
 
 	float fupperbound;
 	std::vector<geometry_msgs::PoseStamped> initplan;
 	float fendpot = POT_HIGH;
-	const float initbound = static_cast<float>(DIST_HIGH) ;
+	//const float initbound = static_cast<float>(DIST_HIGH) ;
+	fupperbound = static_cast<float>(DIST_HIGH) ;
 
-ros::WallTime initStartTime = ros::WallTime::now();
-
-	size_t tmpidx;
-	for( size_t idx =0; idx < init_heuristic.size(); idx++)
-	{
-		mpo_gph->reinitialization( mpo_costmap ) ;
-
-		min_heuristic_idx = init_heuristic[idx].first ;
-		//cv::Point2f frontier_in_world = voFrontierCands[min_heuristic_idx].GetCorrectedWorldPosition();
-		geometry_msgs::Point point = m_points.points[min_heuristic_idx] ;
-		geometry_msgs::PoseStamped initgoal = StampedPosefromSE2( (float)point.x, (float)point.y, 0.f );
-		initgoal.header.frame_id = m_worldFrameId ;
-		bool bsuccess = mpo_gph->makePlan(0, initbound, true, start, initgoal, initplan, fendpot);
-		fupperbound = fendpot ;
-
-		if(bsuccess)
-		{
-			ROS_INFO("[init condition found] (%f %f) to (%f %f) corresponds to min idx: %d  bound pot: %f \n ",
-					start.pose.position.x, start.pose.position.y,
-					initgoal.pose.position.x, initgoal.pose.position.y, min_heuristic_idx, fendpot);
-			break;
-		}
-	}
-
-	delete mpo_gph;
-
-ros::WallTime initEndTime = ros::WallTime::now();
-		//ROS_INFO("thread: %d %p %p \n", omp_get_thread_num(), mpo_gph, mpo_costmap);
-double init_time = (initEndTime - initStartTime).toNSec() * 1e-6;
-{
-	const std::unique_lock<mutex> lock(mutex_timing_profile) ;
-	m_ofs_time << "init time: " << init_time << " init bound " << fupperbound << " initplan len " << initplan.size() << endl;
-	m_ofs_time << "pid \t" << "tid \t" << "plan size \t" << "mp_time " << "min_heuristic_idx " << "fendpot " << "fupperbound \t" << endl;
-}
-//ROS_INFO("(%d) init bound %f init plan time %f  init plan len %d",tmpidx, min_heuristic_idx, fupperbound, init_time, initplan.size() );
+//ros::WallTime initStartTime = ros::WallTime::now();
+//
+//	size_t tmpidx;
+//	for( size_t idx =0; idx < init_heuristic.size(); idx++)
+//	{
+//		mpo_gph->reinitialization( mpo_costmap ) ;
+//
+//		min_heuristic_idx = init_heuristic[idx].first ;
+//		//cv::Point2f frontier_in_world = voFrontierCands[min_heuristic_idx].GetCorrectedWorldPosition();
+//		geometry_msgs::Point point = m_points.points[min_heuristic_idx] ;
+//		geometry_msgs::PoseStamped initgoal = StampedPosefromSE2( (float)point.x, (float)point.y, 0.f );
+//		initgoal.header.frame_id = m_worldFrameId ;
+//		bool bsuccess = mpo_gph->makePlan(0, initbound, true, start, initgoal, initplan, fendpot);
+//		fupperbound = fendpot ;
+//
+//		if(bsuccess)
+//		{
+//			ROS_INFO("[init condition found] (%f %f) to (%f %f) corresponds to min idx: %d  bound pot: %f \n ",
+//					start.pose.position.x, start.pose.position.y,
+//					initgoal.pose.position.x, initgoal.pose.position.y, min_heuristic_idx, fendpot);
+//			break;
+//		}
+//	}
+//
+//	delete mpo_gph;
+//
+//ros::WallTime initEndTime = ros::WallTime::now();
+//		//ROS_INFO("thread: %d %p %p \n", omp_get_thread_num(), mpo_gph, mpo_costmap);
+//double init_time = (initEndTime - initStartTime).toNSec() * 1e-6;
+//{
+//	const std::unique_lock<mutex> lock(mutex_timing_profile) ;
+//	m_ofs_time << "init time: " << init_time << " init bound " << fupperbound << " initplan len " << initplan.size() << endl;
+//	m_ofs_time << "pid \t" << "tid \t" << "plan size \t" << "mp_time " << "min_heuristic_idx " << "fendpot " << "fupperbound \t" << endl;
+//}
+////ROS_INFO("(%d) init bound %f init plan time %f  init plan len %d",tmpidx, min_heuristic_idx, fupperbound, init_time, initplan.size() );
 
 
 //exit(-1);
@@ -880,12 +881,12 @@ int numthreads;// = omp_get_num_threads() ;
 vector< uint32_t > gplansizes( m_points.points.size(), 0 ) ;
 
 //vector< float	 > endpotentials( numthreads );
-//omp_set_num_threads(4);
+omp_set_num_threads(mn_numthreads);
 
 #pragma omp parallel firstprivate( mpo_gph ) shared( mpo_costmap, gplansizes, fupperbound )
 {
 	mpo_gph = new GlobalPlanningHandler();
-	numthreads = omp_get_num_threads() ;
+	numthreads = mn_numthreads; //omp_get_num_threads() ;
 
 	#pragma omp for
 	for (size_t idx=0; idx < m_points.points.size(); idx++)
@@ -922,15 +923,15 @@ ros::WallTime mpAtomicStartTime = ros::WallTime::now();
 		{
 			#pragma omp atomic write
 				fupperbound = fendpot; // set new bound;
-			ROS_INFO("\n*******************************************************\n "
-					"%d thread found new bound %f overwritting the old bound %f \n "
-					"****************************************************** \n",
-					tid, fendpot, fupperbound);
+//			ROS_INFO("\n*******************************************************\n "
+//					"%d thread found new bound %f overwritting the old bound %f \n "
+//					"****************************************************** \n",
+//					tid, fendpot, fupperbound);
 		}
-if( plan.size() > 0 )
-	ROS_INFO("[tid %d][found a valid plan!!!] %d /%d th goal marked %d length plan \n",tid, idx, m_points.points.size(), plan.size() );
-else
-	ROS_INFO("[tid %d] cannot find a valid plan to the %d / %d th goal \n", tid, idx, m_points.points.size() );
+//if( plan.size() > 0 )
+//	ROS_INFO("[tid %d][found a valid plan!!!] %d /%d th goal marked %d length plan \n",tid, idx, m_points.points.size(), plan.size() );
+//else
+//	ROS_INFO("[tid %d] cannot find a valid plan to the %d / %d th goal \n", tid, idx, m_points.points.size() );
 
 ros::WallTime mpAtomicEndTime = ros::WallTime::now();
 		//ROS_INFO("thread: %d %p %p \n", omp_get_thread_num(), mpo_gph, mpo_costmap);
@@ -939,7 +940,7 @@ double mp_atomictime = (mpAtomicEndTime - mpAtomicStartTime).toNSec() * 1e-6;
 
 {
 	const std::unique_lock<mutex> lock(mutex_timing_profile) ;
-	m_ofs_time << idx << "\t" << tid << "\t" << plan.size() << "\t" << mp_time << "\t" << min_heuristic_idx << "\t" << fendpot << " " << fupperbound << endl;
+	m_ofs_time << idx << "\t" << tid << "\t" << plan.size() << "\t" << mp_time << "\t" << fendpot << " " << fupperbound << endl;
 }
 
 //ROS_INFO("planning completed \n");

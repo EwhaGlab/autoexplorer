@@ -40,9 +40,10 @@ int main(int argc, char** argv)
 //    exit(-1);
 //  }
 
-  ROS_INFO("args: %s %s %s\n", argv[0], argv[1]);
+  ROS_INFO("args: %s %s %s\n", argv[0], argv[1], argv[2]);
 
   string slam_method(argv[1]);
+  int numthreads = atoi(argv[2]);
   static map<string, int> slamid;
   slamid["gmapping"] = SLAM_ID::GMAPPING;
   slamid["cartographer"] = SLAM_ID::CARTOGRAPHER;
@@ -80,6 +81,7 @@ int main(int argc, char** argv)
   	  {
 		  ROS_INFO("Initializing frontier_detector_dms \n");
 		  FrontierDetectorDMS front_detector_dms(private_nh, nh);
+		  front_detector_dms.SetNumThreads(numthreads);
 		  ros::spinOnce();
 		  front_detector_dms.initmotion();
 		  front_detector_dms.SetInitMotionCompleted();

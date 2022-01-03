@@ -33,6 +33,7 @@ public:
 
 	void initmotion( );
 	inline void SetInitMotionCompleted(){ m_isInitMotionCompleted = true;  }
+	inline void SetNumThreads(int numthreads){ mn_numthreads = numthreads; }
 
 	void globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg ) ;
 	void globalCostmapUpdateCallback(const map_msgs::OccupancyGridUpdate::ConstPtr& msg );
@@ -67,6 +68,7 @@ protected:
 	ros::Publisher m_targetspub, m_markercandpub, m_markerfrontierpub,
 					m_makergoalpub, m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub, m_resetgazebopub ;
 
+	int mn_numthreads;
 	int m_nglobalcostmapidx ;
 	string m_str_debugpath ;
 	string m_str_inputparams ;

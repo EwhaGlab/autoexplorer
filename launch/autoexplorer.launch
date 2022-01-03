@@ -5,9 +5,11 @@
     <env name="ROSCONSOLE_CONFIG_FILE"
        value="$(find autoexplorer)/config/ffd_rosconsole.conf"/>
        
+    <arg name="numthreads" default="16"/>
     <arg name="slam_method" default="slam_toolbox"/> <!-- "gmapping" -->
     <!--param name="use_sim_time" value="true"/--> <!--by kmHan-->  
     <param name="slam_method" value="$(arg slam_method)"/>
+    <param name="numthreads" value="$(arg numthreads)"/>
     
     <arg name="rviz_config" value ="$(find autoexplorer)/launch/includes/rviz_config/autoexplorer.rviz"/>
     <rosparam command="load" file="$(find autoexplorer)/param/autoexploration.yaml"/>
@@ -16,7 +18,7 @@
         <arg name="slam_method"        value="$(arg slam_method)" />
     </include> 
 
-	<node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" args="$(arg slam_method)" output="screen">
+	<node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" args="$(arg slam_method) $(arg numthreads)" output="screen" >
         <param name="frame_id" type="string" value="map" />
     </node>
        

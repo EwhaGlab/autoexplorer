@@ -12,6 +12,7 @@ import sys
 import signal
 import psutil
 import time
+import shutil
 
 def kill_child_processes(parent_pid, sig=signal.SIGTERM):
     try:
@@ -82,69 +83,83 @@ def isDoneCallback(isdoneflag):
 def main(argv):
     
     global exploration_status
-    num_rounds = int(argv[1])
+    num_rounds  = int(argv[1])
     roscore = Roscore()
 
-    for runidx in range(1,num_rounds+1):
-        
-        start_time = time.time()
-        elapsed_time = time.time() - start_time
-
-        print("roscore begins \n")
-        print("exploration status {}".format(exploration_status))
-        roscore.run()
+    for num_threads in range(1,17):
     
-        #for idx in range(1,3):
-        rospy.init_node("gazebo_launcher")
-        rospy.Subscriber("/exploration_is_done", Bool, isDoneCallback)
-
-        gazebo_launch_file = "/home/hankm/catkin_ws/src/aws_robotics/aws-robomaker-small-house-world/launch/small_house.launch"
-        autoexplorer_launch_file = "/home/hankm/catkin_ws/src/autoexplorer/launch/autoexplorer.launch"
-        
-        rospy.sleep(10)
-    
-        gz_launch = init_launch(gazebo_launch_file )
-        gz_launch.start()
-        rospy.sleep(10.0)
-        print('{}th gz has been started \n'.format(runidx))
-                
-        ae_launch = init_launch(autoexplorer_launch_file)
-        ae_launch.start()
-        print('{}th ae has been started \n'.format(runidx))
-        
-        global exploration_status
-        while( exploration_status == False and elapsed_time < 600 ):
-            #rospy.wait_for_message("exploration_is_done", Bool, timeout=None)
-            rospy.sleep(.5)
+        for roundidx in range(1,num_rounds+1):
+            
+            start_time = time.time()
             elapsed_time = time.time() - start_time
 
-    #    while process_generate_running:
-    #            rospy.sleep(1)
-
-    #    while True:
-    #        print('process_generate_running: {}'.format(process_generate_running))
-
-        aesd = ae_launch.shutdown()
-        #exploration_status = False
-        print('ae is dead... waiting for 10 secs \n')
-        rospy.sleep(10)
-
-#        rospy.wait_for_service('/gazebo/reset_world')
-#        reset_world = rospy.ServiceProxy('/gazebo/reset_world', Empty)
-#        reset_world()
+            print("roscore begins \n")
+            print("exploration status {}".format(exploration_status))
+            roscore.run()
         
-        # kill gazebo
-        os.system("killall -9 gazebo & killall -9 gzserver  & killall -9 gzclient")
-        print('kill gazebo... waiting for 10 sec')
-        rospy.sleep(10)
-        roscore.terminate()
-        rospy.sleep(2)
+            #for idx in range(1,3):
+            rospy.init_node("gazebo_launcher")
+            rospy.Subscriber("/exploration_is_done", Bool, isDoneCallback)
+
+            gazebo_launch_file = "/home/hankm/catkin_ws/src/aws_robotics/aws-robomaker-small-house-world/launch/small_house.launch"
+            
+            autoexplorer_launch_args = ['/home/hankm/catkin_ws/src/autoexplorer/launch/autoexplorer.launch','slam_method:=slam_toolbox','numthreads:={}'.format(num_threads)]
+            autoexplorer_args = autoexplorer_launch_args[1:]
+            autoexplorer_launch_file = (roslaunch.rlutil.resolve_launch_arguments(autoexplorer_launch_args)[0], autoexplorer_args)
+            
+            rospy.sleep(12)
         
-        exploration_status = False
+            gz_launch = init_launch(gazebo_launch_file )
+            gz_launch.start()
+            rospy.sleep(12)
+            print('{}th gz has been started \n'.format(roundidx))
+                    
+        
+            print(autoexplorer_args)
+            print("\n")
+            print(autoexplorer_launch_file)
+
+        
+            ae_launch = init_launch(autoexplorer_launch_file)
+            ae_launch.start()
+            print('{}th ae has been started \n'.format(roundidx))
+            
+            global exploration_status
+            while( exploration_status == False and elapsed_time < 420 ):
+                #rospy.wait_for_message("exploration_is_done", Bool, timeout=None)
+                rospy.sleep(.5)
+                elapsed_time = time.time() - start_time
+
+        #    while process_generate_running:
+        #            rospy.sleep(1)
+
+        #    while True:
+        #        print('process_generate_running: {}'.format(process_generate_running))
+
+            aesd = ae_launch.shutdown()
+            #exploration_status = False
+            print('ae is dead... waiting for 10 secs \n')
+            rospy.sleep(12)
+
+    #        rospy.wait_for_service('/gazebo/reset_world')
+    #        reset_world = rospy.ServiceProxy('/gazebo/reset_world', Empty)
+    #        reset_world()
+            
+            # kill gazebo
+            os.system("killall -9 gazebo & killall -9 gzserver  & killall -9 gzclient")
+            print('kill gazebo... waiting for 10 sec')
+            rospy.sleep(12)
+            roscore.terminate()
+            rospy.sleep(2)
+            
+            exploration_status = False
+
+            outfiletxt = '/home/hankm/results/autoexploration/numthreads_vs_timing/planning_time_{}_{}.txt'.format(num_threads,roundidx)
+            shutil.copy('/home/hankm/results/autoexploration/planning_time.txt', outfiletxt)
 
 #    gzsd = gz_launch.shutdown()
 #    print('gz is dead \n')
-
+        
     
 
 if __name__ == '__main__':
