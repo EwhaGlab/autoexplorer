@@ -85,7 +85,8 @@ def main(argv):
     global exploration_status
     num_rounds  = int(argv[1])
 
-    for num_threads in range(1,17,5):
+    num_thread_dev=[1,4,8,12,16]
+    for num_threads in num_thread_dev:
     
         for roundidx in range(1,num_rounds+1):
             roscore = Roscore()
@@ -138,24 +139,24 @@ def main(argv):
 
             aesd = ae_launch.shutdown()
             #exploration_status = False
-            print('ae is dead... waiting for 10 secs \n')
+            print('ae is dead... waiting for 12 secs \n')
             rospy.sleep(12)
             os.system("killall -9 lifelong_slam_toolbox_node & killall -9 autoexplorer_node & killall -9 move_base & killall -9 robot_state_publisher & killall -9 nodelet")
     #        rospy.wait_for_service('/gazebo/reset_world')
     #        reset_world = rospy.ServiceProxy('/gazebo/reset_world', Empty)
     #        reset_world()
-            
+            rospy.sleep(1)
             # kill gazebo
             os.system("killall -9 gazebo & killall -9 gzserver & killall -9 gzclient")
-            print('kill gazebo... waiting for 10 sec')
+            print('kill gazebo... waiting for 12 sec')
             rospy.sleep(12)
             roscore.terminate()
-            rospy.sleep(2)
+            rospy.sleep(1)
             os.system('killall -9 roscore & killall -9 rosmaster')
-            
+            rospy.sleep(1)
             exploration_status = False
 
-            outfiletxt = '/home/hankm/results/autoexploration/numthreads_vs_timing/planning_time_{}_{}.txt'.format(num_threads,roundidx)
+            outfiletxt = '/home/hankm/results/autoexploration/numthreads_vs_timing_bb/planning_time_{}_{}.txt'.format(num_threads,roundidx)
             shutil.copy('/home/hankm/results/autoexploration/planning_time.txt', outfiletxt)
 
 #    gzsd = gz_launch.shutdown()

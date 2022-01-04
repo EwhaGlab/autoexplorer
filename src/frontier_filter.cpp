@@ -247,7 +247,7 @@ void FrontierFilter::computeReachability( const set<pointset, pointset>& unreach
 			for (const auto & di : unreachable_frontiers)
 			{
 				float fdist = std::sqrt( (fx - di.d[0]) * (fx - di.d[0]) + (fy - di.d[1]) * (fy - di.d[1]) ) ;
-				if(fdist < 0.05)
+				if(fdist < 0.2)
 				{
 					ROS_WARN("(%f %f) and (%f %f) are the same? unreachable point? \n",
 								fx, fy, di.d[0], di.d[1]);
