@@ -85,7 +85,7 @@ def main(argv):
     global exploration_status
     num_rounds  = int(argv[1])
 
-    num_thread_dev=[1,4,8,12,16]
+    num_thread_dev=[1,2,4,6,8,10,12,14,16]
     for num_threads in num_thread_dev:
     
         for roundidx in range(1,num_rounds+1):

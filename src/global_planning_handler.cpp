@@ -584,7 +584,7 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",mp_costmap->g
 		plan.push_back(goal_copy);
 
 		ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
-		return true;
+		return !plan.empty();
 	  }
 	  else
 	  {
