@@ -182,7 +182,7 @@ void GlobalPlanningHandler::reinitialization( costmap_2d::Costmap2D* pocostmap2d
 double GlobalPlanningHandler::getPointPotential(const geometry_msgs::Point& world_point)
 {
   if(!mb_initialized){
-    ROS_ERROR("GPH has not been initialized yet, but it is being used, please call initialize() before use");
+    //ROS_ERROR("GPH has not been initialized yet, but it is being used, please call initialize() before use");
     return -1.0;
   }
 
@@ -226,7 +226,7 @@ void GlobalPlanningHandler::clearRobotCell(const geometry_msgs::PoseStamped& glo
 {
   if(!mb_initialized)
   {
-    ROS_ERROR("This planner has not been initialized yet, but it is being used, please call initialize() before use");
+    //ROS_ERROR("This planner has not been initialized yet, but it is being used, please call initialize() before use");
     return;
   }
 
@@ -252,7 +252,7 @@ bool GlobalPlanningHandler::makePlan( const geometry_msgs::PoseStamped start, co
 //    boost::mutex::scoped_lock lock(m_mutex);
     if(!mb_initialized)
     {
-      ROS_ERROR("@GPH: This planner has not been initialized yet, but it is being used, please call initialize() before use");
+      //ROS_ERROR("@GPH: This planner has not been initialized yet, but it is being used, please call initialize() before use");
       return false;
     }
 ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f) to the goal (%f %f) \n",
@@ -265,15 +265,15 @@ ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f
     //until tf can handle transforming things that are way in the past... we'll require the goal to be in our global frame
     if(goal.header.frame_id != global_frame_)
     {
-      ROS_ERROR("@GPH: The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
-                global_frame_.c_str(), goal.header.frame_id.c_str());
+      //ROS_ERROR("@GPH: The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
+      //          global_frame_.c_str(), goal.header.frame_id.c_str());
       return false;
     }
 
     if(start.header.frame_id != global_frame_)
     {
-      ROS_ERROR("@GPH: The start pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
-                global_frame_.c_str(), start.header.frame_id.c_str());
+      //ROS_ERROR("@GPH: The start pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
+      //          global_frame_.c_str(), start.header.frame_id.c_str());
       return false;
     }
 
@@ -283,17 +283,17 @@ ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f
     unsigned int mx, my;
     if(!mp_costmap->worldToMap(wx, wy, mx, my))
     {
-      ROS_WARN("The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
+      //ROS_WARN("The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
       return false;
     }
 
     //clear the starting cell within the costmap because we know it can't be an obstacle
-ROS_INFO("clearing robot cell \n");
+//ROS_INFO("clearing robot cell \n");
     clearRobotCell(start, mx, my);
     //make sure to resize the underlying array that Navfn uses
-ROS_INFO("setting planner nav arr w/ cellsizes: %d %d\n",mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY());
+//ROS_INFO("setting planner nav arr w/ cellsizes: %d %d\n",mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY());
     planner_->setNavArr(mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY());
-ROS_INFO("setting planner costmap \n");
+//ROS_INFO("setting planner costmap \n");
     planner_->setCostmap(mp_costmap->getCharMap(), true, mb_allow_unknown);
 //costmap_->saveMap("/home/hankm/catkin_ws/src/frontier_detector/launch/cstmap.dat");
 
@@ -308,7 +308,7 @@ ROS_INFO("setting planner costmap \n");
     {
       if(mf_tolerance <= 0.0)
       {
-        ROS_WARN_THROTTLE(1.0, "The goal sent to the global_planning_handler is off the global costmap. Planning will always fail to this goal.");
+        //ROS_WARN_THROTTLE(1.0, "The goal sent to the global_planning_handler is off the global costmap. Planning will always fail to this goal.");
         return false;
       }
       mx = 0;
@@ -355,12 +355,12 @@ ROS_INFO("setting planner costmap \n");
 		  pose.pose.orientation.w = 1.0;
 		  plan.push_back(pose);
 		}
-		ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
+		//ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
 		return true;
     }
     else
     {
-    	ROS_ERROR("@GPH: Failed to get a plan from the Astar search");
+    	//ROS_ERROR("@GPH: Failed to get a plan from the Astar search");
     	return false;
     }
 
@@ -459,11 +459,11 @@ bool GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const
 
     if(!mb_initialized)
     {
-      ROS_ERROR("@GPH: This planner has not been initialized yet, but it is being used, please call initialize() before use");
+      //ROS_ERROR("@GPH: This planner has not been initialized yet, but it is being used, please call initialize() before use");
       return false;
     }
-ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f) to the goal (%f %f) \n",
-		start.pose.position.x, start.pose.position.y, goal.pose.position.x, goal.pose.position.y );
+//ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f) to the goal (%f %f) \n",
+//		start.pose.position.x, start.pose.position.y, goal.pose.position.x, goal.pose.position.y );
     //clear the plan, just in case
     plan.clear();
 
@@ -472,15 +472,15 @@ ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f
     //until tf can handle transforming things that are way in the past... we'll require the goal to be in our global frame
     if(goal.header.frame_id != global_frame_)
     {
-      ROS_ERROR("@GPH: The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
-                global_frame_.c_str(), goal.header.frame_id.c_str());
+     // ROS_ERROR("@GPH: The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
+     //           global_frame_.c_str(), goal.header.frame_id.c_str());
       return false;
     }
 
     if(start.header.frame_id != global_frame_)
     {
-      ROS_ERROR("@GPH: The start pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
-                global_frame_.c_str(), start.header.frame_id.c_str());
+     // ROS_ERROR("@GPH: The start pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
+     //           global_frame_.c_str(), start.header.frame_id.c_str());
       return false;
     }
 
@@ -490,7 +490,7 @@ ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f
     unsigned int mx, my;
     if(!mp_costmap->worldToMap(wx, wy, mx, my))
     {
-      ROS_WARN("The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
+     // ROS_WARN("The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
       return false;
     }
 
@@ -522,7 +522,7 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",mp_costmap->g
     {
       if(mf_tolerance <= 0.0)
       {
-        ROS_WARN_THROTTLE(1.0, "The goal sent to the global_planning_handler is off the global costmap. Planning will always fail to this goal.");
+       // ROS_WARN_THROTTLE(1.0, "The goal sent to the global_planning_handler is off the global costmap. Planning will always fail to this goal.");
         return false;
       }
       mx = 0;
@@ -583,12 +583,12 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",mp_costmap->g
 		goal_copy.header.stamp = ros::Time::now();
 		plan.push_back(goal_copy);
 
-		ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
+		//ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
 		return !plan.empty();
 	  }
 	  else
 	  {
-		ROS_ERROR("@GPH: Failed to get a plan from potential when a legal potential was found. This shouldn't happen.");
+		//ROS_ERROR("@GPH: Failed to get a plan from potential when a legal potential was found. This shouldn't happen.");
 		return false;
 	  }
 	}
@@ -638,7 +638,7 @@ bool GlobalPlanningHandler::getPlanFromPotential(const geometry_msgs::PoseStampe
 {
   if(!mb_initialized)
   {
-    ROS_ERROR("GPH has not been initialized yet, but it is being used, please call initialize() before use");
+    //ROS_ERROR("GPH has not been initialized yet, but it is being used, please call initialize() before use");
     return false;
   }
 
@@ -647,8 +647,8 @@ bool GlobalPlanningHandler::getPlanFromPotential(const geometry_msgs::PoseStampe
 
   //until tf can handle transforming things that are way in the past... we'll require the goal to be in our global frame
   if(goal.header.frame_id != global_frame_){
-    ROS_ERROR("The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
-              global_frame_.c_str(), goal.header.frame_id.c_str());
+    //ROS_ERROR("The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
+     //         global_frame_.c_str(), goal.header.frame_id.c_str());
     return false;
   }
 
@@ -659,7 +659,7 @@ bool GlobalPlanningHandler::getPlanFromPotential(const geometry_msgs::PoseStampe
   unsigned int mx, my;
   if(!mp_costmap->worldToMap(wx, wy, mx, my))
   {
-    ROS_WARN_THROTTLE(1.0, "The goal sent to the GPH is off the global costmap. Planning will always fail to this goal.");
+    //ROS_WARN_THROTTLE(1.0, "The goal sent to the GPH is off the global costmap. Planning will always fail to this goal.");
     return false;
   }
 
@@ -720,7 +720,7 @@ void GlobalPlanningHandler::setCostmap( vector<signed char> cmap, unsigned int s
 	mp_costmap->resizeMap(size_x, size_y, resolution, origin_x, origin_y);
 	unsigned char* pmap = mp_costmap->getCharMap() ;
 
-ROS_INFO(" resetting %d %d sized map\n ", size_x, size_y );
+//ROS_INFO(" resetting %d %d sized map\n ", size_x, size_y );
 	for(uint32_t ridx = 0; ridx < size_y; ridx++)
 	{
 		for(uint32_t cidx=0; cidx < size_x; cidx++)

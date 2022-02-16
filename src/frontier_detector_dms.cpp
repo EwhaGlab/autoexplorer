@@ -174,6 +174,38 @@ cv::Point FrontierDetectorDMS::world2gridmap( cv::Point2f grid_pt)
 	return cv::Point( (int)fx, (int)fy );
 }
 
+
+int FrontierDetectorDMS::savegridmap( const nav_msgs::OccupancyGrid& gridmap, const string& filename )
+{
+	unsigned char *ptr = &gridmap.data[0];
+	int nheight = gridmap.info.height ;
+	int nwidth  = gridmap.info.width ;
+	float res = gridmap.info.resolution ;
+    float startx = gridmap.info.origin.position.x ;
+    float starty = gridmap.info.origin.position.y ;
+
+    char fn[4096];
+    // write start and goal points
+    sprintf(fn,"%s%04d.txt",filename.c_str());
+    FILE *fp = fopen(fn,"w");
+    if (!fp)
+    {
+      //ROS_WARN("Can't open file %s", fn);
+      return -1;
+    }
+    fprintf(fp,"%f %f %f %d %d\n", startx, starty, res, nheight, nwidth);
+
+    fwrite(ptr,1,nheight*nwidth,fp);
+    fclose(fp);
+}
+
+int FrontierDetectorDMS::savecostmap( const nav_msgs::OccupancyGrid& costmap, const string& filename )
+{
+
+}
+
+
+
 int FrontierDetectorDMS::displayMapAndFrontiers( const cv::Mat& mapimg, const vector<cv::Point>& frontiers, const int winsize)
 {
 	//ROS_INFO("weird maprows: %d %d\n", mapimg.rows, mapimg.cols);
@@ -247,7 +279,7 @@ void FrontierDetectorDMS::publishResetGazebo( )
 void FrontierDetectorDMS::globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 {
 	const std::unique_lock<mutex> lock(mutex_costmap);
-ROS_INFO("cm callback is called \n");
+//ROS_INFO("cm callback is called \n");
 	m_globalcostmap = *msg ;
 	m_globalcostmap_rows = m_globalcostmap.info.height ;
 	m_globalcostmap_cols = m_globalcostmap.info.width ;
@@ -326,7 +358,7 @@ mapCallStartTime = ros::WallTime::now();
 	uint32_t cmwidth, cmheight;
 	std::vector<signed char> cmdata;
 
-ROS_INFO("b4 map assigned  \n ");
+//ROS_INFO("b4 map assigned  \n ");
 
 	{
 		const std::unique_lock<mutex> lock(mutex_gridmap);
@@ -371,7 +403,7 @@ ROS_INFO("after map assigned  \n ");
 	m_nroi_origx = m_nGlobalMapCentX ; // - (int)round( m_gridmap.info.origin.position.x / m_fResolution ) ;
 	m_nroi_origy = m_nGlobalMapCentY ; //- (int)round( m_gridmap.info.origin.position.y / m_fResolution ) ;
 
-ROS_INFO("origx origy cols rows %d %d %d %d\n", m_nroi_origx, m_nroi_origy, gmwidth, gmheight);
+//ROS_INFO("origx origy cols rows %d %d %d %d\n", m_nroi_origx, m_nroi_origy, gmwidth, gmheight);
 	cv::Rect roi( m_nroi_origx, m_nroi_origy, gmwidth, gmheight );
 
 // to make sure that img(0,0) == UNKNOWN
@@ -414,8 +446,8 @@ ROS_INFO("origx origy cols rows %d %d %d %d\n", m_nroi_origx, m_nroi_origy, gmwi
 // The robot is not moving (or ready to move)... we can go ahead plan the next action...
 // i.e.) We locate frontier points again, followed by publishing the new goal
 
-	ROS_INFO("******* Begin mapdataCallback procedure ******** \n");
-	ROS_INFO(" # of downsamples %d \n", m_nNumPyrDownSample);
+//	ROS_INFO("******* Begin mapdataCallback procedure ******** \n");
+//	ROS_INFO(" # of downsamples %d \n", m_nNumPyrDownSample);
 
 	cv::Mat img_ ;
 	img_ = m_uMapImg( roi ); //m_uMapImgROI.clone();
@@ -443,7 +475,7 @@ ROS_INFO("origx origy cols rows %d %d %d %d\n", m_nroi_origx, m_nroi_origy, gmwi
 		{
 			int nrows = img_.rows; //% 2 == 0 ? img.rows : img.rows + 1 ;
 			int ncols = img_.cols; // % 2 == 0 ? img.cols : img.cols + 1 ;
-			ROS_INFO("sizes orig: %d %d ds: %d %d \n", img_.rows, img_.cols, nrows/2, ncols/2 );
+			//ROS_INFO("sizes orig: %d %d ds: %d %d \n", img_.rows, img_.cols, nrows/2, ncols/2 );
 			pyrDown(img_, img_, cv::Size( ncols/2, nrows/2 ) );
 			//clusterToThreeLabels( img );
 		}
@@ -457,20 +489,6 @@ ROS_INFO("origx origy cols rows %d %d %d %d\n", m_nroi_origx, m_nroi_origy, gmwi
 	cv::Rect myroi( ROI_OFFSET, ROI_OFFSET, img_.cols, img_.rows );
 	cv::Mat img_roi = img(myroi) ;
 	img_.copyTo(img_roi) ;
-
-//string strimgfile = "/home/hankm/results/autoexploration/tmp/ds_img.txt"; //string(m_str_debugpath) + string("/tmp/img_cl.txt") ;
-//ofstream ofs_img(strimgfile);
-//for( int ridx=0; ridx < img.rows; ridx++ )
-//{
-//	for( int cidx=0; cidx < img.cols; cidx++ )
-//	{
-//		uint8_t val = img.data[ridx*img.cols + cidx] ;
-//		uint32_t uval= static_cast<uint32_t>(val);
-//		ofs_img << uval << " ";
-//	}
-//	ofs_img << endl;
-//}
-//ofs_img.close();
 
 	ffp::FrontPropagation oFP(img); // image uchar
 	oFP.update(img, cv::Point(0,0));
@@ -530,7 +548,7 @@ ROS_INFO("origx origy cols rows %d %d %d %d\n", m_nroi_origx, m_nroi_origy, gmwi
 	// i.e.) the final estimated frontier points
 	vector<FrontierPoint> voFrontierCands;
 
-ROS_INFO("contours size() %d \n", contours.size() );
+//ROS_INFO("contours size() %d \n", contours.size() );
 
 	for( int i = 0; i < contours.size(); i++ )
 	{
@@ -590,7 +608,7 @@ ROS_INFO("contours size() %d \n", contours.size() );
 		voFrontierCands.push_back(oPoint);
 	}
 
-ROS_INFO("costmap msg width: %d \n", gmwidth );
+//ROS_INFO("costmap msg width: %d \n", gmwidth );
 
 	geometry_msgs::Point p;
 	m_cands.points.clear();
@@ -646,7 +664,7 @@ ROS_INFO("costmap msg width: %d \n", gmwidth );
 	}
 	else
 	{
-		ROS_INFO("costmap hasn't updated \n");
+		//ROS_INFO("costmap hasn't updated \n");
 		//frontiers = frontiers_cand ; // points in img coord
 	}
 
@@ -692,7 +710,7 @@ ROS_INFO("costmap msg width: %d \n", gmwidth );
 		ROS_WARN("no valid frontiers \n");
 		mb_explorationisdone = true;
 
-		ROS_INFO("Exploration is done. Set exploraiton done flag \n");
+		//ROS_INFO("Exploration is done. Set exploraiton done flag \n");
 
 		//publishResetGazebo();
 		//publishDoneExploration();
@@ -753,7 +771,7 @@ ROS_INFO("costmap msg width: %d \n", gmwidth );
 
 // Here we do motion planning
 
-ROS_INFO("setting costmap in gph \n");
+//ROS_INFO("setting costmap in gph \n");
 
 	geometry_msgs::PoseStamped start = GetCurrPose( );
 	start.header.frame_id = m_worldFrameId;
@@ -764,12 +782,12 @@ plan_len.resize( m_points.points.size() );
 //mpo_gph->setCostmap(Data, m_globalcostmap.info.width, m_globalcostmap.info.height, m_globalcostmap.info.resolution,
 //					m_globalcostmap.info.origin.position.x, m_globalcostmap.info.origin.position.y) ;
 
-ROS_INFO("resizing mpo_costmap \n");
+//ROS_INFO("resizing mpo_costmap \n");
 mpo_costmap->resizeMap( cmwidth, cmheight, cmresolution,
 					    cmstartx, cmstarty );
-ROS_INFO("mpo_costmap has been reset \n");
+//ROS_INFO("mpo_costmap has been reset \n");
 unsigned char* pmap = mpo_costmap->getCharMap() ;
-ROS_INFO("w h datlen : %d %d %d \n", cmwidth, cmheight, cmdata.size() );
+//ROS_INFO("w h datlen : %d %d %d \n", cmwidth, cmheight, cmdata.size() );
 
 for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 {
@@ -785,7 +803,7 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 	}
 }
 
-ROS_INFO("mpo_costmap has been set\n");
+//ROS_INFO("mpo_costmap has been set\n");
 ///////////////////////////////////////////////////////////////////////
 // 1. estimate dist to each goal using euclidean distance heuristic (we need sorting here)
 ///////////////////////////////////////////////////////////////////////
@@ -794,7 +812,6 @@ ROS_INFO("mpo_costmap has been set\n");
 	float fmindist = DIST_HIGH ;
 	size_t min_heuristic_idx = 0;
 
-ros::WallTime GPstartTime = ros::WallTime::now();
 
 //	vector< pair<size_t, float> > init_heuristic;
 //	for(size_t idx=0; idx < m_points.points.size(); idx++)
@@ -876,12 +893,18 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 //////////////////////////////////////////////////////////////////////////////////
 //exit(-1);
 
+
 int numthreads;// = omp_get_num_threads() ;
 
 vector< uint32_t > gplansizes( m_points.points.size(), 0 ) ;
 
 //vector< float	 > endpotentials( numthreads );
 omp_set_num_threads(mn_numthreads);
+
+ros::WallTime GPstartTime = ros::WallTime::now();
+
+//for(int repeatidx=0; repeatidx < 12; repeatidx++)
+{
 
 #pragma omp parallel firstprivate( mpo_gph ) shared( mpo_costmap, gplansizes, fupperbound )
 {
@@ -912,13 +935,14 @@ ros::WallTime mpStartTime = ros::WallTime::now();
 		float fendpot;
 		bool bplansuccess = mpo_gph->makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
 
-ROS_INFO("[tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, idx,
-										  start.pose.position.x, start.pose.position.y,
-										  goal.pose.position.x, goal.pose.position.y, fendpot);
-ros::WallTime mpEndTime = ros::WallTime::now();
+//ROS_INFO("[tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, idx,
+//										  start.pose.position.x, start.pose.position.y,
+//										  goal.pose.position.x, goal.pose.position.y, fendpot);
+
+//ros::WallTime mpEndTime = ros::WallTime::now();
 		gplansizes[idx] = plan.size();
 
-ros::WallTime mpAtomicStartTime = ros::WallTime::now();
+//ros::WallTime mpAtomicStartTime = ros::WallTime::now();
 		if( fendpot < fupperbound )
 		{
 			#pragma omp atomic write
@@ -933,30 +957,24 @@ ros::WallTime mpAtomicStartTime = ros::WallTime::now();
 //else
 //	ROS_INFO("[tid %d] cannot find a valid plan to the %d / %d th goal \n", tid, idx, m_points.points.size() );
 
-ros::WallTime mpAtomicEndTime = ros::WallTime::now();
+//ros::WallTime mpAtomicEndTime = ros::WallTime::now();
 		//ROS_INFO("thread: %d %p %p \n", omp_get_thread_num(), mpo_gph, mpo_costmap);
-double mp_time = (mpEndTime - mpStartTime).toNSec() * 1e-6;
-double mp_atomictime = (mpAtomicEndTime - mpAtomicStartTime).toNSec() * 1e-6;
-
-{
-	const std::unique_lock<mutex> lock(mutex_timing_profile) ;
-	m_ofs_time << idx << "\t" << tid << "\t" << plan.size() << "\t" << mp_time << "\t" << fendpot << " " << fupperbound << endl;
-}
-
-//ROS_INFO("planning completed \n");
-
-
-//if(idx == min_heuristic_idx)
-//	exit(-1);
+//double mp_time = (mpEndTime - mpStartTime).toNSec() * 1e-6;
+////double mp_atomictime = (mpAtomicEndTime - mpAtomicStartTime).toNSec() * 1e-6;
+//{
+//	const std::unique_lock<mutex> lock(mutex_timing_profile) ;
+//	m_ofs_time << idx << "\t" << tid << "\t" << plan.size() << "\t" << mp_time << "\t" << fendpot << " " << fupperbound << endl;
+//}
 
 ///////////////////////////////////////////////////////////////////////////
 	}
 	//ROS_INFO("deleting mpo_gph \n");
 	delete mpo_gph;
-
 }
 
-ROS_INFO("Looking for the best new plan \n");
+} // end of repeatidx
+
+//ROS_INFO("Looking for the best new plan \n");
 
 std::vector<geometry_msgs::PoseStamped> best_plan ;
 size_t best_len = 100000000 ;
@@ -980,10 +998,19 @@ m_bestgoal.pose.pose = best_goal.pose ;
 ros::WallTime GPendTime = ros::WallTime::now();
 
 // print results
-double gp_time = (GPendTime - GPstartTime).toNSec() * 1e-6;
+double gp_time = (GPendTime - GPstartTime).toNSec() * 1e-6 * 0.083;
 ROS_INFO(" %u planning time \t %f \n",m_points.points.size(), gp_time);
 m_ofs_time << numthreads << " " << m_points.points.size() << " " << gp_time << endl;
 m_ofs_time << endl;
+
+{
+	ROS_WARN("no valid frontiers \n");
+	mb_explorationisdone = true;
+	return;
+}
+
+
+
 
 	p.x = m_bestgoal.pose.pose.position.x ;
 	p.y = m_bestgoal.pose.pose.position.y ;
@@ -999,9 +1026,9 @@ m_ofs_time << endl;
 	m_makergoalpub.publish(m_exploration_goal); // for viz
 
 	// publish the best goal of the path plan
-	ROS_INFO("@mapDataCallback start(%f %f) found the best goal(%f %f) best_len (%u)\n",
-			start.pose.position.x, start.pose.position.y,
-			m_bestgoal.pose.pose.position.x, m_bestgoal.pose.pose.position.y, best_len);
+//	ROS_INFO("@mapDataCallback start(%f %f) found the best goal(%f %f) best_len (%u)\n",
+//			start.pose.position.x, start.pose.position.y,
+//			m_bestgoal.pose.pose.position.x, m_bestgoal.pose.pose.position.y, best_len);
 
 	{
 		const std::unique_lock<mutex> lock(mutex_robot_state) ;

@@ -372,12 +372,12 @@ namespace navfn {
 
       if (len > 0)			// found plan
       {
-        ROS_WARN("[NavFn Astar] Path found, %d steps\n", len);
+        //ROS_WARN("[NavFn Astar] Path found, %d steps\n", len);
         return true;
       }
       else
       {
-        ROS_ERROR("[NavFn Astar] No path found\n");
+        //ROS_ERROR("[NavFn Astar] No path found\n");
         return false;
       }
     }
@@ -392,13 +392,13 @@ namespace navfn {
 //mofs_astarlog = std::ofstream("/home/hankm/results/autoexploration/astar_log.txt");
 //mofs_astarlog << start[0] << " " << start[1] << " " << goal[0] << " " << goal[1] << std::endl;
 
-ROS_DEBUG("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0], start[1], goal[0], goal[1]);
+//ROS_DEBUG("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0], start[1], goal[0], goal[1]);
 
       // calculate the nav fn and path
 	  bool bsuccess = propNavFnBoundedAstar(tid, nx*ny, fupperbound, fendpot);
 	  if(!bsuccess)
 	  {
-		  ROS_ERROR("[tid: %d][NavFn Astar] aborting this search \n", tid);
+		  //ROS_ERROR("[tid: %d][NavFn Astar] aborting this search \n", tid);
 		  return false;
 	  }
       // path
@@ -406,12 +406,12 @@ ROS_DEBUG("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0],
 
       if (len > 0)			// found plan
       {
-        ROS_WARN("[tid: %d][NavFn Astar] Path found, %d steps\n", len, tid);
+       // ROS_WARN("[tid: %d][NavFn Astar] Path found, %d steps\n", len, tid);
         return true;
       }
       else
       {
-        ROS_ERROR("[tid: %d][NavFn Astar] No path found\n", tid);
+        //ROS_ERROR("[tid: %d][NavFn Astar] No path found\n", tid);
         return false;
       }
     }
@@ -761,8 +761,8 @@ ROS_DEBUG("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0],
             break;
       }
 
-      ROS_DEBUG("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n", 
-          cycle,nc,(int)((nc*100.0)/(ns-nobs)),nwv);
+      //ROS_DEBUG("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
+       //   cycle,nc,(int)((nc*100.0)/(ns-nobs)),nwv);
 
       if (cycle < cycles) return true; // finished up here
       else return false;
@@ -852,8 +852,8 @@ ROS_DEBUG("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0],
 
       last_path_cost_ = potarr[startCell];
 
-      ROS_DEBUG("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n", 
-          cycle,nc,(int)((nc*100.0)/(ns-nobs)),nwv);
+     // ROS_DEBUG("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
+     //     cycle,nc,(int)((nc*100.0)/(ns-nobs)),nwv);
 
 
       if (potarr[startCell] < POT_HIGH) return true; // finished up here
@@ -954,8 +954,8 @@ ROS_DEBUG("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0],
       last_path_cost_ = potarr[startCell];
 //mofs_astarlog << "last_path_cost: " << potarr[startCell] << std::endl;
 
-      ROS_DEBUG("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
-          cycle,nc,(int)((nc*100.0)/(ns-nobs)),nwv);
+    //  ROS_DEBUG("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
+    //      cycle,nc,(int)((nc*100.0)/(ns-nobs)),nwv);
 
       if (potarr[startCell] < POT_HIGH) return true; // finished up here
       else return false;
@@ -1234,7 +1234,7 @@ ROS_DEBUG("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0],
       FILE *fp = fopen(fn,"w");
       if (!fp)
       {
-        ROS_WARN("Can't open file %s", fn);
+        //ROS_WARN("Can't open file %s", fn);
         return;
       }
       fprintf(fp,"Goal: %d %d\nStart: %d %d\n",goal[0],goal[1],start[0],start[1]);
@@ -1246,7 +1246,7 @@ ROS_DEBUG("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0],
       fp = fopen(fn,"wb");
       if (!fp)
       {
-        ROS_WARN("Can't open file %s", fn);
+       // ROS_WARN("Can't open file %s", fn);
         return;
       }
       fprintf(fp,"P5\n%d\n%d\n%d\n", nx, ny, 0xff);
