@@ -222,8 +222,12 @@ void FrontierDetector::saveGridmap( string filename, const nav_msgs::OccupancyGr
 	ofstream ofs_map(filename) ;
 	int height = mapData.info.height ;
 	int width  = mapData.info.width ;
+	float origx = mapData.info.origin.position.x ;
+	float origy = mapData.info.origin.position.y ;
+	float resolution = mapData.info.resolution ;
+
 	std::vector<signed char> Data=mapData.data;
-	ofs_map << height << " " << width << " ";
+	ofs_map << width << " " << height << " " << origx << " " << origy << " " << resolution;
 	for(int ridx = 0; ridx < height; ridx++)
 	{
 		for(int cidx = 0; cidx < width; cidx++)

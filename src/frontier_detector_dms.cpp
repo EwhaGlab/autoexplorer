@@ -175,37 +175,6 @@ cv::Point FrontierDetectorDMS::world2gridmap( cv::Point2f grid_pt)
 }
 
 
-int FrontierDetectorDMS::savegridmap( const nav_msgs::OccupancyGrid& gridmap, const string& filename )
-{
-	unsigned char *ptr = &gridmap.data[0];
-	int nheight = gridmap.info.height ;
-	int nwidth  = gridmap.info.width ;
-	float res = gridmap.info.resolution ;
-    float startx = gridmap.info.origin.position.x ;
-    float starty = gridmap.info.origin.position.y ;
-
-    char fn[4096];
-    // write start and goal points
-    sprintf(fn,"%s%04d.txt",filename.c_str());
-    FILE *fp = fopen(fn,"w");
-    if (!fp)
-    {
-      //ROS_WARN("Can't open file %s", fn);
-      return -1;
-    }
-    fprintf(fp,"%f %f %f %d %d\n", startx, starty, res, nheight, nwidth);
-
-    fwrite(ptr,1,nheight*nwidth,fp);
-    fclose(fp);
-}
-
-int FrontierDetectorDMS::savecostmap( const nav_msgs::OccupancyGrid& costmap, const string& filename )
-{
-
-}
-
-
-
 int FrontierDetectorDMS::displayMapAndFrontiers( const cv::Mat& mapimg, const vector<cv::Point>& frontiers, const int winsize)
 {
 	//ROS_INFO("weird maprows: %d %d\n", mapimg.rows, mapimg.cols);
@@ -466,6 +435,34 @@ ROS_INFO("after map assigned  \n ");
 //}
 //ofs_roi.close();
 
+static int mapidx = 0;
+char cgridmapfile[100];
+char costmapfile[100];
+char cfptfile[100];
+char crobotpose[100];
+sprintf(cgridmapfile,"%s/tmp/gm%03d.txt", m_str_debugpath.c_str(), mapidx );
+std::string strgridmapfile(cgridmapfile) ;
+
+sprintf(costmapfile,"%s/tmp/cm%03d.txt", m_str_debugpath.c_str(), mapidx );
+std::string strcostmapfile(costmapfile) ;
+
+//sprintf(cfptfile,"%s/tmp/fpt%03d.txt", m_str_debugpath.c_str(), mapidx );
+//std::string strfptfile(cfptfile) ;
+
+sprintf(crobotpose,"%s/tmp/robotpose%03d.txt", m_str_debugpath.c_str(), mapidx);
+saveGridmap( strgridmapfile, m_gridmap ) ;
+saveGridmap( strcostmapfile, m_globalcostmap ) ;
+//saveFrontierCandidates( strfptfile, voFrontierCands );
+
+geometry_msgs::PoseStamped robotpose = GetCurrPose( );
+float frbstartx = static_cast<float>( robotpose.pose.position.x ) ;
+float frbstarty = static_cast<float>( robotpose.pose.position.y ) ;
+FILE* pf_rp = fopen( crobotpose, "w" );
+fprintf(pf_rp,"%f %f",frbstartx, frbstarty);
+fclose(pf_rp);
+mapidx++;
+
+
 	if( m_nNumPyrDownSample > 0)
 	{
 		// be careful here... using pyrDown() interpolates occ and free, making the boarder area (0 and 127) to be 127/2 !!
@@ -668,23 +665,6 @@ ROS_INFO("after map assigned  \n ");
 		//frontiers = frontiers_cand ; // points in img coord
 	}
 
-//static int mapidx = 0;
-//char cgridmapfile[100];
-//char costmapfile[100];
-//char cfptfile[100];
-//sprintf(cgridmapfile,"%s/tmp/gm%03d.txt", m_str_debugpath.c_str(), mapidx );
-//std::string strgridmapfile(cgridmapfile) ;
-//
-//sprintf(costmapfile,"%s/tmp/cm%03d.txt", m_str_debugpath.c_str(), mapidx );
-//std::string strcostmapfile(costmapfile) ;
-
-//sprintf(cfptfile,"%s/tmp/fpt%03d.txt", m_str_debugpath.c_str(), mapidx );
-//std::string strfptfile(cfptfile) ;
-//
-//saveGridmap( strgridmapfile, m_gridmap ) ;
-//saveGridmap( strcostmapfile, m_globalcostmap ) ;
-//saveFrontierCandidates( strfptfile, voFrontierCands );
-//mapidx++;
 
 #ifdef FD_DEBUG_MODE
 	string strcandfile = m_str_debugpath + "/front_cand.txt" ;
@@ -887,12 +867,11 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 ////ROS_INFO("(%d) init bound %f init plan time %f  init plan len %d",tmpidx, min_heuristic_idx, fupperbound, init_time, initplan.size() );
 
 
-//exit(-1);
+
 ///////////////////////// /////////////////////////////////////////////////////////
 // 3. Do BB based openmp search
 //////////////////////////////////////////////////////////////////////////////////
 //exit(-1);
-
 
 int numthreads;// = omp_get_num_threads() ;
 
@@ -935,9 +914,9 @@ ros::WallTime mpStartTime = ros::WallTime::now();
 		float fendpot;
 		bool bplansuccess = mpo_gph->makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
 
-//ROS_INFO("[tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, idx,
-//										  start.pose.position.x, start.pose.position.y,
-//										  goal.pose.position.x, goal.pose.position.y, fendpot);
+ROS_INFO("[tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, idx,
+										  start.pose.position.x, start.pose.position.y,
+										  goal.pose.position.x, goal.pose.position.y, fendpot);
 
 //ros::WallTime mpEndTime = ros::WallTime::now();
 		gplansizes[idx] = plan.size();
@@ -1003,11 +982,11 @@ ROS_INFO(" %u planning time \t %f \n",m_points.points.size(), gp_time);
 m_ofs_time << numthreads << " " << m_points.points.size() << " " << gp_time << endl;
 m_ofs_time << endl;
 
-{
-	ROS_WARN("no valid frontiers \n");
-	mb_explorationisdone = true;
-	return;
-}
+//{
+//	ROS_WARN("no valid frontiers \n");
+//	mb_explorationisdone = true;
+//	return;
+//}
 
 
 
