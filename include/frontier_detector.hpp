@@ -195,6 +195,9 @@ public:
 		return outPose;
 	}
 
+
+
+
 	inline bool isDone() const { return mb_explorationisdone; }
 
 //	bool comparator ( const std::pair<float,float>& lv, const std::pair<float,float>& rv)

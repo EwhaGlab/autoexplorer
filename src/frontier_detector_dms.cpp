@@ -671,9 +671,7 @@ ROS_INFO("costmap msg width: %d \n", gmwidth );
 
 ROS_INFO("setting costmap in gph \n");
 
-	geometry_msgs::PoseStamped start = GetCurrPose( );
-	start.header.frame_id = m_worldFrameId;
-
+	geometry_msgs::PoseStamped start = GetCurrRobotPose( );
 
 //ROS_INFO("resizing mpo_costmap \n");
 mpo_costmap->resizeMap( cmwidth, cmheight, cmresolution,
@@ -708,13 +706,15 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 //////////////////////////////////////////////////////////////////////////////////
 
 	alignas(64) float fupperbound;
-	alignas(64) size_t best_idx = 0;
+	alignas(64) size_t best_idx;
 
 	std::vector<geometry_msgs::PoseStamped> initplan;
 	//const float initbound = static_cast<float>(DIST_HIGH) ;
 	fupperbound = static_cast<float>(DIST_HIGH) ;
+	best_idx	= static_cast<size_t>(0) ;
 	float fendpot = POT_HIGH;
 
+	vector< uint32_t > gplansizes( m_points.points.size(), 0 ) ;
 ///////////////////////// /////////////////////////////////////////////////////////
 // 3. Do BB based openmp search
 //////////////////////////////////////////////////////////////////////////////////
@@ -733,7 +733,7 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 
 ROS_INFO("begining BB A*\n");
 
-#pragma omp parallel firstprivate( o_gph, fpoints, plan, tid, start, goal ) shared( fupperbound, best_idx )
+#pragma omp parallel firstprivate( o_gph, fpoints, plan, tid, start, goal ) shared( fupperbound, best_idx, gplansizes )
 {
 
 	#pragma omp for
@@ -749,12 +749,12 @@ ROS_INFO("begining BB A*\n");
 		geometry_msgs::PoseStamped goal = StampedPosefromSE2( fpoints[fptidx].x, fpoints[fptidx].y, 0.f );
 		goal.header.frame_id = m_worldFrameId ;
 //ROS_INFO("goal: %f %f \n", fpoints[fptidx].x, fpoints[fptidx].y );
-		bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
+		bool bplansuccess = o_gph.makePlan(tid, fupperbound, false, start, goal, plan, fendpot);
 
-//ROS_INFO("[tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, fptidx,
-//										  start.pose.position.x, start.pose.position.y,
-//										  goal.pose.position.x, goal.pose.position.y, fendpot);
-
+ROS_INFO("[tid %d: [%d] ] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, bplansuccess, fptidx,
+										  start.pose.position.x, start.pose.position.y,
+										  goal.pose.position.x, goal.pose.position.y, fendpot);
+		gplansizes[fptidx] = plan.size();
 		if( fendpot < fupperbound )
 		{
 			omp_set_lock(&m_mplock);
@@ -766,6 +766,18 @@ ROS_INFO("begining BB A*\n");
 ///////////////////////////////////////////////////////////////////////////
 	}
 }
+
+for(int i =0; i< gplansizes.size(); i++)
+{
+
+	geometry_msgs::PoseStamped goal = StampedPosefromSE2( fpoints[i].x, fpoints[i].y, 0.f );
+
+	ROS_WARN("(%f %f) to (%f %f) length: %d \n", start.pose.position.x, start.pose.position.y,
+												goal.pose.position.x, goal.pose.position.y,
+												gplansizes[i] );
+}
+ROS_WARN("best idx, best len: %d %d \n", best_idx, gplansizes[best_idx] );
+
 
 std::vector<geometry_msgs::PoseStamped> best_plan ;
 
