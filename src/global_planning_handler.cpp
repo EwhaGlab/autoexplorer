@@ -12,50 +12,32 @@ namespace autoexplorer
 {
 
 GlobalPlanningHandler::GlobalPlanningHandler( ):
-
-//planner_costmap_ros_(NULL),
-//bgp_loader_("nav_core", "nav_core::BaseGlobalPlanner"),
 robot_base_frame_("base_link"),
 global_frame_("map"),
 mb_initialized(false), mb_allow_unknown(true), mb_visualize_potential(false),
 mf_tolerance(0.0),
-mp_costmap(NULL),
 mp_cost_translation_table(NULL)
-//bgp_loader_("global_planner", "nav_core::BaseGlobalPlanner"),
 {
-    //create the ros wrapper for the planner's costmap... and initializer a pointer we'll use with the underlying map
-
-	//mp_costmap = new costmap_2d::Costmap2D() ;
-	//mp_costmap = boost::shared_ptr<costmap_2d::Costmap2D>( new costmap_2d::Costmap2D() );
-
-//	if (mp_cost_translation_table == NULL)
-//	{
-//		mp_cost_translation_table = new signed char[101];
-//
-//		// special values:
-//		mp_cost_translation_table[0] = 0;  // NO obstacle
-//		mp_cost_translation_table[99] = 253;  // INSCRIBED obstacle
-//		mp_cost_translation_table[100] = 254;  // LETHAL obstacle
-////		mp_cost_translation_table[-1] = 255;  // UNKNOWN
-//
-//		// regular cost values scale the range 1 to 252 (inclusive) to fit
-//		// into 1 to 98 (inclusive).
-//		for (int i = 1; i < 99; i++)
-//		{
-//			mp_cost_translation_table[ i ] = char( ((i-1)*251 -1 )/97+1 );
-//		}
-//	}
-
-	//planner_ = boost::shared_ptr<navfn::NavFn>( new navfn::NavFn(mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY()));
 	planner_ = boost::shared_ptr<navfn::NavFn>( new navfn::NavFn(0, 0));
 	mb_initialized = true;
 }
 
+GlobalPlanningHandler::GlobalPlanningHandler( costmap_2d::Costmap2D &ocostmap ):
+robot_base_frame_("base_link"),
+global_frame_("map"),
+mb_initialized(false), mb_allow_unknown(true), mb_visualize_potential(false),
+mf_tolerance(0.0),
+mp_cost_translation_table(NULL)
+{
+    //create the ros wrapper for the planner's costmap... and initializer a pointer we'll use with the underlying map
+
+	m_costmap = costmap_2d::Costmap2D(ocostmap) ;
+	planner_ = boost::shared_ptr<navfn::NavFn>( new navfn::NavFn(0, 0));
+	mb_initialized = true;
+}
 
 GlobalPlanningHandler::~GlobalPlanningHandler()
 {
-//    if(mp_costmap != NULL)
-//      delete mp_costmap;
     if(mp_cost_translation_table != NULL)
       delete [] mp_cost_translation_table;
 }
@@ -105,45 +87,18 @@ GlobalPlanningHandler::~GlobalPlanningHandler()
 //}
 //
 
-void GlobalPlanningHandler::reinitialization( costmap_2d::Costmap2D* pocostmap2d )
+void GlobalPlanningHandler::reinitialization(  )
 {
     //create the ros wrapper for the planner's costmap... and initializer a pointer we'll use with the underlying map
-//ROS_INFO("reinit 1 \n");
-	//mp_costmap = boost::shared_ptr<costmap_2d::Costmap2D>( new costmap_2d::Costmap2D() );
 
-	mp_costmap = pocostmap2d ;
-
-//ROS_INFO("reinit 2 \n");
 	robot_base_frame_ = string("base_link");
-//ROS_INFO("reinit 2-1 \n");
 	global_frame_ = string("map");
-//ROS_INFO("reinit 2-2 \n");
-	mb_initialized = false;
+//	mb_initialized = false;
 	mb_allow_unknown = true;
 	mb_visualize_potential = false;
 	mf_tolerance = 0.0;
 
-//	if (mp_cost_translation_table == NULL)
-//	{
-//		mp_cost_translation_table = new signed char[101];
-//
-//		// special values:
-//		mp_cost_translation_table[0] = 0;  // NO obstacle
-//		mp_cost_translation_table[99] = 253;  // INSCRIBED obstacle
-//		mp_cost_translation_table[100] = 254;  // LETHAL obstacle
-////		mp_cost_translation_table[-1] = 255;  // UNKNOWN
-//
-//		// regular cost values scale the range 1 to 252 (inclusive) to fit
-//		// into 1 to 98 (inclusive).
-//		for (int i = 1; i < 99; i++)
-//		{
-//			mp_cost_translation_table[ i ] = char( ((i-1)*251 -1 )/97+1 );
-//		}
-//	}
-
-//ROS_INFO("reinit 3 \n");
-	planner_ = boost::shared_ptr<navfn::NavFn>( new navfn::NavFn(mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY()) );
-//ROS_INFO("reinit 4 \n");
+	planner_ = boost::shared_ptr<navfn::NavFn>( new navfn::NavFn(m_costmap.getSizeInCellsX(), m_costmap.getSizeInCellsY()) );
 	mb_initialized = true;
 }
 
@@ -187,7 +142,7 @@ double GlobalPlanningHandler::getPointPotential(const geometry_msgs::Point& worl
   }
 
   unsigned int mx, my;
-  if(!mp_costmap->worldToMap(world_point.x, world_point.y, mx, my))
+  if(!m_costmap.worldToMap(world_point.x, world_point.y, mx, my))
     return DBL_MAX;
 
   unsigned int index = my * planner_->nx + mx;
@@ -231,7 +186,7 @@ void GlobalPlanningHandler::clearRobotCell(const geometry_msgs::PoseStamped& glo
   }
 
   //set the associated costs in the cost map to be free
-  mp_costmap->setCost(mx, my, costmap_2d::FREE_SPACE);
+  m_costmap.setCost(mx, my, costmap_2d::FREE_SPACE);
   //ROS_WARN("\n\n\n\n allow unknown %d\n\n\n\n", allow_unknown_);
 }
 
@@ -281,7 +236,7 @@ ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f
     double wy = start.pose.position.y;
 
     unsigned int mx, my;
-    if(!mp_costmap->worldToMap(wx, wy, mx, my))
+    if(!m_costmap.worldToMap(wx, wy, mx, my))
     {
       //ROS_WARN("The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
       return false;
@@ -292,9 +247,9 @@ ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f
     clearRobotCell(start, mx, my);
     //make sure to resize the underlying array that Navfn uses
 //ROS_INFO("setting planner nav arr w/ cellsizes: %d %d\n",mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY());
-    planner_->setNavArr(mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY());
+    planner_->setNavArr(m_costmap.getSizeInCellsX(), m_costmap.getSizeInCellsY());
 //ROS_INFO("setting planner costmap \n");
-    planner_->setCostmap(mp_costmap->getCharMap(), true, mb_allow_unknown);
+    planner_->setCostmap(m_costmap.getCharMap(), true, mb_allow_unknown);
 //costmap_->saveMap("/home/hankm/catkin_ws/src/frontier_detector/launch/cstmap.dat");
 
     int map_start[2];
@@ -304,7 +259,7 @@ ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f
     wx = goal.pose.position.x;
     wy = goal.pose.position.y;
 
-    if(!mp_costmap->worldToMap(wx, wy, mx, my))
+    if(!m_costmap.worldToMap(wx, wy, mx, my))
     {
       if(mf_tolerance <= 0.0)
       {
@@ -459,9 +414,10 @@ bool GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const
 
     if(!mb_initialized)
     {
-      //ROS_ERROR("@GPH: This planner has not been initialized yet, but it is being used, please call initialize() before use");
+      ROS_ERROR("@GPH: This planner has not been initialized yet, but it is being used, please call initialize() before use");
       return false;
     }
+
 //ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f) to the goal (%f %f) \n",
 //		start.pose.position.x, start.pose.position.y, goal.pose.position.x, goal.pose.position.y );
     //clear the plan, just in case
@@ -488,7 +444,7 @@ bool GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const
     double wy = start.pose.position.y;
 
     unsigned int mx, my;
-    if(!mp_costmap->worldToMap(wx, wy, mx, my))
+    if(!m_costmap.worldToMap(wx, wy, mx, my))
     {
      // ROS_WARN("The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
       return false;
@@ -498,16 +454,16 @@ bool GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const
 ROS_DEBUG("[tid %d] clearing robot cell \n", tid);
     clearRobotCell(start, mx, my);
     //make sure to resize the underlying array that Navfn uses
-ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY(), tid);
-    planner_->setNavArr(mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY());
+ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",m_costmap.getSizeInCellsX(), m_costmap.getSizeInCellsY(), tid);
+    planner_->setNavArr(m_costmap.getSizeInCellsX(), m_costmap.getSizeInCellsY());
 
 	if(boneqgrid)
 	{
-    	planner_->setEqGridCostmap(mp_costmap->getCharMap(), mb_allow_unknown);
+    	planner_->setEqGridCostmap(m_costmap.getCharMap(), mb_allow_unknown);
 	}
 	else
 	{
-    	planner_->setCostmap(mp_costmap->getCharMap(), true, mb_allow_unknown);
+    	planner_->setCostmap(m_costmap.getCharMap(), true, mb_allow_unknown);
 	}
 //costmap_->saveMap("/home/hankm/catkin_ws/src/frontier_detector/launch/cstmap.dat");
 
@@ -518,7 +474,7 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",mp_costmap->g
     wx = goal.pose.position.x;
     wy = goal.pose.position.y;
 
-    if(!mp_costmap->worldToMap(wx, wy, mx, my))
+    if(!m_costmap.worldToMap(wx, wy, mx, my))
     {
       if(mf_tolerance <= 0.0)
       {
@@ -542,11 +498,10 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",mp_costmap->g
     //bool success = planner_->calcNavFnDijkstra(true);
 
     bool success = planner_->calcNavFnBoundedAstar( tid, fbound, fendpotential );
-
     if(!success)
     	return false;
 
-	double resolution = mp_costmap->getResolution();
+	double resolution = m_costmap.getResolution();
 	geometry_msgs::PoseStamped p, best_pose;
 	p = goal;
 
@@ -657,7 +612,7 @@ bool GlobalPlanningHandler::getPlanFromPotential(const geometry_msgs::PoseStampe
 
   //the potential has already been computed, so we won't update our copy of the costmap
   unsigned int mx, my;
-  if(!mp_costmap->worldToMap(wx, wy, mx, my))
+  if(!m_costmap.worldToMap(wx, wy, mx, my))
   {
     //ROS_WARN_THROTTLE(1.0, "The goal sent to the GPH is off the global costmap. Planning will always fail to this goal.");
     return false;
@@ -669,7 +624,7 @@ bool GlobalPlanningHandler::getPlanFromPotential(const geometry_msgs::PoseStampe
 
   planner_->setStart(map_goal);
 
-  planner_->calcPath(mp_costmap->getSizeInCellsX() * 4);
+  planner_->calcPath(m_costmap.getSizeInCellsX() * 4);
 
   //extract the plan
   float *x = planner_->getPathX();
@@ -702,8 +657,8 @@ bool GlobalPlanningHandler::getPlanFromPotential(const geometry_msgs::PoseStampe
 
 void GlobalPlanningHandler::mapToWorld(double mx, double my, double& wx, double& wy)
 {
-  wx = mp_costmap->getOriginX() + mx * mp_costmap->getResolution();
-  wy = mp_costmap->getOriginY() + my * mp_costmap->getResolution();
+  wx = m_costmap.getOriginX() + mx * m_costmap.getResolution();
+  wy = m_costmap.getOriginY() + my * m_costmap.getResolution();
 }
 
 
@@ -717,8 +672,8 @@ void GlobalPlanningHandler::mapToWorld(double mx, double my, double& wx, double&
 
 void GlobalPlanningHandler::setCostmap( vector<signed char> cmap, unsigned int size_x, unsigned int size_y, float resolution, float origin_x, float origin_y)
 {
-	mp_costmap->resizeMap(size_x, size_y, resolution, origin_x, origin_y);
-	unsigned char* pmap = mp_costmap->getCharMap() ;
+	m_costmap.resizeMap(size_x, size_y, resolution, origin_x, origin_y);
+	unsigned char* pmap = m_costmap.getCharMap() ;
 
 //ROS_INFO(" resetting %d %d sized map\n ", size_x, size_y );
 	for(uint32_t ridx = 0; ridx < size_y; ridx++)

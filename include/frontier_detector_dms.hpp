@@ -81,7 +81,7 @@ protected:
 
 	FrontierFilter m_oFrontierFilter;
 
-	GlobalPlanningHandler* mpo_gph ;
+	//GlobalPlanningHandler* mpo_gph ;
 	GlobalPlanningHandler mo_gph ;
 	costmap_2d::Costmap2D* mpo_costmap;
 
@@ -95,6 +95,8 @@ private:
 	std::mutex mutex_costmap;
 	std::mutex mutex_upperbound;
 	std::mutex mutex_timing_profile;
+
+	omp_lock_t m_mplock;
 };
 
 }
