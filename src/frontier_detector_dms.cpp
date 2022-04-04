@@ -308,7 +308,7 @@ void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPt
 	if(m_robotvel.linear.x == 0 && m_robotvel.angular.z == 0 ) // robot is physically stopped
 		m_eRobotState = ROBOT_STATE::ROBOT_IS_NOT_MOVING;
 
-ROS_INFO("Robot state in mapdataCallback: %d \n ",  m_eRobotState);
+//ROS_INFO("Robot state in mapdataCallback: %d \n ",  m_eRobotState);
 
 	if(m_eRobotState >= ROBOT_STATE::FORCE_TO_STOP )
 	{
@@ -346,8 +346,6 @@ mapCallStartTime = ros::WallTime::now();
 		cmheight=globalcostmap.info.height;
 		cmdata  =globalcostmap.data;
 	}
-
-ROS_INFO("after map assigned  \n ");
 
 	if( gmheight == 0 || gmwidth == 0
 		|| gmwidth  != cmwidth
@@ -499,7 +497,7 @@ ROS_INFO("after map assigned  \n ");
 	// i.e.) the final estimated frontier points
 	vector<FrontierPoint> voFrontierCands;
 
-ROS_INFO("contours size() %d \n", contours.size() );
+//ROS_INFO("contours size() %d \n", contours.size() );
 
 	for( int i = 0; i < contours.size(); i++ )
 	{
@@ -559,7 +557,7 @@ ROS_INFO("contours size() %d \n", contours.size() );
 		voFrontierCands.push_back(oPoint);
 	}
 
-ROS_INFO("costmap msg width: %d \n", gmwidth );
+//ROS_INFO("costmap msg width: %d \n", gmwidth );
 
 	geometry_msgs::Point p;
 	m_cands.points.clear();
@@ -669,7 +667,7 @@ ROS_INFO("costmap msg width: %d \n", gmwidth );
 // generate a path trajectory
 // call make plan service
 
-ROS_INFO("setting costmap in gph \n");
+//ROS_INFO("setting costmap in gph \n");
 
 	geometry_msgs::PoseStamped start = GetCurrRobotPose( );
 
@@ -736,9 +734,9 @@ omp_init_lock(&m_mplock);
 
 ros::WallTime GPstartTime = ros::WallTime::now();
 
-ROS_INFO("begining BB A*\n");
+//ROS_INFO("begining BB A*\n");
 
-#pragma omp parallel firstprivate( o_gph, fpoints, plan, tid, start, goal ) shared( fupperbound, best_idx, gplansizes )
+#pragma omp parallel firstprivate( o_gph, fpoints, plan, tid, start, goal ) shared( fupperbound, best_idx )
 {
 
 	#pragma omp for
@@ -756,13 +754,10 @@ ROS_INFO("begining BB A*\n");
 //ROS_INFO("goal: %f %f \n", fpoints[fptidx].x, fpoints[fptidx].y );
 		bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
 
-		std::vector<geometry_msgs::PoseStamped> myplan;
-		o_gph.reinitialization( ) ;
-		bool bplansuccess2 = o_gph.makePlan(start, goal, myplan );
-ROS_INFO("[tid %d: [%d] ] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, bplansuccess, fptidx,
-										  start.pose.position.x, start.pose.position.y,
-										  goal.pose.position.x, goal.pose.position.y, fendpot);
-		gplansizes[fptidx] = myplan.size();
+//ROS_INFO("[tid %d: [%d] ] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, bplansuccess, fptidx,
+//										  start.pose.position.x, start.pose.position.y,
+//										  goal.pose.position.x, goal.pose.position.y, fendpot);
+		//gplansizes[fptidx] = myplan.size();
 		if( fendpot < fupperbound )
 		{
 			omp_set_lock(&m_mplock);
@@ -774,16 +769,16 @@ ROS_INFO("[tid %d: [%d] ] processed %d th point (%f %f) to (%f %f) marked %f pot
 	}
 }
 
-for(int i =0; i< gplansizes.size(); i++)
-{
-
-	geometry_msgs::PoseStamped goal = StampedPosefromSE2( fpoints[i].x, fpoints[i].y, 0.f );
-
-	ROS_WARN("(%f %f) to (%f %f) length: %d \n", start.pose.position.x, start.pose.position.y,
-												goal.pose.position.x, goal.pose.position.y,
-												gplansizes[i] );
-}
-ROS_WARN("best idx, best len: %d %d \n", best_idx, gplansizes[best_idx] );
+//for(int i =0; i< gplansizes.size(); i++)
+//{
+//
+//	geometry_msgs::PoseStamped goal = StampedPosefromSE2( fpoints[i].x, fpoints[i].y, 0.f );
+//
+//	ROS_WARN("(%f %f) to (%f %f) length: %d \n", start.pose.position.x, start.pose.position.y,
+//												goal.pose.position.x, goal.pose.position.y,
+//												gplansizes[i] );
+//}
+//ROS_WARN("best idx, best len: %d %d \n", best_idx, gplansizes[best_idx] );
 
 
 std::vector<geometry_msgs::PoseStamped> best_plan ;
@@ -811,11 +806,6 @@ m_bestgoal.pose.pose = best_goal.pose ;
 	m_currentgoalpub.publish(m_bestgoal);		// for control
 /////////////////////////////////////////////////////
 	m_makergoalpub.publish(m_exploration_goal); // for viz
-
-//cv::namedWindow("tmp", 1);
-//cv::imshow("tmp", img_roi);
-//cv::waitKey(0);
-//cv::destroyAllWindows();
 
 // publish the best goal of the path plan
 //	ROS_INFO("@mapDataCallback start(%f %f) found the best goal(%f %f) best_len (%u)\n",
