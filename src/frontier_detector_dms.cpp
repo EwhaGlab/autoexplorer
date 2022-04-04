@@ -717,10 +717,6 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 // 3. Do BB based openmp search
 //////////////////////////////////////////////////////////////////////////////////
 
-std::random_device rd;
-std::default_random_engine rng(rd());
-std::shuffle(m_points.points.begin(), m_points.points.end(), rng);
-
 std::vector<geometry_msgs::Point> fpoints = m_points.points ;
 
 GlobalPlanningHandler o_gph( *mpo_costmap );
