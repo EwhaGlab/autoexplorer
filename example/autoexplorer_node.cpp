@@ -49,7 +49,9 @@ int main(int argc, char** argv)
   slamid["cartographer"] = SLAM_ID::CARTOGRAPHER;
   slamid["slam_toolbox"] = SLAM_ID::SLAM_TOOLBOX;
 
-  numthreads = MIN( omp_get_num_threads(), numthreads );
+  int totnumthreads = omp_get_max_threads() ;
+  ROS_INFO("max num threads, input num threads: %d %d \n", totnumthreads, numthreads);
+  numthreads = MIN( totnumthreads, numthreads );
   ROS_INFO("slamid: %s %d \n", slam_method.c_str(), slamid[slam_method.c_str()]);
 //  exit(-1);
 

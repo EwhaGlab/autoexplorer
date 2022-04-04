@@ -14,6 +14,8 @@
 #include "global_planning_handler.hpp"
 #include <omp.h>
 #include "std_msgs/Empty.h"
+#include <algorithm>
+#include <random>
 
 //#define OCCUPANCY_THR (60)
 //#define FD_DEBUG_MODE

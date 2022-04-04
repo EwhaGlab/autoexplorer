@@ -719,7 +719,12 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 // 3. Do BB based openmp search
 //////////////////////////////////////////////////////////////////////////////////
 
+std::random_device rd;
+std::default_random_engine rng(rd());
+std::shuffle(m_points.points.begin(), m_points.points.end(), rng);
+
 std::vector<geometry_msgs::Point> fpoints = m_points.points ;
+
 GlobalPlanningHandler o_gph( *mpo_costmap );
 std::vector<geometry_msgs::PoseStamped> plan;
 uint32_t fptidx;
@@ -749,19 +754,21 @@ ROS_INFO("begining BB A*\n");
 		geometry_msgs::PoseStamped goal = StampedPosefromSE2( fpoints[fptidx].x, fpoints[fptidx].y, 0.f );
 		goal.header.frame_id = m_worldFrameId ;
 //ROS_INFO("goal: %f %f \n", fpoints[fptidx].x, fpoints[fptidx].y );
-		bool bplansuccess = o_gph.makePlan(tid, fupperbound, false, start, goal, plan, fendpot);
+		bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
 
+		std::vector<geometry_msgs::PoseStamped> myplan;
+		o_gph.reinitialization( ) ;
+		bool bplansuccess2 = o_gph.makePlan(start, goal, myplan );
 ROS_INFO("[tid %d: [%d] ] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, bplansuccess, fptidx,
 										  start.pose.position.x, start.pose.position.y,
 										  goal.pose.position.x, goal.pose.position.y, fendpot);
-		gplansizes[fptidx] = plan.size();
+		gplansizes[fptidx] = myplan.size();
 		if( fendpot < fupperbound )
 		{
 			omp_set_lock(&m_mplock);
 			fupperbound = fendpot; // set new bound;
 			best_idx = fptidx;
 			omp_unset_lock(&m_mplock);
-
 		}
 ///////////////////////////////////////////////////////////////////////////
 	}
@@ -804,6 +811,11 @@ m_bestgoal.pose.pose = best_goal.pose ;
 	m_currentgoalpub.publish(m_bestgoal);		// for control
 /////////////////////////////////////////////////////
 	m_makergoalpub.publish(m_exploration_goal); // for viz
+
+//cv::namedWindow("tmp", 1);
+//cv::imshow("tmp", img_roi);
+//cv::waitKey(0);
+//cv::destroyAllWindows();
 
 // publish the best goal of the path plan
 //	ROS_INFO("@mapDataCallback start(%f %f) found the best goal(%f %f) best_len (%u)\n",
@@ -860,7 +872,6 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 // call actionlib
 // robot is ready to move
 	ROS_INFO("Robot state in moveRobotCallback: %d \n ",  m_eRobotState);
-
 
 	if( m_eRobotState >= ROBOT_STATE::FORCE_TO_STOP   )
 		return;
