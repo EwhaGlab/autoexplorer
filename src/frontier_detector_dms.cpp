@@ -308,7 +308,7 @@ void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPt
 	if(m_robotvel.linear.x == 0 && m_robotvel.angular.z == 0 ) // robot is physically stopped
 		m_eRobotState = ROBOT_STATE::ROBOT_IS_NOT_MOVING;
 
-ROS_INFO("Robot state in mapdataCallback: %d \n ",  m_eRobotState);
+//ROS_INFO("Robot state in mapdataCallback: %d \n ",  m_eRobotState);
 
 	if(m_eRobotState >= ROBOT_STATE::FORCE_TO_STOP )
 	{
@@ -346,8 +346,6 @@ mapCallStartTime = ros::WallTime::now();
 		cmheight=globalcostmap.info.height;
 		cmdata  =globalcostmap.data;
 	}
-
-ROS_INFO("after map assigned  \n ");
 
 	if( gmheight == 0 || gmwidth == 0
 		|| gmwidth  != cmwidth
@@ -499,7 +497,7 @@ ROS_INFO("after map assigned  \n ");
 	// i.e.) the final estimated frontier points
 	vector<FrontierPoint> voFrontierCands;
 
-ROS_INFO("contours size() %d \n", contours.size() );
+//ROS_INFO("contours size() %d \n", contours.size() );
 
 	for( int i = 0; i < contours.size(); i++ )
 	{
@@ -559,7 +557,7 @@ ROS_INFO("contours size() %d \n", contours.size() );
 		voFrontierCands.push_back(oPoint);
 	}
 
-ROS_INFO("costmap msg width: %d \n", gmwidth );
+//ROS_INFO("costmap msg width: %d \n", gmwidth );
 
 	geometry_msgs::Point p;
 	m_cands.points.clear();
@@ -669,11 +667,9 @@ ROS_INFO("costmap msg width: %d \n", gmwidth );
 // generate a path trajectory
 // call make plan service
 
-ROS_INFO("setting costmap in gph \n");
+//ROS_INFO("setting costmap in gph \n");
 
-	geometry_msgs::PoseStamped start = GetCurrPose( );
-	start.header.frame_id = m_worldFrameId;
-
+	geometry_msgs::PoseStamped start = GetCurrRobotPose( );
 
 //ROS_INFO("resizing mpo_costmap \n");
 mpo_costmap->resizeMap( cmwidth, cmheight, cmresolution,
@@ -708,18 +704,25 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 //////////////////////////////////////////////////////////////////////////////////
 
 	alignas(64) float fupperbound;
-	alignas(64) size_t best_idx = 0;
+	alignas(64) size_t best_idx;
 
 	std::vector<geometry_msgs::PoseStamped> initplan;
 	//const float initbound = static_cast<float>(DIST_HIGH) ;
 	fupperbound = static_cast<float>(DIST_HIGH) ;
+	best_idx	= static_cast<size_t>(0) ;
 	float fendpot = POT_HIGH;
 
+	vector< uint32_t > gplansizes( m_points.points.size(), 0 ) ;
 ///////////////////////// /////////////////////////////////////////////////////////
 // 3. Do BB based openmp search
 //////////////////////////////////////////////////////////////////////////////////
 
+std::random_device rd;
+std::default_random_engine rng(rd());
+std::shuffle(m_points.points.begin(), m_points.points.end(), rng);
+
 std::vector<geometry_msgs::Point> fpoints = m_points.points ;
+
 GlobalPlanningHandler o_gph( *mpo_costmap );
 std::vector<geometry_msgs::PoseStamped> plan;
 uint32_t fptidx;
@@ -731,7 +734,7 @@ omp_init_lock(&m_mplock);
 
 ros::WallTime GPstartTime = ros::WallTime::now();
 
-ROS_INFO("begining BB A*\n");
+//ROS_INFO("begining BB A*\n");
 
 #pragma omp parallel firstprivate( o_gph, fpoints, plan, tid, start, goal ) shared( fupperbound, best_idx )
 {
@@ -751,21 +754,32 @@ ROS_INFO("begining BB A*\n");
 //ROS_INFO("goal: %f %f \n", fpoints[fptidx].x, fpoints[fptidx].y );
 		bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
 
-//ROS_INFO("[tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, fptidx,
+//ROS_INFO("[tid %d: [%d] ] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, bplansuccess, fptidx,
 //										  start.pose.position.x, start.pose.position.y,
 //										  goal.pose.position.x, goal.pose.position.y, fendpot);
-
+		//gplansizes[fptidx] = myplan.size();
 		if( fendpot < fupperbound )
 		{
 			omp_set_lock(&m_mplock);
 			fupperbound = fendpot; // set new bound;
 			best_idx = fptidx;
 			omp_unset_lock(&m_mplock);
-
 		}
 ///////////////////////////////////////////////////////////////////////////
 	}
 }
+
+//for(int i =0; i< gplansizes.size(); i++)
+//{
+//
+//	geometry_msgs::PoseStamped goal = StampedPosefromSE2( fpoints[i].x, fpoints[i].y, 0.f );
+//
+//	ROS_WARN("(%f %f) to (%f %f) length: %d \n", start.pose.position.x, start.pose.position.y,
+//												goal.pose.position.x, goal.pose.position.y,
+//												gplansizes[i] );
+//}
+//ROS_WARN("best idx, best len: %d %d \n", best_idx, gplansizes[best_idx] );
+
 
 std::vector<geometry_msgs::PoseStamped> best_plan ;
 
@@ -848,7 +862,6 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 // call actionlib
 // robot is ready to move
 	ROS_INFO("Robot state in moveRobotCallback: %d \n ",  m_eRobotState);
-
 
 	if( m_eRobotState >= ROBOT_STATE::FORCE_TO_STOP   )
 		return;

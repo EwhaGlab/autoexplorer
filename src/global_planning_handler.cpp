@@ -428,15 +428,15 @@ bool GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const
     //until tf can handle transforming things that are way in the past... we'll require the goal to be in our global frame
     if(goal.header.frame_id != global_frame_)
     {
-     // ROS_ERROR("@GPH: The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
-     //           global_frame_.c_str(), goal.header.frame_id.c_str());
+      ROS_ERROR("@GPH: The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
+                global_frame_.c_str(), goal.header.frame_id.c_str());
       return false;
     }
 
     if(start.header.frame_id != global_frame_)
     {
-     // ROS_ERROR("@GPH: The start pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
-     //           global_frame_.c_str(), start.header.frame_id.c_str());
+      ROS_ERROR("@GPH: The start pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
+                global_frame_.c_str(), start.header.frame_id.c_str());
       return false;
     }
 
@@ -446,7 +446,7 @@ bool GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const
     unsigned int mx, my;
     if(!m_costmap.worldToMap(wx, wy, mx, my))
     {
-     // ROS_WARN("The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
+      ROS_WARN("The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
       return false;
     }
 

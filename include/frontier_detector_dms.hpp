@@ -14,6 +14,8 @@
 #include "global_planning_handler.hpp"
 #include <omp.h>
 #include "std_msgs/Empty.h"
+#include <algorithm>
+#include <random>
 
 //#define OCCUPANCY_THR (60)
 //#define FD_DEBUG_MODE
@@ -61,6 +63,27 @@ public:
 	int savegridmap( const nav_msgs::OccupancyGrid& gridmap, const string& filename ) ;
 	int savecostmap( const nav_msgs::OccupancyGrid& costmap, const string& filename ) ;
 
+	geometry_msgs::PoseStamped GetCurrRobotPose ( )
+	{
+		tf::StampedTransform map2baselink;
+		try{
+		  m_listener.lookupTransform(m_worldFrameId, m_baseFrameId,
+								   ros::Time(0), map2baselink);
+		}
+		catch (tf::TransformException &ex) {
+		  ROS_ERROR("%s",ex.what());
+		  ros::Duration(1.0).sleep();
+		}
+
+		geometry_msgs::PoseStamped outPose;
+		outPose.pose.position.x = map2baselink.getOrigin().x();
+		outPose.pose.position.y = map2baselink.getOrigin().y();
+		outPose.pose.position.z = 0.f;
+		outPose.header.frame_id = m_worldFrameId;
+
+		return outPose;
+	}
+
 protected:
 
 	ros::NodeHandle m_nh;
@@ -80,6 +103,7 @@ protected:
 	cv::Mat m_uMapImg, m_uMapImgROI ;
 
 	FrontierFilter m_oFrontierFilter;
+	tf::TransformListener m_listener;
 
 	//GlobalPlanningHandler* mpo_gph ;
 	GlobalPlanningHandler mo_gph ;
