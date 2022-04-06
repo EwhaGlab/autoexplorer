@@ -1,20 +1,49 @@
-/*
- * frontier_detector_node.cpp
- *
- *  Created on: Mar 18, 2021
- *      Author: hankm
- */
+/*********************************************************************
+* Software License Agreement (XXX License)
+*
+*  Copyright (c) 2022, Ewha Graphics Lab
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Willow Garage nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************
+
+ *  Created on: Apr, 2022
+ *      Author: Kyungmin Han (hankm@ewha.ac.kr)
+*/
+
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-//#include <octomap_server/mapframedata.h>
 
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <cv_bridge/cv_bridge.h>
-//#include <signal.h>
-
 #include "frontier_detector_sms.hpp"
 #include "frontier_detector_dms.hpp"
 
@@ -29,16 +58,6 @@ int main(int argc, char** argv)
   const ros::NodeHandle private_nh("~");
 
   ros::WallTime start_, end_;
-  if(0) //argc !=3)
-  {
-	ROS_ERROR("usage: %s <slam_method>\n", argv[0]);
-	exit(-1);
-  }
-
-//  if (argc > 2 || (argc == 2 && std::string(argv[1]) == "-h")){
-//    ROS_ERROR("usage: %s \n",argv[0]);
-//    exit(-1);
-//  }
 
   ROS_INFO("args: %s %s %s\n", argv[0], argv[1], argv[2]);
 
@@ -53,33 +72,37 @@ int main(int argc, char** argv)
   ROS_INFO("max num threads, input num threads: %d %d \n", totnumthreads, numthreads);
   numthreads = MIN( totnumthreads, numthreads );
   ROS_INFO("slamid: %s %d \n", slam_method.c_str(), slamid[slam_method.c_str()]);
-//  exit(-1);
 
   switch( slamid[slam_method.c_str()] )
   {
   	  case GMAPPING:
   	  {
-		  ROS_INFO("Initializing frontier_detector_sms \n");
-		  FrontierDetectorSMS front_detector_sms(private_nh, nh);
-		  ros::spinOnce();
-		  front_detector_sms.initmotion();
-		  front_detector_sms.SetInitMotionCompleted();
-		  while( !front_detector_sms.isDone() && ros::ok() )
-		  {
-			  try{
-				  ros::spinOnce();
-			  }
-			  catch(std::runtime_error& e)
-			  {
-				ROS_ERROR("frontier_detector exception: %s", e.what());
-				return -1;
-			  }
-		  }
-		  front_detector_sms.publishDone();
-		  break;
+		  ROS_ERROR("Autoexplorer doesn't support GMAPPING yet. It will be ready soon. \n");
+		  return -1;
+//		  FrontierDetectorSMS front_detector_sms(private_nh, nh);
+//		  ros::spinOnce();
+//		  front_detector_sms.initmotion();
+//		  front_detector_sms.SetInitMotionCompleted();
+//		  while( !front_detector_sms.isDone() && ros::ok() )
+//		  {
+//			  try{
+//				  ros::spinOnce();
+//			  }
+//			  catch(std::runtime_error& e)
+//			  {
+//				ROS_ERROR("frontier_detector exception: %s", e.what());
+//				return -1;
+//			  }
+//		  }
+//		  front_detector_sms.publishDone();
+//		  break;
   	  }
 
   	  case CARTOGRAPHER:
+  	  {
+		  ROS_ERROR("Autoexplorer is not compatible with CARTOGRAPHER \n");
+		  return -1;
+  	  }
   	  case SLAM_TOOLBOX:
   	  {
 		  ROS_INFO("Initializing frontier_detector_dms \n");
@@ -106,7 +129,7 @@ int main(int argc, char** argv)
   	  default: ROS_ERROR("Invalid slam method \n");
   }
 
-  ROS_WARN(" Sutting down frontier detection process \n");
+  ROS_WARN(" Sutting down the exploration task \n");
   //ros::shutdown(); lets shutdown from outside
 
   return 0;
