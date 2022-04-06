@@ -41,7 +41,7 @@
 //
 // Path calc has sanity check that it succeeded
 //
-
+// modified by Kyungmin Han (hankm@ewha.ac.kr)
 
 #include <nav_fn/navfn.h>
 #include <ros/console.h>

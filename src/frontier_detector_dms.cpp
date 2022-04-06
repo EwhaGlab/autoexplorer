@@ -1,11 +1,40 @@
-/*
- * frontier_detector_dms.cpp
- *
- *  Created on: Sep 25, 2021
- *      Author: hankm
- */
+/*********************************************************************
+* Software License Agreement (XXX License)
+*
+*  Copyright (c) 2022, Ewha Graphics Lab
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Willow Garage nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************
 
-// frontier detection for dynamic map size cases (slam toolbox generated maps)
+ *  Created on: Apr, 2022
+ *      Author: Kyungmin Han (hankm@ewha.ac.kr)
+*/
 
 #include "frontier_detector_dms.hpp"
 
@@ -20,8 +49,6 @@ m_nglobalcostmapidx(0), mn_numthreads(16),
 m_isInitMotionCompleted(false),
 mp_cost_translation_table(NULL)
 {
-	// gridmap generated from octomap might be downsampled !!
-
 	float fcostmap_conf_thr, fgridmap_conf_thr ;
 	m_nh.getParam("/autoexplorer/debug_data_save_path", m_str_debugpath);
 	m_nh.param("/autoexplorer/costmap_conf_thr", fcostmap_conf_thr, 0.1f);
@@ -32,8 +59,6 @@ mp_cost_translation_table(NULL)
 	m_nh.param("/autoexplorer/global_height", m_nGlobalMapHeight, 4000) ;
 	m_nh.param("/move_base_node/global_costmap/resolution", m_fResolution, 0.05f) ;
 
-//	int _nWeakCompThreshold	= m_fs["WEAK_COMP_THR"];
-//	m_frontiers_region_thr = _nWeakCompThreshold / m_nScale ;
 	int _nWeakCompThreshold ;
 	m_nh.param("/autoexplorer/weak_comp_thr", _nWeakCompThreshold, 10);
 	m_nh.param("/autoexplorer/num_downsamples", m_nNumPyrDownSample, 0);
@@ -56,23 +81,15 @@ mp_cost_translation_table(NULL)
 
 	m_velpub		= m_nh.advertise<geometry_msgs::Twist>("cmd_vel",10);
 	m_donepub		= m_nh.advertise<std_msgs::Bool>("exploration_is_done",1);
-	//m_resetgazebopub = m_nh.advertise<std_msgs::Empty>("exploration_is_done",1);
 
-	//---------------------------------------------------------------
-	//m_mapsub = m_nh.subscribe("map", 1, &FrontierDetectorDMS::gridmapCallBack, this);  // "projected_map" if octomap is on
 	m_mapframedataSub  	= m_nh.subscribe("map", 1, &FrontierDetectorDMS::mapdataCallback, this); // kmHan
-	//m_globalplanSub 	= m_nh.subscribe("move_base_node/NavfnROS/plan",1 , &FrontierDetectorDMS::moveRobotCallback, this) ; // kmHan
 	m_globalplanSub 	= m_nh.subscribe("curr_goalpose",1 , &FrontierDetectorDMS::moveRobotCallback, this) ; // kmHan
 	m_globalCostmapSub 	= m_nh.subscribe("move_base_node/global_costmap/costmap", 1, &FrontierDetectorDMS::globalCostmapCallBack, this );
-//	m_globalCostmapUpdateSub
-//				= m_nh.subscribe("move_base_node/global_costmap/costmap_updates", 1, &FrontierDetectorDMS::globalCostmapUpdateCallback, this );
 
 	m_poseSub		   	= m_nh.subscribe("pose", 10, &FrontierDetectorDMS::robotPoseCallBack, this);
 	m_velSub			= m_nh.subscribe("cmd_vel", 10, &FrontierDetectorDMS::robotVelCallBack, this);
 	m_unreachablefrontierSub = m_nh.subscribe("unreachable_frontier", 1, &FrontierDetectorDMS::unreachablefrontierCallback, this);
 	m_makeplan_client = m_nh.serviceClient<nav_msgs::GetPlan>("move_base_node/make_plan");
-ROS_WARN("allocating map buff \n");
-ROS_WARN("nscale: %d \n", m_nScale);
 
 	m_uMapImg  	  = cv::Mat(m_nGlobalMapHeight, m_nGlobalMapWidth, CV_8U, cv::Scalar(127));
 
@@ -86,17 +103,12 @@ ROS_WARN("nscale: %d \n", m_nScale);
 			m_nGlobalMapWidth, m_nGlobalMapHeight,
 			m_fResolution);
 	while(!m_move_client.waitForServer(ros::Duration(5.0)))
-	//while(!m_move_client.waitForActionServerToStart())
 	{
 		ROS_INFO("Waiting for the move_base action server to come up");
 	}
-ROS_WARN("move_base action server is up");
+	ROS_INFO("move_base action server is up");
 
-
-// global_planning_handler
-	//mpo_gph = new GlobalPlanningHandler( ) ;
 	mpo_costmap = new costmap_2d::Costmap2D();
-
 	if (mp_cost_translation_table == NULL)
 	{
 		mp_cost_translation_table = new uint8_t[101];
@@ -121,8 +133,6 @@ ROS_WARN("move_base action server is up");
 	SetVizMarkers( m_worldFrameId, 0.f, 1.f, 0.f, 0.3, m_points );
 	SetVizMarkers( m_worldFrameId, 1.f, 0.f, 1.f, 0.5, m_exploration_goal );
 	SetVizMarkers( m_worldFrameId, 1.f, 1.f, 0.f, 0.5, m_unreachable_points );
-
-	m_ofs_time = ofstream("/home/hankm/results/autoexploration/planning_time.txt");
 }
 
 FrontierDetectorDMS::~FrontierDetectorDMS()
@@ -154,11 +164,6 @@ ROS_INFO("+++++++++++++++++ end of the init motion ++++++++++++++\n");
 
 cv::Point2f FrontierDetectorDMS::gridmap2world( cv::Point img_pt_roi  )
 {
-	// grid_x = (map_x - map.info.origin.position.x) / map.info.resolution
-	// grid_y = (map_y - map.info.origin.position.y) / map.info.resolution
-	// img_x = (gridmap_x - gridmap.info.origin.position.x) / gridmap.info.resolution
-	// img_y = (gridmap_y - gridmap.info.origin.position.y) / gridmap.info.resolution
-
 	float fgx =  static_cast<float>(img_pt_roi.x) * m_fResolution + m_gridmap.info.origin.position.x  ;
 	float fgy =  static_cast<float>(img_pt_roi.y) * m_fResolution + m_gridmap.info.origin.position.y  ;
 
@@ -176,7 +181,6 @@ cv::Point FrontierDetectorDMS::world2gridmap( cv::Point2f grid_pt)
 
 int FrontierDetectorDMS::displayMapAndFrontiers( const cv::Mat& mapimg, const vector<cv::Point>& frontiers, const int winsize)
 {
-	//ROS_INFO("weird maprows: %d %d\n", mapimg.rows, mapimg.cols);
 	if(		mapimg.empty() ||
 			mapimg.rows == 0 || mapimg.cols == 0 || m_globalcostmap.info.width == 0 || m_globalcostmap.info.height == 0)
 		return 0;
@@ -185,7 +189,6 @@ int FrontierDetectorDMS::displayMapAndFrontiers( const cv::Mat& mapimg, const ve
 	float fXstarty=m_globalcostmap.info.origin.position.y; // world coordinate in the costmap
 	float resolution = m_globalcostmap.info.resolution ;
 	int cmwidth= static_cast<int>(m_globalcostmap.info.width) ;
-	//auto Data=m_globalcostmap.data ;
 
 	int x = winsize ;
 	int y = winsize ;
@@ -193,11 +196,7 @@ int FrontierDetectorDMS::displayMapAndFrontiers( const cv::Mat& mapimg, const ve
 	int height= mapimg.rows  ;
 	cv::Mat img = cv::Mat::zeros(height + winsize*2, width + winsize*2, CV_8UC1);
 
-//ROS_INFO("costmap size: %d %d \n",  m_globalcostmap.info.width, m_globalcostmap.info.height);
-
 	cv::Mat tmp = img( cv::Rect( x, y, width, height ) ) ;
-
-ROS_INFO("mapsize: %d %d %d %d %d %d\n", tmp.cols, tmp.rows, mapimg.cols, mapimg.rows, img.cols, img.rows );
 
 	mapimg.copyTo(tmp);
 	cv::Mat dst;
@@ -215,7 +214,6 @@ ROS_INFO("mapsize: %d %d %d %d %d %d\n", tmp.cols, tmp.rows, mapimg.cols, mapimg
 	cv::Mat dstroi = dst( cv::Rect( mapimg.cols/4, mapimg.rows/4, mapimg.cols/2, mapimg.rows/2 ) );
 	cv::pyrDown(dstroi, dstroi, cv::Size(dstroi.cols/2, dstroi.rows/2) );
 
-//ROS_INFO("dst size: %d %d \n", dst.rows, dst.cols);
 #ifdef FD_DEBUG_MODE
 //	ROS_INFO("displaying dstroi \n");
 //	cv::namedWindow("mapimg", 1);
@@ -264,12 +262,7 @@ void FrontierDetectorDMS::globalCostmapUpdateCallback(const map_msgs::OccupancyG
 	int width  = cm_updates.width ;
 	int cmwidth = m_globalcostmap.info.width ;
 	int dataidx = 0 ;
-//ROS_INFO("cm updates size: %d \n", Data.size() );
-//ROS_INFO("info: x y h w (%d %d %d %d) \n", cm_updates.x, cm_updates.y,
-//			cm_updates.height, cm_updates.width  );
 	{
-		//const std::unique_lock<mutex> lock(mutex_global_costmap) ;
-
 		for(int ii=0; ii < height; ii++)
 		{
 			for(int jj=0; jj < width; jj++)
@@ -283,18 +276,15 @@ void FrontierDetectorDMS::globalCostmapUpdateCallback(const map_msgs::OccupancyG
 }
 
 
-
 void FrontierDetectorDMS::robotPoseCallBack( const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg )
 {
 	m_robotpose = *msg ;
-	//ROS_INFO("callback pose:  %f %f \n", m_robotpose.pose.pose.position.x, m_robotpose.pose.pose.position.y);
 }
 
 void FrontierDetectorDMS::robotVelCallBack( const geometry_msgs::Twist::ConstPtr& msg )
 {
 	m_robotvel = *msg ;
 }
-
 
 // mapcallback for dynamic mapsize (i.e for the cartographer)
 void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) //const octomap_server::mapframedata& msg )
@@ -307,8 +297,6 @@ void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPt
 
 	if(m_robotvel.linear.x == 0 && m_robotvel.angular.z == 0 ) // robot is physically stopped
 		m_eRobotState = ROBOT_STATE::ROBOT_IS_NOT_MOVING;
-
-//ROS_INFO("Robot state in mapdataCallback: %d \n ",  m_eRobotState);
 
 	if(m_eRobotState >= ROBOT_STATE::FORCE_TO_STOP )
 	{
@@ -325,8 +313,6 @@ mapCallStartTime = ros::WallTime::now();
 	float cmresolution, cmstartx, cmstarty;
 	uint32_t cmwidth, cmheight;
 	std::vector<signed char> cmdata;
-
-//ROS_INFO("b4 map assigned  \n ");
 
 	{
 		const std::unique_lock<mutex> lock(mutex_gridmap);
@@ -357,26 +343,10 @@ mapCallStartTime = ros::WallTime::now();
 		return;
 	}
 
-//ROS_INFO("in mapdataCallback (grid map info: %f %f %d %d)\n",
-//		m_gridmap.info.origin.position.x, m_gridmap.info.origin.position.y,
-//		m_gridmap.info.height, m_gridmap.info.width);
-//ROS_INFO("in mapdataCallback (gcostmap info: %f %f %d %d)\n",
-//		cmstartx, cmstarty,	cmheight, cmwidth);
-
-//	ROS_INFO("offset adjust: %d %d %d %d num ds: %d\n", nrows_, ncols_, m_nrows, m_ncols, m_nNumPyrDownSample );
-//	m_nrows = m_gridmap.info.height ; //% 2 == 0 ? m_gridmap.info.height : m_gridmap.info.height + 1;
-//	m_ncols = m_gridmap.info.width  ; //% 2 == 0 ? m_gridmap.info.height : m_gridmap.info.height + 1;
 	m_nroi_origx = m_nGlobalMapCentX ; // - (int)round( m_gridmap.info.origin.position.x / m_fResolution ) ;
 	m_nroi_origy = m_nGlobalMapCentY ; //- (int)round( m_gridmap.info.origin.position.y / m_fResolution ) ;
-
-//ROS_INFO("origx origy cols rows %d %d %d %d\n", m_nroi_origx, m_nroi_origy, gmwidth, gmheight);
 	cv::Rect roi( m_nroi_origx, m_nroi_origy, gmwidth, gmheight );
 
-// to make sure that img(0,0) == UNKNOWN
-	//cv::Rect roi_offset( m_nroi_origx - ROI_OFFSET, m_nroi_origy - ROI_OFFSET, m_ncols + ROI_OFFSET*2, m_nrows + ROI_OFFSET*2 );
-
-//	cv::Mat img ;
-//	img = m_uMapImg(roi);
 	m_uMapImgROI = m_uMapImg(roi);
 
 	for( int ii =0 ; ii < gmheight; ii++)
@@ -401,16 +371,12 @@ mapCallStartTime = ros::WallTime::now();
 			}
 		}
 	}
-//ROS_INFO("%d %d %d %d\n", img.rows, img.cols, m_nrows, m_ncols );
 
 	m_markerfrontierpub.publish(m_points); // Publish frontiers to renew Rviz
 	m_makergoalpub.publish(m_exploration_goal);
 
 // The robot is not moving (or ready to move)... we can go ahead plan the next action...
 // i.e.) We locate frontier points again, followed by publishing the new goal
-
-//	ROS_INFO("******* Begin mapdataCallback procedure ******** \n");
-//	ROS_INFO(" # of downsamples %d \n", m_nNumPyrDownSample);
 
 	cv::Mat img_ ;
 	img_ = m_uMapImg( roi ); //m_uMapImgROI.clone();
@@ -419,16 +385,13 @@ mapCallStartTime = ros::WallTime::now();
 	{
 		// be careful here... using pyrDown() interpolates occ and free, making the boarder area (0 and 127) to be 127/2 !!
 		// 127 reprents an occupied cell !!!
-		//downSampleMap(img);
 		for(int iter=0; iter < m_nNumPyrDownSample; iter++ )
 		{
 			int nrows = img_.rows; //% 2 == 0 ? img.rows : img.rows + 1 ;
 			int ncols = img_.cols; // % 2 == 0 ? img.cols : img.cols + 1 ;
 			//ROS_INFO("sizes orig: %d %d ds: %d %d \n", img_.rows, img_.cols, nrows/2, ncols/2 );
 			pyrDown(img_, img_, cv::Size( ncols/2, nrows/2 ) );
-			//clusterToThreeLabels( img );
 		}
-		//cv::imwrite("/home/hankm/catkin_ws/src/frontier_detector/launch/pyr_img.png", img);
 	}
 	clusterToThreeLabels( img_ );
 
@@ -469,7 +432,6 @@ mapCallStartTime = ros::WallTime::now();
 	int idx = 0;
 	for( ; idx >= 0; idx = hierarchy[idx][0] )
 	{
-//ROS_INFO("hierarchy: %d \n", idx);
 		cv::Scalar color( rand()&255, rand()&255, rand()&255 );
 		drawContours( dst, contours, idx, color, CV_FILLED, 8, hierarchy );
 	}
@@ -496,8 +458,6 @@ mapCallStartTime = ros::WallTime::now();
 	// get closest frontier pt to each cent
 	// i.e.) the final estimated frontier points
 	vector<FrontierPoint> voFrontierCands;
-
-//ROS_INFO("contours size() %d \n", contours.size() );
 
 	for( int i = 0; i < contours.size(); i++ )
 	{
@@ -539,11 +499,8 @@ mapCallStartTime = ros::WallTime::now();
 		frontier.x = frontier.x - ROI_OFFSET ;
 		frontier.y = frontier.y - ROI_OFFSET ;
 
-		//frontiers_cand.push_back(frontier) ;
 		FrontierPoint oPoint( frontier, gmheight, gmwidth,
 								m_gridmap.info.origin.position.y, m_gridmap.info.origin.position.x,
-			   // m_nGlobalMapCentY, m_nGlobalMapCentX,
-					   //0,0,
 					   gmresolution, m_nNumPyrDownSample );
 
 /////////////////////////////////////////////////////////////////////
@@ -575,7 +532,6 @@ mapCallStartTime = ros::WallTime::now();
 		p.y = frontier_in_world.y ;
 		p.z = 0.0 ;
 		m_cands.points.push_back(p);
-		//ROS_INFO("frontier cands: %f %f \n", p.x, p.y);
 	}
 
 	// eliminate frontier points at obtacles
@@ -625,11 +581,10 @@ mapCallStartTime = ros::WallTime::now();
 		return;
 	}
 
-
 	// set exploration goals
 	for(size_t idx=0; idx < valid_frontier_indexs.size(); idx++)
 	{
-		//cv::Point frontier = frontiers[idx] ;
+
 //ROS_INFO("frontier pts found: %d %d \n",frontier.x,frontier.y);
 #ifdef FD_DEBUG_MODE
 		cv::circle(dst, frontier, 3, CV_RGB(255,0,0), 2);
@@ -652,22 +607,14 @@ mapCallStartTime = ros::WallTime::now();
 		p.z = 0.0 ;
 		m_points.points.push_back(p);
 
-//		ROS_INFO("frontier in img: (%d %d) in gridmap: (%f %f) scale: %d\n",
-//				frontier.x, frontier.y, p.x, p.y, m_nScale );
-
 	}
 
 #ifdef FFD_DEBUG_MODE
 		imwrite(m_str_debugpath+"/frontier_cents.png", dst);
 #endif
 
-	//ROS_INFO("costmap info: %f %f %f %f \n", resolution, Xstartx, Xstarty, width);
-	//ROS_INFO("frontier: %f %f \n", m_points.points[0].x, m_points.points[0].y );
-
 // generate a path trajectory
 // call make plan service
-
-//ROS_INFO("setting costmap in gph \n");
 
 	geometry_msgs::PoseStamped start = GetCurrRobotPose( );
 
@@ -688,7 +635,6 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 	}
 }
 
-//ROS_INFO("mpo_costmap has been set\n");
 ///////////////////////////////////////////////////////////////////////
 // 1. estimate dist to each goal using euclidean distance heuristic (we need sorting here)
 ///////////////////////////////////////////////////////////////////////
@@ -707,7 +653,6 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 	alignas(64) size_t best_idx;
 
 	std::vector<geometry_msgs::PoseStamped> initplan;
-	//const float initbound = static_cast<float>(DIST_HIGH) ;
 	fupperbound = static_cast<float>(DIST_HIGH) ;
 	best_idx	= static_cast<size_t>(0) ;
 	float fendpot = POT_HIGH;
@@ -765,30 +710,12 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 	}
 }
 
-//for(int i =0; i< gplansizes.size(); i++)
-//{
-//
-//	geometry_msgs::PoseStamped goal = StampedPosefromSE2( fpoints[i].x, fpoints[i].y, 0.f );
-//
-//	ROS_WARN("(%f %f) to (%f %f) length: %d \n", start.pose.position.x, start.pose.position.y,
-//												goal.pose.position.x, goal.pose.position.y,
-//												gplansizes[i] );
-//}
-//ROS_WARN("best idx, best len: %d %d \n", best_idx, gplansizes[best_idx] );
+	std::vector<geometry_msgs::PoseStamped> best_plan ;
 
-
-std::vector<geometry_msgs::PoseStamped> best_plan ;
-
-p = m_points.points[best_idx];  // just for now... we need to fix it later
-geometry_msgs::PoseStamped best_goal = StampedPosefromSE2( p.x, p.y, 0.f );
-m_bestgoal.header.frame_id = m_worldFrameId ;
-m_bestgoal.pose.pose = best_goal.pose ;
-
-//ros::WallTime GPendTime = ros::WallTime::now();
-
-// print results
-//double gp_time = (GPendTime - GPstartTime).toNSec() * 1e-6 * 0.083;
-//ROS_INFO(" %u planning time \t %f \n",m_points.points.size(), gp_time);
+	p = m_points.points[best_idx];  // just for now... we need to fix it later
+	geometry_msgs::PoseStamped best_goal = StampedPosefromSE2( p.x, p.y, 0.f );
+	m_bestgoal.header.frame_id = m_worldFrameId ;
+	m_bestgoal.pose.pose = best_goal.pose ;
 
 	p.x = m_bestgoal.pose.pose.position.x ;
 	p.y = m_bestgoal.pose.pose.position.y ;
@@ -882,18 +809,10 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 	goal.target_pose.pose.orientation.w = goalpose.pose.pose.orientation.w ;
 
 // inspect the path
-//	ROS_INFO("printing path for start(%f %f) to goal(%f %f): \n",
-//			req.start.pose.position.x, req.start.pose.position.y, req.goal.pose.position.x, req.goal.pose.position.y );
-
-//	ROS_INFO("@moveRobotCallback goal pose: %f %f %f\n", goalpose.pose.pose.position.x, goalpose.pose.pose.position.y, goalpose.pose.pose.orientation.w);
-//////////////////////////////////////////////////////////////////////////////////////////////
-// when creating path to frontier points, navfn_ros::makePlan() is called
-// move_client calls moveBase::makePlan() ...
 //////////////////////////////////////////////////////////////////////////////////////////////
 //ROS_INFO("+++++++++++++++++++++++++ @moveRobotCallback, sending a goal +++++++++++++++++++++++++++++++++++++\n");
 	m_move_client.sendGoal(goal, boost::bind(&FrontierDetectorDMS::doneCB, this, _1), SimpleMoveBaseClient::SimpleActiveCallback() ) ;
 //ROS_INFO("+++++++++++++++++++++++++ @moveRobotCallback, a goal is sent +++++++++++++++++++++++++++++++++++++\n");
-	//m_move_client.sendGoalAndWait(goal, ros::Duration(0, 0), ros::Duration(0, 0)) ;
 	m_move_client.waitForResult();
 }
 
