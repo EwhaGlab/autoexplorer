@@ -24,13 +24,13 @@
 								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.691946131" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option defaultValue="gnu.cpp.compiler.debugging.level.max" id="gnu.cpp.compiler.exe.debug.option.debugging.level.1035241666" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.cpp.compiler.option.include.paths.106901648" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="/opt/ros/melodic/include"/>
+									<listOptionValue builtIn="false" value="/opt/ros/noetic/include"/>
 									<listOptionValue builtIn="false" value="/home/hankm/catkin_ws/src"/>
 									<listOptionValue builtIn="false" value="/home/hankm/catkin_ws/src/navigation/move_base/include"/>
 									<listOptionValue builtIn="false" value="/home/hankm/catkin_ws/src/autoexplorer/include"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.cpp.compiler.option.include.files.1966204097" name="Include files (-include)" superClass="gnu.cpp.compiler.option.include.files" useByScannerDiscovery="false" valueType="includeFiles">
-									<listOptionValue builtIn="false" value="/opt/ros/melodic/include"/>
+									<listOptionValue builtIn="false" value="/opt/ros/noetic/include"/>
 									<listOptionValue builtIn="false" value="/home/hankm/catkin_ws/src"/>
 									<listOptionValue builtIn="false" value="/home/hankm/catkin_ws/src/navigation/move_base/include"/>
 									<listOptionValue builtIn="false" value="/home/hankm/catkin_ws/src/autoexplorer/include"/>
@@ -105,22 +105,7 @@
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<project id="autoexplorer.cdt.managedbuild.target.gnu.exe.1745418996" name="Executable" projectType="cdt.managedbuild.target.gnu.exe"/>
-	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2111467271;cdt.managedbuild.config.gnu.exe.debug.2111467271.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.63086476;cdt.managedbuild.tool.gnu.c.compiler.input.849409784">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.316572027;cdt.managedbuild.config.gnu.exe.release.316572027.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.462592173;cdt.managedbuild.tool.gnu.cpp.compiler.input.1937006857">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.316572027;cdt.managedbuild.config.gnu.exe.release.316572027.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.645141340;cdt.managedbuild.tool.gnu.c.compiler.input.1474208487">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2111467271;cdt.managedbuild.config.gnu.exe.debug.2111467271.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1262983777;cdt.managedbuild.tool.gnu.cpp.compiler.input.758715888">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
+		<project id="autoexplorer.cdt.managedbuild.target.gnu.exe.1200887254" name="Executable" projectType="cdt.managedbuild.target.gnu.exe"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
@@ -132,4 +117,19 @@
 		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1017870890;cdt.managedbuild.config.gnu.exe.debug.1017870890.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.631937087;cdt.managedbuild.tool.gnu.cpp.compiler.input.456106760">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1017870890;cdt.managedbuild.config.gnu.exe.debug.1017870890.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.559964164;cdt.managedbuild.tool.gnu.c.compiler.input.1646630976">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.770430668;cdt.managedbuild.config.gnu.exe.release.770430668.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.403106384;cdt.managedbuild.tool.gnu.c.compiler.input.2085060063">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.770430668;cdt.managedbuild.config.gnu.exe.release.770430668.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1997606744;cdt.managedbuild.tool.gnu.cpp.compiler.input.2061980614">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+	</storageModule>
 </cproject>

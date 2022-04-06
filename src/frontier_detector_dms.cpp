@@ -5,7 +5,7 @@
  *      Author: hankm
  */
 
-// frontier detection for dynamic map size cases (cartographer generated maps)
+// frontier detection for dynamic map size cases (slam toolbox generated maps)
 
 #include "frontier_detector_dms.hpp"
 
