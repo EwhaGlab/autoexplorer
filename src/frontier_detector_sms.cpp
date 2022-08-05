@@ -688,7 +688,7 @@ startTime = ros::WallTime::now();
 	{
 //ROS_INFO("hierarchy: %d \n", idx);
 		cv::Scalar color( rand()&255, rand()&255, rand()&255 );
-		drawContours( dst, contours, idx, color, CV_FILLED, 8, hierarchy );
+		drawContours( dst, contours, idx, color, cv::FILLED, 8, hierarchy );
 	}
 
 	vector<cv::Point2f> fcents;

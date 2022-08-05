@@ -18,6 +18,8 @@ Panels:
         - /Odometry1/Shape1
         - /Marker4
         - /Marker5
+        - /TF2
+        - /TF2/Frames1
       Splitter Ratio: 0.5
     Tree Height: 456
   - Class: rviz/Selection
@@ -73,6 +75,7 @@ Visualization Manager:
       Color: 0; 0; 255
       Enabled: true
       Name: Polygon
+      Queue Size: 10
       Topic: /robot_1/move_base_node/local_costmap/footprint
       Unreliable: false
       Value: true
@@ -81,6 +84,7 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+      Marker Alpha: 1
       Marker Scale: 3
       Name: TF
       Show Arrows: false
@@ -137,6 +141,7 @@ Visualization Manager:
         Z: 0
       Pose Color: 255; 85; 255
       Pose Style: None
+      Queue Size: 10
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
@@ -160,6 +165,7 @@ Visualization Manager:
         Z: 0
       Pose Color: 255; 85; 255
       Pose Style: None
+      Queue Size: 10
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
@@ -183,6 +189,7 @@ Visualization Manager:
         Z: 0
       Pose Color: 255; 85; 255
       Pose Style: None
+      Queue Size: 10
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
@@ -204,9 +211,7 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 4096
       Min Color: 0; 0; 0
-      Min Intensity: 0
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -221,7 +226,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /tesse0/global_detector_shapes
+      Marker Topic: /global_detector_shapes
       Name: Marker
       Namespaces:
         {}
@@ -240,7 +245,7 @@ Visualization Manager:
       Marker Topic: /curr_goal_shape
       Name: Marker
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Angle Tolerance: 0.10000000149011612
@@ -264,6 +269,7 @@ Visualization Manager:
       Keep: 1
       Name: Odometry
       Position Tolerance: 0.10000000149011612
+      Queue Size: 10
       Shape:
         Alpha: 1
         Axes Length: 1
@@ -301,6 +307,7 @@ Visualization Manager:
       Head Length: 0.30000001192092896
       Head Radius: 0.10000000149011612
       Name: PoseWithCovariance
+      Queue Size: 10
       Shaft Length: 1
       Shaft Radius: 0.05000000074505806
       Shape: Axes
@@ -312,7 +319,7 @@ Visualization Manager:
       Marker Topic: /filtered_shapes
       Name: Marker
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -338,142 +345,31 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        bellows_link:
+        base_origin:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_front_wheel:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        bellows_link2:
+        left_rear_wheel:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        bl_caster_link:
+        lidar_holder:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        br_caster_link:
+        right_front_wheel:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        elbow_flex_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        estop_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        fl_caster_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        forearm_roll_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        fr_caster_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        gripper_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        head_camera_depth_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        head_camera_depth_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        head_camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        head_camera_rgb_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        head_camera_rgb_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        head_pan_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        head_tilt_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        l_gripper_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        l_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        laser_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        r_gripper_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        r_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shoulder_lift_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shoulder_pan_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        torso_fixed_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        torso_lift_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        upperarm_roll_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wrist_flex_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wrist_roll_link:
+        right_rear_wheel:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -484,6 +380,38 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        camera:
+          Value: false
+        map:
+          Value: false
+        sensor:
+          Value: false
+        sensor_at_scan:
+          Value: false
+        vehicle:
+          Value: true
+      Marker Alpha: 1
+      Marker Scale: 10
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        map:
+          sensor:
+            camera:
+              {}
+            vehicle:
+              {}
+          sensor_at_scan:
+            {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -503,12 +431,13 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 27.855167388916016
+      Distance: 18.98251724243164
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Field of View: 0.7853981852531433
       Focal Point:
         X: 0.05230307579040527
         Y: 1.2215585708618164
@@ -520,7 +449,6 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
       Yaw: 4.1954026222229
     Saved: ~
 Window Geometry:
@@ -539,5 +467,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1576
-  X: 105
-  Y: 86
+  X: 398
+  Y: 256

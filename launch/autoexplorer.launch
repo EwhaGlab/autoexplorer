@@ -2,26 +2,31 @@
 
 -->
 <launch>
-    <env name="ROSCONSOLE_CONFIG_FILE"
-       value="$(find autoexplorer)/config/ffd_rosconsole.conf"/>
-       
+    <!--env name="ROSCONSOLE_CONFIG_FILE"
+       value="$(find autoexplorer)/config/ffd_rosconsole.conf"/-->
+
+    <arg name="namespace" default=""/>
     <arg name="numthreads" default="16"/>
-    <arg name="slam_method" default="slam_toolbox"/> <!-- "gmapping" -->
+    <arg name="slam_method" default="gtmapping"/> <!-- "gmapping" -->
     <!--param name="use_sim_time" value="true"/--> <!--by kmHan-->  
-    <param name="slam_method" value="$(arg slam_method)"/>
+    <!--param name="slam_method" value="$(arg slam_method)"/-->
     <param name="numthreads" value="$(arg numthreads)"/>
     
     <arg name="rviz_config" value ="$(find autoexplorer)/launch/includes/rviz_config/autoexplorer.rviz"/>
     <rosparam command="load" file="$(find autoexplorer)/param/autoexploration.yaml"/>
     
-    <include file="$(find autoexplorer)/launch/includes/move_fetch.launch">
-        <arg name="slam_method"        value="$(arg slam_method)" />
-    </include> 
-
-	<node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" args="$(arg slam_method) $(arg numthreads)" output="screen" >
+    <include file="$(find autoexplorer)/launch/includes/vehicle_sim.launch"/>
+    
+	<node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" args="$(arg slam_method) $(arg numthreads)" output="screen"/>
+    <!--node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" output="screen">
         <param name="frame_id" type="string" value="map" />
-    </node>
-       
-    <!--node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/-->
+    </node-->
 
+    <node pkg="autoexplorer" type="twist2twiststamped_node" name="twist2twistsamped" output="screen">
+    </node>
+    
+    <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/>
+
+
+    
 </launch>

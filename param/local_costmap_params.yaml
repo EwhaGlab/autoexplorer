@@ -1,7 +1,7 @@
 local_costmap:
 
-    global_frame: odom
-    
+    global_frame: base_link # was odom
+    robot_base_frame: base_link
     publish_frequency: 2.0 # was 3
     
     static_map: false # must be false

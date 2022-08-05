@@ -61,6 +61,7 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include "map_msgs/OccupancyGridUpdate.h"
 #include "geometry_msgs/PointStamped.h"
+#include "geometry_msgs/TwistStamped.h"
 #include "std_msgs/Header.h"
 #include "std_msgs/Bool.h"
 #include "nav_msgs/MapMetaData.h"

@@ -43,7 +43,7 @@ namespace autoexplorer
 {
 
 GlobalPlanningHandler::GlobalPlanningHandler( ):
-robot_base_frame_("base_link"),
+robot_base_frame_("vehicle"), // was "base_link"
 global_frame_("map"),
 mb_initialized(false), mb_allow_unknown(true), mb_visualize_potential(false),
 mf_tolerance(0.0),
@@ -54,7 +54,7 @@ mp_cost_translation_table(NULL)
 }
 
 GlobalPlanningHandler::GlobalPlanningHandler( costmap_2d::Costmap2D &ocostmap ):
-robot_base_frame_("base_link"),
+robot_base_frame_("vehicle"), // was "base_link"
 global_frame_("map"),
 mb_initialized(false), mb_allow_unknown(true), mb_visualize_potential(false),
 mf_tolerance(0.0),

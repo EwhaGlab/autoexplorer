@@ -102,6 +102,7 @@ mp_cost_translation_table(NULL)
 			fgridmap_conf_thr, fcostmap_conf_thr, m_noccupancy_thr, m_nlethal_cost_thr,
 			m_nGlobalMapWidth, m_nGlobalMapHeight,
 			m_fResolution);
+
 	while(!m_move_client.waitForServer(ros::Duration(5.0)))
 	{
 		ROS_INFO("Waiting for the move_base action server to come up");
@@ -133,6 +134,8 @@ mp_cost_translation_table(NULL)
 	SetVizMarkers( m_worldFrameId, 0.f, 1.f, 0.f, 0.3, m_points );
 	SetVizMarkers( m_worldFrameId, 1.f, 0.f, 1.f, 0.5, m_exploration_goal );
 	SetVizMarkers( m_worldFrameId, 1.f, 1.f, 0.f, 0.5, m_unreachable_points );
+
+	ROS_INFO("autoexplorer has initialized \n");
 }
 
 FrontierDetectorDMS::~FrontierDetectorDMS()
@@ -433,7 +436,7 @@ mapCallStartTime = ros::WallTime::now();
 	for( ; idx >= 0; idx = hierarchy[idx][0] )
 	{
 		cv::Scalar color( rand()&255, rand()&255, rand()&255 );
-		drawContours( dst, contours, idx, color, CV_FILLED, 8, hierarchy );
+		drawContours( dst, contours, idx, color, cv::FILLED, 8, hierarchy );
 	}
 
 	vector<cv::Point2f> fcents;

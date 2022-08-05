@@ -49,7 +49,7 @@
 
 using namespace autoexplorer;
 
-enum SLAM_ID{GMAPPING=0, CARTOGRAPHER, SLAM_TOOLBOX};
+enum SLAM_ID{GMAPPING=0, CARTOGRAPHER, SLAM_TOOLBOX, GT_MAPPING};
 
 int main(int argc, char** argv)
 {
@@ -67,6 +67,7 @@ int main(int argc, char** argv)
   slamid["gmapping"] = SLAM_ID::GMAPPING;
   slamid["cartographer"] = SLAM_ID::CARTOGRAPHER;
   slamid["slam_toolbox"] = SLAM_ID::SLAM_TOOLBOX;
+  slamid["gt"]	= SLAM_ID::GT_MAPPING;
 
   int totnumthreads = omp_get_max_threads() ;
   ROS_INFO("max num threads, input num threads: %d %d \n", totnumthreads, numthreads);
@@ -109,7 +110,7 @@ int main(int argc, char** argv)
 		  FrontierDetectorDMS front_detector_dms(private_nh, nh);
 		  front_detector_dms.SetNumThreads(numthreads);
 		  ros::spinOnce();
-		  front_detector_dms.initmotion();
+		  //front_detector_dms.initmotion();
 		  front_detector_dms.SetInitMotionCompleted();
 		  while( !front_detector_dms.isDone() && ros::ok() )
 		  {
@@ -126,6 +127,33 @@ int main(int argc, char** argv)
 		  front_detector_dms.publishDoneExploration();
 		  break;
   	  }
+
+  	  case GT_MAPPING:
+  	  {
+		  ROS_INFO("Initializing frontier_detector_dms \n");
+		  FrontierDetectorDMS front_detector_dms(private_nh, nh);
+
+		  ROS_INFO("Setting num of thread %d \n", numthreads);
+		  front_detector_dms.SetNumThreads(numthreads);
+		  ros::spinOnce();
+		  //front_detector_dms.initmotion();
+		  front_detector_dms.SetInitMotionCompleted();
+		  while( !front_detector_dms.isDone() && ros::ok() )
+		  {
+			  try{
+				  ros::spinOnce();
+			  }
+			  catch(std::runtime_error& e)
+			  {
+				ROS_ERROR("frontier_detector exception: %s", e.what());
+				return -1;
+			  }
+		  }
+		  //front_detector_dms.publishDone();
+		  front_detector_dms.publishDoneExploration();
+		  break;
+  	  }
+
   	  default: ROS_ERROR("Invalid slam method \n");
   }
 

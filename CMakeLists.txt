@@ -20,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
 #  navfn
 )
 
-find_package(OpenCV 3.2 REQUIRED)
+find_package(OpenCV REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -181,12 +181,13 @@ set_target_properties( autoexplorer PROPERTIES
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node example/autoexplorer_node.cpp)
-#add_executable(resetgazebo_node example/resetgazebo_node.cpp)
+add_executable(twist2twiststamped_node example/twist2twiststamped_node.cpp)
 
 #target_compile_options(autoexplorer PRIVATE ${OpenMP_FLAGS})
 #add_dependencies(autoexplorer ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME}_node autoexplorer)
+target_link_libraries(twist2twiststamped_node autoexplorer)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -220,6 +221,10 @@ target_link_libraries(${PROJECT_NAME}_node autoexplorer)
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
 install(TARGETS ${PROJECT_NAME}_node
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS twist2twiststamped_node
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
