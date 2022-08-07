@@ -42,35 +42,9 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/TwistStamped.h>
 
+#include "twist2twiststamped.hpp"
 
-class Twist2TwistStamped
-{
-public:
-
-	Twist2TwistStamped(const ros::NodeHandle private_nh_, const ros::NodeHandle &nh_ )
-	:m_nh(nh_),
-	 m_nh_private(private_nh_)
-	{
-		twiststamped_pub = m_nh.advertise<geometry_msgs::TwistStamped>("cmd_vel_twiststamped", 1000);
-		ros::Subscriber sub = m_nh.subscribe("cmd_vel", 1000, &Twist2TwistStamped::stampCallback, this);
-	}
-	virtual ~Twist2TwistStamped(){};
-
-	void stampCallback(const geometry_msgs::Twist::ConstPtr& msg)
-	{
-		geometry_msgs::TwistStamped cmd_vel ;
-		cmd_vel.twist.linear  = (*msg).linear ;
-		cmd_vel.twist.angular = (*msg).angular ;
-		cmd_vel.header.stamp = ros::Time::now();
-		cmd_vel.header.frame_id = std::string("vehicle");
-
-		twiststamped_pub.publish(cmd_vel);
-	}
-
-	ros::NodeHandle m_nh;
-	ros::NodeHandle m_nh_private;
-	ros::Publisher twiststamped_pub ;
-};
+using namespace twist2twiststamped;
 
 int main(int argc, char** argv)
 {
@@ -80,7 +54,10 @@ int main(int argc, char** argv)
 
   Twist2TwistStamped oTwist2TwistStamped(private_nh, nh);
 
-  ros::spin();
+  while(ros::ok())
+  {
+  	  ros::spinOnce();
+  }
   return 0;
 }
 

@@ -67,7 +67,7 @@ int main(int argc, char** argv)
   slamid["gmapping"] = SLAM_ID::GMAPPING;
   slamid["cartographer"] = SLAM_ID::CARTOGRAPHER;
   slamid["slam_toolbox"] = SLAM_ID::SLAM_TOOLBOX;
-  slamid["gt"]	= SLAM_ID::GT_MAPPING;
+  slamid["gtmapping"]	= SLAM_ID::GT_MAPPING;
 
   int totnumthreads = omp_get_max_threads() ;
   ROS_INFO("max num threads, input num threads: %d %d \n", totnumthreads, numthreads);

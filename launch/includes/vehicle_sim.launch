@@ -27,9 +27,9 @@
     <rosparam file="$(find autoexplorer)/param/global_costmap_params.yaml" command="load" />
     <rosparam file="$(find autoexplorer)/param/base_local_planner_params.yaml" command="load" />  
     <param name="global_costmap/global_frame" value="map"/>
-    <param name="global_costmap/robot_base_frame" value="base_link"/> 
+    <param name="global_costmap/robot_base_frame" value="sensor"/> 
     <param name="local_costmap/global_frame" value="map"/>
-    <param name="local_costmap/robot_base_frame" value="base_link"/>
+    <param name="local_costmap/robot_base_frame" value="sensor"/>
   </node>
-
+  
 </launch>

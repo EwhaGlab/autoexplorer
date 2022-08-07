@@ -19,6 +19,7 @@
 #include <nav_core/base_global_planner.h>
 #include <nav_msgs/GetPlan.h>
 #include <navfn/potarr_point.h>
+//#include <nav_fn/potarr_point.h>
 
 namespace autoexplorer
 {

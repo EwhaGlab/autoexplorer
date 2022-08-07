@@ -1,15 +1,15 @@
 local_costmap:
 
-    global_frame: base_link # was odom
-    robot_base_frame: base_link
-    publish_frequency: 2.0 # was 3
+    global_frame: sensor # was odom
+    robot_base_frame: sensor
+    publish_frequency: 8.0 # was 3
     
     static_map: false # must be false
     rolling_window: true
     
-    width: 4.0
-    height: 4.0
-    resolution: 0.025
+    width: 12.0
+    height: 12.0
+    resolution: 0.05 #0.25
 
     plugins:
     - {name: obstacles, type: "costmap_2d::ObstacleLayer"}

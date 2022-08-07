@@ -245,7 +245,7 @@ Visualization Manager:
       Marker Topic: /curr_goal_shape
       Name: Marker
       Namespaces:
-        {}
+        markers: true
       Queue Size: 100
       Value: true
     - Angle Tolerance: 0.10000000149011612
@@ -319,7 +319,7 @@ Visualization Manager:
       Marker Topic: /filtered_shapes
       Name: Marker
       Namespaces:
-        {}
+        markers: true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -333,70 +333,32 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: true
+      Enabled: false
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        base_origin:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_front_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_rear_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        lidar_holder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_front_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_rear_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        camera:
-          Value: false
         map:
-          Value: false
+          Value: true
         sensor:
-          Value: false
+          Value: true
         sensor_at_scan:
           Value: false
-        vehicle:
-          Value: true
       Marker Alpha: 1
-      Marker Scale: 10
+      Marker Scale: 5
       Name: TF
       Show Arrows: true
       Show Axes: true
@@ -404,10 +366,7 @@ Visualization Manager:
       Tree:
         map:
           sensor:
-            camera:
-              {}
-            vehicle:
-              {}
+            {}
           sensor_at_scan:
             {}
       Update Interval: 0
@@ -431,7 +390,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 18.98251724243164
+      Distance: 58.10784149169922
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -449,7 +408,7 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Yaw: 4.1954026222229
+      Yaw: 4.700414180755615
     Saved: ~
 Window Geometry:
   Displays:
@@ -467,5 +426,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1576
-  X: 398
-  Y: 256
+  X: 801
+  Y: 251
