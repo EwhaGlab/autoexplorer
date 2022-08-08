@@ -79,7 +79,7 @@ mp_cost_translation_table(NULL)
 	m_markerfrontierpub = m_nh.advertise<visualization_msgs::Marker>("filtered_shapes", 10);
 	m_unreachpointpub = m_nh.advertise<visualization_msgs::Marker>("unreachable_shapes", 10);
 
-	m_velpub		= m_nh.advertise<geometry_msgs::Twist>("cmd_vel",10);
+	//m_velpub		= m_nh.advertise<geometry_msgs::Twist>("cmd_vel",10);
 	m_donepub		= m_nh.advertise<std_msgs::Bool>("exploration_is_done",1);
 
 	m_mapframedataSub  	= m_nh.subscribe("map", 1, &FrontierDetectorDMS::mapdataCallback, this); // kmHan
@@ -146,21 +146,21 @@ FrontierDetectorDMS::~FrontierDetectorDMS()
 void FrontierDetectorDMS::initmotion( )
 {
 ROS_INFO("+++++++++++++++++ Start the init motion ++++++++++++++\n");
-	geometry_msgs::Twist cmd_vel;
-    cmd_vel.linear.x = 0.0;
-    cmd_vel.linear.y = 0.0;
-    cmd_vel.angular.z = 0.5;
-
-    uint32_t start_time = ros::Time::now().sec ;
-    uint32_t curr_time = start_time ;
-    while( curr_time < start_time + 12 )
-    {
-		m_velpub.publish(cmd_vel);
-		curr_time = ros::Time::now().sec ;
-    }
-
-	cmd_vel.angular.z = 0.0;
-	m_velpub.publish(cmd_vel);
+//	geometry_msgs::Twist cmd_vel;
+//    cmd_vel.linear.x = 0.0;
+//    cmd_vel.linear.y = 0.0;
+//    cmd_vel.angular.z = 0.5;
+//
+//    uint32_t start_time = ros::Time::now().sec ;
+//    uint32_t curr_time = start_time ;
+//    while( curr_time < start_time + 12 )
+//    {
+//		m_velpub.publish(cmd_vel);
+//		curr_time = ros::Time::now().sec ;
+//    }
+//
+//	cmd_vel.angular.z = 0.0;
+//	m_velpub.publish(cmd_vel);
 ROS_INFO("+++++++++++++++++ end of the init motion ++++++++++++++\n");
 }
 
@@ -552,6 +552,7 @@ mapCallStartTime = ros::WallTime::now();
 			const std::unique_lock<mutex> lock(mutex_unreachable_points) ;
 			unreachable_frontiers = m_unreachable_frontier_set ;
 			m_oFrontierFilter.computeReachability( unreachable_frontiers, voFrontierCands );
+
 		}
 	}
 	else

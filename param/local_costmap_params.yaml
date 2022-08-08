@@ -2,7 +2,7 @@ local_costmap:
 
     global_frame: sensor # was odom
     robot_base_frame: sensor
-    publish_frequency: 8.0 # was 3
+    publish_frequency: 6.0 # was 3
     
     static_map: false # must be false
     rolling_window: true
@@ -18,18 +18,18 @@ local_costmap:
     #obstacles:
         #publish_observations: false
 
-#    obstacles:
-#        observation_sources: base_scan
-#        base_scan:
-#            data_type: LaserScan
-#            topic: base_scan
-#            marking: true
-#            clearing: true
-#            obstacle_range: 4.0   # 4
-#            raytrace_range: 5.0  # 5
-#            min_obstacle_height: 0.25
-#            max_obstacle_height: 0.3
-#        z_voxels: 16
-#        z_resolution: 0.125
-#        max_obstacle_height: 2.0
+    #obstacles:
+        #observation_sources: base_scan
+        #base_scan:
+            #data_type: PointCloud2 #LaserScan
+            #topic: sensor_scan #base_scan
+            #marking: true
+            #clearing: true
+            #obstacle_range: 8.0   # 4.0
+            #raytrace_range: 10.0  # 5.0
+            #min_obstacle_height: 0.25
+            #max_obstacle_height: 0.3
+        #z_voxels: 16
+        #z_resolution: 0.125
+        #max_obstacle_height: 2.0
         

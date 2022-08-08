@@ -141,7 +141,12 @@ public:
 	{
 		if( mf_gridmap_confidence < fgm_conf || mf_costmap_confidence < fcm_conf)
 			mb_isfrontierpoint = false;
-	};
+	}
+
+	void SetFrontierFlag( const bool& bflag )
+	{
+		mb_isfrontierpoint = bflag;
+	}
 
 	void SetReachability( const bool& bisreachable )
 	{

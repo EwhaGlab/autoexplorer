@@ -20,7 +20,7 @@
     <param name="controller_patience" value="1" /> 
     <!--remap from="cmd_vel" to="mobile_base/commands/velocity"/-->
     <!--remap from="cmd_vel" to="move_base_node/cmd_vel"/-->
-    <!--param name="recovery_behavior_enabled" value="false" /-->
+    <param name="recovery_behavior_enabled" value="false" />
     <rosparam file="$(find autoexplorer)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
     <rosparam file="$(find autoexplorer)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
     <rosparam file="$(find autoexplorer)/param/local_costmap_params.yaml" command="load" />

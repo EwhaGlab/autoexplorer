@@ -267,9 +267,10 @@ void FrontierFilter::computeReachability( const set<pointset, pointset>& unreach
 				float fdist = std::sqrt( (fx - di.d[0]) * (fx - di.d[0]) + (fy - di.d[1]) * (fy - di.d[1]) ) ;
 				if(fdist < 0.2)
 				{
-					ROS_WARN("(%f %f) and (%f %f) are the same? unreachable point? \n",
+					ROS_WARN("(%f %f) is an identical point of (%f %f) which is an unreachable pt \n",
 								fx, fy, di.d[0], di.d[1]);
 					voFrontierCandidates[i].SetReachability(false);
+					voFrontierCandidates[i].SetFrontierFlag(false);
 				}
 			}
 		}
