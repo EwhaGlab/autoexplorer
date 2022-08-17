@@ -1,11 +1,12 @@
 
 autoexplorer:
     debug_data_save_path:   '/home/hankm/results/autoexploration'
-    costmap_conf_thr:       0.4 # 0.4 (fetch)   # 0.1 (tesse virutal scenario)
-    gridmap_conf_thr:       0.4 # 0.6 (fetch)   # 0.8 for (gmapping)
+    costmap_conf_thr:       0.5￣ # 0.4 (fetch)   # 0.1 (tesse virutal scenario)  # the higher the harsher  
+    gridmap_conf_thr:       0.3 # 0.6 (fetch)   # 0.8 for (gmapping)            # the higher the harsher
     occupancy_thr:          40      # 0 ~ 100
-    lethal_cost_thr:        80      
-    global_width:           4000
-    global_height:          4000
+    lethal_cost_thr:        50      
+    global_width:           8000
+    global_height:          8000
     weak_comp_thr:          10
     num_downsamples:        1
+    unreachable_decision_bound:   0.2 # < 4 * 0.05 res >

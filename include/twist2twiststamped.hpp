@@ -38,10 +38,13 @@ namespace twist2twiststamped
 			cmd_vel.twist.angular = (*msg).angular ;
 			cmd_vel.header.stamp = ros::Time::now();
 			cmd_vel.header.frame_id = std::string("vehicle");
+			cmd_vel.header.seq = m_seq;
 
+			m_seq++;
 			m_twiststamped_pub.publish(cmd_vel);
 		}
 
+		uint32_t m_seq = 0;
 		ros::NodeHandle m_nh;
 		ros::NodeHandle m_nh_private;
 		ros::Publisher m_twiststamped_pub ;

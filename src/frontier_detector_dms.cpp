@@ -49,7 +49,7 @@ m_nglobalcostmapidx(0), mn_numthreads(16),
 m_isInitMotionCompleted(false),
 mp_cost_translation_table(NULL)
 {
-	float fcostmap_conf_thr, fgridmap_conf_thr ;
+	float fcostmap_conf_thr, fgridmap_conf_thr, funreachable_decision_bound ;
 	m_nh.getParam("/autoexplorer/debug_data_save_path", m_str_debugpath);
 	m_nh.param("/autoexplorer/costmap_conf_thr", fcostmap_conf_thr, 0.1f);
 	m_nh.param("/autoexplorer/gridmap_conf_thr", fgridmap_conf_thr, 0.8f);
@@ -57,6 +57,7 @@ mp_cost_translation_table(NULL)
 	m_nh.param("/autoexplorer/lethal_cost_thr", m_nlethal_cost_thr, 80);
 	m_nh.param("/autoexplorer/global_width", m_nGlobalMapWidth, 4000) ;
 	m_nh.param("/autoexplorer/global_height", m_nGlobalMapHeight, 4000) ;
+	m_nh.param("/autoexplorer/unreachable_decision_bound", funreachable_decision_bound, 0.2f);
 	m_nh.param("/move_base_node/global_costmap/resolution", m_fResolution, 0.05f) ;
 
 	int _nWeakCompThreshold ;
@@ -65,7 +66,7 @@ mp_cost_translation_table(NULL)
 	m_nh.param("/autoexplorer/frame_id", m_worldFrameId, std::string("map"));
 	m_nh.param("move_base_node/global_costmap/robot_radius", m_fRobotRadius, 0.3);
 
-	m_nScale = pow(2, m_nNumPyrDownSample) ;
+	m_nScale = pow(2, m_nNumPyrDownSample);
 	m_frontiers_region_thr = _nWeakCompThreshold / m_nScale ;
 	m_nROISize = static_cast<int>( round( m_fRobotRadius / m_fResolution ) ) * 2 ; // we never downsample costmap !!! dont scale it with roisize !!
 
@@ -79,7 +80,7 @@ mp_cost_translation_table(NULL)
 	m_markerfrontierpub = m_nh.advertise<visualization_msgs::Marker>("filtered_shapes", 10);
 	m_unreachpointpub = m_nh.advertise<visualization_msgs::Marker>("unreachable_shapes", 10);
 
-	//m_velpub		= m_nh.advertise<geometry_msgs::Twist>("cmd_vel",10);
+	m_velpub		= m_nh.advertise<geometry_msgs::Twist>("cmd_vel",10);
 	m_donepub		= m_nh.advertise<std_msgs::Bool>("exploration_is_done",1);
 
 	m_mapframedataSub  	= m_nh.subscribe("map", 1, &FrontierDetectorDMS::mapdataCallback, this); // kmHan
@@ -93,7 +94,7 @@ mp_cost_translation_table(NULL)
 
 	m_uMapImg  	  = cv::Mat(m_nGlobalMapHeight, m_nGlobalMapWidth, CV_8U, cv::Scalar(127));
 
-	int ncostmap_roi_size = m_nROISize / 2 ;
+	int ncostmap_roi_size = m_nROISize * 2; // / 2 ;
 	int ngridmap_roi_size = m_nROISize ;
 	m_nCorrectionWindowWidth = m_nScale * 2 + 1 ; // the size of the correction search window
 
@@ -101,7 +102,9 @@ mp_cost_translation_table(NULL)
 			ncostmap_roi_size, ngridmap_roi_size, m_str_debugpath, m_nNumPyrDownSample,
 			fgridmap_conf_thr, fcostmap_conf_thr, m_noccupancy_thr, m_nlethal_cost_thr,
 			m_nGlobalMapWidth, m_nGlobalMapHeight,
-			m_fResolution);
+			m_fResolution, funreachable_decision_bound);
+
+	//m_oFrontierFilter.SetUnreachableDistThr( funreachable_decision_bound ) ;
 
 	while(!m_move_client.waitForServer(ros::Duration(5.0)))
 	{
@@ -146,21 +149,21 @@ FrontierDetectorDMS::~FrontierDetectorDMS()
 void FrontierDetectorDMS::initmotion( )
 {
 ROS_INFO("+++++++++++++++++ Start the init motion ++++++++++++++\n");
-//	geometry_msgs::Twist cmd_vel;
-//    cmd_vel.linear.x = 0.0;
-//    cmd_vel.linear.y = 0.0;
-//    cmd_vel.angular.z = 0.5;
-//
-//    uint32_t start_time = ros::Time::now().sec ;
-//    uint32_t curr_time = start_time ;
-//    while( curr_time < start_time + 12 )
-//    {
-//		m_velpub.publish(cmd_vel);
-//		curr_time = ros::Time::now().sec ;
-//    }
-//
-//	cmd_vel.angular.z = 0.0;
-//	m_velpub.publish(cmd_vel);
+	geometry_msgs::Twist cmd_vel;
+    cmd_vel.linear.x = 0.0;
+    cmd_vel.linear.y = 0.0;
+    cmd_vel.angular.z = 0.5;
+
+    uint32_t start_time = ros::Time::now().sec ;
+    uint32_t curr_time = start_time ;
+    while( curr_time < start_time + 6 )
+    {
+		m_velpub.publish(cmd_vel);
+		curr_time = ros::Time::now().sec ;
+    }
+
+	cmd_vel.angular.z = 0.0;
+	m_velpub.publish(cmd_vel);
 ROS_INFO("+++++++++++++++++ end of the init motion ++++++++++++++\n");
 }
 
@@ -552,7 +555,6 @@ mapCallStartTime = ros::WallTime::now();
 			const std::unique_lock<mutex> lock(mutex_unreachable_points) ;
 			unreachable_frontiers = m_unreachable_frontier_set ;
 			m_oFrontierFilter.computeReachability( unreachable_frontiers, voFrontierCands );
-
 		}
 	}
 	else
@@ -788,7 +790,7 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 {
 // call actionlib
 // robot is ready to move
-	ROS_INFO("Robot state in moveRobotCallback: %d \n ",  m_eRobotState);
+	ROS_INFO("Robot state in moveRobotCallback: %s \n ",  robot_state[m_eRobotState+1] );
 
 	if( m_eRobotState >= ROBOT_STATE::FORCE_TO_STOP   )
 		return;
@@ -840,8 +842,8 @@ void FrontierDetectorDMS::unreachablefrontierCallback(const geometry_msgs::PoseS
 		m_unreachpointpub.publish( m_unreachable_points );
 	}
 
-	for (const auto & di : m_unreachable_frontier_set)
-	    ROS_WARN("unreachable pts: %f %f\n", di.d[0], di.d[1]);
+//	for (const auto & di : m_unreachable_frontier_set)
+//	    ROS_WARN("unreachable pts: %f %f\n", di.d[0], di.d[1]);
 
 	// stop the robot and restart frontier detection procedure
 

@@ -24,9 +24,6 @@
     <!--node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" output="screen">
         <param name="frame_id" type="string" value="map" />
     </node-->
-
-    <node pkg="autoexplorer" type="twist2twiststamped_node" name="twist2twistsamped" output="screen">
-    </node>
     
     <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/>
 

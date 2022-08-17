@@ -8,13 +8,18 @@
   
   <!--include file="$(find autoexplorer)/launch/includes/start_gmapping.launch">
   </include-->
-
+  <env name="ROSCONSOLE_CONFIG_FILE" value="$(find autoexplorer)/custom_rosconsole.conf"/>  
+  
+  <node pkg="tf" type="static_transform_publisher" name="base_link" args="0 0 -0.75 0 0 0 1  /sensor /base_link  2"/>
+  
+  <node pkg="autoexplorer" type="twist2twiststamped_node" name="twist2twistsamped" output="screen"/> 
+  
   <node pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
     <!--remap from="odom" to="base_footprint"/-->
     <!--param name="footprint_padding" value="0.01" /-->
     <param name="controller_frequency" value="5.0" />
     <!--param name="controller_patience" value="1.0" /--> <!--3.0-->
-    <param name="oscillation_timeout" value="30.0" />
+    <param name="oscillation_timeout" value="6.0" />
     <param name="oscillation_distance" value="0.5" />
     <param name="planner_patience" value="1" />
     <param name="controller_patience" value="1" /> 

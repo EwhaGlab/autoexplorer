@@ -47,10 +47,11 @@ FrontierFilter::FrontierFilter(){};
 FrontierFilter::FrontierFilter(
 		int ncostmap_roi_size, int ngridmap_roi_size, std::string str_debugpath, int nNumPyrDownSample,
 		float fgridmap_conf_thr, float fcosmap_conf_thr, int noccupancy_thr, int nlethal_cost_thr,
-		int nGlobalMapWidth, int nGlobalMapHeight, float fGMResolution ):
+		int nGlobalMapWidth, int nGlobalMapHeight, float fGMResolution, float funreachable_decision_bound ):
 m_ncostmap_roi_size(ncostmap_roi_size), m_ngridmap_roi_size(ngridmap_roi_size), m_str_debugpath(str_debugpath),
 m_fcostmap_conf_thr(fcosmap_conf_thr), m_fgridmap_conf_thr(fgridmap_conf_thr), m_noccupancy_thr(noccupancy_thr), m_nlethal_cost_thr(nlethal_cost_thr),
-m_nGlobalMapWidth(nGlobalMapWidth), m_nGlobalMapHeight(nGlobalMapHeight), m_fGMResolution(fGMResolution)
+m_nGlobalMapWidth(nGlobalMapWidth), m_nGlobalMapHeight(nGlobalMapHeight), m_fGMResolution(fGMResolution),
+mf_unreachable_dist_thr(funreachable_decision_bound)
 {
 	m_nGlobalMapCentX = nGlobalMapWidth  / 2 ;
 	m_nGlobalMapCentY = nGlobalMapHeight / 2 ;
@@ -152,10 +153,12 @@ static int cmapidx = 0;
 				int dataidx = ridx * width + cidx ;
 //ROS_INFO("ind rix cidx %d %d %d ", idx, ridx, cidx);
 				cost = Data[dataidx] ; // orig 0 ~ 254 --> mapped to 0 ~ 100
-				if(cost >= 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
+				//if(cost >= 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
+				if(cost >=  m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
 				{
 					//ncost++;
-					totcost += static_cast<int>(cost);
+					//totcost += static_cast<int>(cost);
+					totcost += 1;
 				}
 #ifdef FD_DEBUG_MODE
 	ofs_fptroi << cost << " ";
@@ -169,10 +172,11 @@ static int cmapidx = 0;
 #endif
 
 		}
-		float fcost = static_cast<float>(totcost) / ( static_cast<float>( cellcnt ) * 100  );
+		float fcost = static_cast<float>(totcost) / static_cast<float>( cellcnt )  ;
 		float fcm_conf = 1.f - fcost ;
 		voFrontierCandidates[idx].SetCostmapConfidence(fcm_conf);
 
+		ROS_DEBUG_NAMED("autoexplorer","pt cm conf: %d %d %f (%d/%d)\n", px_c, py_c, fcm_conf, totcost, cellcnt);
 #ifdef FD_DEBUG_MODE
 		ofs_fptroi.close();
 		ofs_incostmap.close();
@@ -265,10 +269,10 @@ void FrontierFilter::computeReachability( const set<pointset, pointset>& unreach
 			for (const auto & di : unreachable_frontiers)
 			{
 				float fdist = std::sqrt( (fx - di.d[0]) * (fx - di.d[0]) + (fy - di.d[1]) * (fy - di.d[1]) ) ;
-				if(fdist < 0.2)
+				if(fdist < mf_unreachable_dist_thr)
 				{
-					ROS_WARN("(%f %f) is an identical point of (%f %f) which is an unreachable pt \n",
-								fx, fy, di.d[0], di.d[1]);
+//					ROS_WARN("(%f %f) is an identical point of (%f %f) which is an unreachable pt \n",
+//								fx, fy, di.d[0], di.d[1]);
 					voFrontierCandidates[i].SetReachability(false);
 					voFrontierCandidates[i].SetFrontierFlag(false);
 				}

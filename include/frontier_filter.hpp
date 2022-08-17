@@ -67,7 +67,7 @@ public:
 			int ncostmap_roi_size, int ngridmap_roi_size, std::string str_debugpath, int nNumPyrDownSample,
 			float fgridmap_conf_thr, float fcostmap_conf_thr, int noccupancy_thr, int nlethal_cost_thr,
 			int nGlobalMapWidth, int nGlobalMapHeight,
-			float fGMResolution
+			float fGMResolution,  float funreachable_decision_bound
 	);
 	virtual ~FrontierFilter();
 
@@ -109,6 +109,11 @@ public:
 		return m_fgridmap_conf_thr ;
 	}
 
+	void SetUnreachableDistThr( const float& fdist )
+	{
+		mf_unreachable_dist_thr = fdist ;
+	}
+
 private:
 
 	int m_ncostmap_roi_size ;
@@ -117,6 +122,8 @@ private:
 	std::string m_str_debugpath;
 	float m_fgridmap_conf_thr;
 	float m_fcostmap_conf_thr;
+	float mf_unreachable_dist_thr ;
+
 	int m_noccupancy_thr;
 	int m_nlethal_cost_thr;
 	int m_nGlobalMapWidth ;

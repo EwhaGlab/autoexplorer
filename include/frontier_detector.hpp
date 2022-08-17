@@ -112,6 +112,9 @@ typedef enum{	ROBOT_IS_NOT_MOVING 	= -1,
 				ROBOT_IS_MOVING  		= 2
 			} ROBOT_STATE ;
 
+static const char *robot_state[] =
+	  { "ROBOT_IS_NOT_MOVING", "ROBOT_IS_READY_TO_MOVE", "FORCE_TO_STOP", "ROBOT_IS_MOVING" };
+
 class FrontierDetector
 {
 public:

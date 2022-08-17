@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   costmap_2d
-  #navfn
+  navfn
 )
 
 find_package(OpenCV REQUIRED)

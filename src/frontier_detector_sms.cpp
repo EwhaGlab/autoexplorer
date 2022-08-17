@@ -117,7 +117,7 @@ ROS_WARN("nscale: %d \n", m_nScale);
 			ncostmap_roi_size, ngridmap_roi_size, m_str_debugpath, m_nNumPyrDownSample,
 			fgridmap_conf_thr, fcostmap_conf_thr, m_noccupancy_thr, m_nlethal_cost_thr,
 			m_nGlobalMapWidth, m_nGlobalMapHeight,
-			m_fResolution);
+			m_fResolution, 0.2);
 
 	while(!m_move_client.waitForServer(ros::Duration(5.0)))
 	//while(!m_move_client.waitForActionServerToStart())
