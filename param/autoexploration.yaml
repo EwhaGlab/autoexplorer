@@ -1,7 +1,7 @@
 
 autoexplorer:
     debug_data_save_path:   '/home/hankm/results/autoexploration'
-    costmap_conf_thr:       0.5￣ # 0.4 (fetch)   # 0.1 (tesse virutal scenario)  # the higher the harsher  
+    costmap_conf_thr:       0.5 # 0.4 (fetch)   # 0.1 (tesse virutal scenario)  # the higher the harsher  
     gridmap_conf_thr:       0.3 # 0.6 (fetch)   # 0.8 for (gmapping)            # the higher the harsher
     occupancy_thr:          40      # 0 ~ 100
     lethal_cost_thr:        50      

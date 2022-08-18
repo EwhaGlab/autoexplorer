@@ -231,9 +231,6 @@ public:
 		return outPose;
 	}
 
-
-
-
 	inline bool isDone() const { return mb_explorationisdone; }
 
 //	bool comparator ( const std::pair<float,float>& lv, const std::pair<float,float>& rv)
@@ -278,14 +275,13 @@ protected:
 
 	vector<cv::Point> m_frontiers;
 	int m_frontiers_region_thr ;
-	int m_globalcostmap_rows ;
-	int m_globalcostmap_cols ;
+	uint32_t mu_cmheight, mu_cmwidth, mu_gmheight, mu_gmwidth ;
 
 	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> m_move_client ;
 	ros::ServiceClient m_makeplan_client;
 //	cv::Mat m_uMapImg, m_uMapImgROI ;
 
-	geometry_msgs::PoseWithCovarianceStamped m_bestgoal ;
+	geometry_msgs::PoseWithCovarianceStamped m_targetgoal ;
 	set<pointset, pointset> m_unreachable_frontier_set ;
 
 	// thrs

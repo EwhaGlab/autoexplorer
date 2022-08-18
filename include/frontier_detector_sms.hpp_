@@ -119,4 +119,4 @@ private:
 
 
 
-#endif /* INCLUDE_FRONTIER_DETECTOR_SMS_HPP_ */
+#endif /* INCLUDE_FRONTIER_DETECTOR_SMS_HPP__ */

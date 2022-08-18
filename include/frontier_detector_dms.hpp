@@ -75,6 +75,7 @@ public:
 	void doneCB( const actionlib::SimpleClientGoalState& state ) ;
 
 	void mapdataCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg); //const octomap_server::mapframedata& msg ) ;
+	void gobalPlanCallback(const visualization_msgs::Marker::ConstPtr& msg) ;
 	//virtual void moveRobotCallback(const nav_msgs::Path::ConstPtr& msg ) ;
 	void moveRobotCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg ) ;
 	void unreachablefrontierCallback(const geometry_msgs::PoseStamped::ConstPtr& msg );
@@ -115,15 +116,44 @@ public:
 		return outPose;
 	}
 
+	inline bool frontier_sanity_check( int nx, int ny, int nwidth, const std::vector<signed char>& gmdata )
+	{
+		// 0	1	2
+		// 3		5
+		// 6	7	8
+
+		int i0 = nwidth * (ny - 1) 	+	nx - 1 ;
+		int i1 = nwidth * (ny - 1) 	+	nx 		;
+		int i2 = nwidth * (ny - 1) 	+	nx + 1	;
+		int i3 = nwidth * ny			+	nx - 1 ;
+		int i5 = nwidth * ny			+	nx + 1 ;
+		int i6 = nwidth * (ny + 1)	+	nx - 1 ;
+		int i7 = nwidth * (ny + 1)	+	nx		;
+		int i8 = nwidth * (ny + 1)	+	nx + 1 ;
+
+		//ROS_INFO("width i0 val : %d %d %d\n", nwidth, i0, gmdata[i0] );
+
+		if( gmdata[i0] < 0 || gmdata[i1] < 0 || gmdata[i2] < 0 || gmdata[i3] < 0 ||  gmdata[i5] < 0 || gmdata[i6] < 0 || gmdata[i7] < 0 || gmdata[i8] < 0 )
+		{
+			return true ;
+		}
+		else
+		{
+			return false ;
+		}
+
+	}
+
+
 protected:
 
 	ros::NodeHandle m_nh;
 	ros::NodeHandle m_nh_private;
 
-	ros::Subscriber m_mapsub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, m_globalCostmapUpdateSub,
-					m_globalplanSub, m_unreachablefrontierSub ;
-	ros::Publisher m_targetspub, m_markercandpub, m_markerfrontierpub,
-					m_makergoalpub, m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub, m_resetgazebopub ;
+	ros::Subscriber 	m_mapsub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, m_globalCostmapUpdateSub, m_frontierCandSub,
+						m_currGoalSub, m_globalplanSub, m_unreachablefrontierSub ;
+	ros::Publisher 	m_targetspub, m_markercandpub, m_markerfrontierpub,
+						m_makergoalpub, m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub, m_resetgazebopub ;
 
 	int mn_numthreads;
 	int m_nglobalcostmapidx ;
@@ -150,6 +180,7 @@ private:
 	std::mutex mutex_costmap;
 	std::mutex mutex_upperbound;
 	std::mutex mutex_timing_profile;
+	std::mutex mutex_currgoal ;
 
 	omp_lock_t m_mplock;
 };

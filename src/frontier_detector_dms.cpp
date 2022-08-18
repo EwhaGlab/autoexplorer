@@ -84,7 +84,8 @@ mp_cost_translation_table(NULL)
 	m_donepub		= m_nh.advertise<std_msgs::Bool>("exploration_is_done",1);
 
 	m_mapframedataSub  	= m_nh.subscribe("map", 1, &FrontierDetectorDMS::mapdataCallback, this); // kmHan
-	m_globalplanSub 	= m_nh.subscribe("curr_goalpose",1 , &FrontierDetectorDMS::moveRobotCallback, this) ; // kmHan
+	//m_frontierCandSub		= m_nh.subscribe("filtered_shapes", 1, &FrontierDetectorDMS::frontierCandCallback, this);
+	m_currGoalSub 		= m_nh.subscribe("curr_goalpose",1 , &FrontierDetectorDMS::moveRobotCallback, this) ; // kmHan
 	m_globalCostmapSub 	= m_nh.subscribe("move_base_node/global_costmap/costmap", 1, &FrontierDetectorDMS::globalCostmapCallBack, this );
 
 	m_poseSub		   	= m_nh.subscribe("pose", 10, &FrontierDetectorDMS::robotPoseCallBack, this);
@@ -94,7 +95,7 @@ mp_cost_translation_table(NULL)
 
 	m_uMapImg  	  = cv::Mat(m_nGlobalMapHeight, m_nGlobalMapWidth, CV_8U, cv::Scalar(127));
 
-	int ncostmap_roi_size = m_nROISize * 2; // / 2 ;
+	int ncostmap_roi_size = m_nROISize ; // / 2 ;
 	int ngridmap_roi_size = m_nROISize ;
 	m_nCorrectionWindowWidth = m_nScale * 2 + 1 ; // the size of the correction search window
 
@@ -152,7 +153,7 @@ ROS_INFO("+++++++++++++++++ Start the init motion ++++++++++++++\n");
 	geometry_msgs::Twist cmd_vel;
     cmd_vel.linear.x = 0.0;
     cmd_vel.linear.y = 0.0;
-    cmd_vel.angular.z = 0.5;
+    cmd_vel.angular.z = 1.0;
 
     uint32_t start_time = ros::Time::now().sec ;
     uint32_t curr_time = start_time ;
@@ -250,11 +251,12 @@ void FrontierDetectorDMS::publishResetGazebo( )
 
 void FrontierDetectorDMS::globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 {
+	ROS_INFO("@globalCostmapCallBack \n");
 	const std::unique_lock<mutex> lock(mutex_costmap);
 //ROS_INFO("cm callback is called \n");
 	m_globalcostmap = *msg ;
-	m_globalcostmap_rows = m_globalcostmap.info.height ;
-	m_globalcostmap_cols = m_globalcostmap.info.width ;
+	mu_cmheight = m_globalcostmap.info.height ;
+	mu_cmwidth = m_globalcostmap.info.width ;
 }
 
 void FrontierDetectorDMS::globalCostmapUpdateCallback(const map_msgs::OccupancyGridUpdate::ConstPtr& msg )
@@ -295,6 +297,9 @@ void FrontierDetectorDMS::robotVelCallBack( const geometry_msgs::Twist::ConstPtr
 // mapcallback for dynamic mapsize (i.e for the cartographer)
 void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) //const octomap_server::mapframedata& msg )
 {
+
+//ros::WallTime mapCallStartTime, mapCallendTime;
+//mapCallStartTime = ros::WallTime::now();
 	if(!m_isInitMotionCompleted)
 	{
 		ROS_WARN("FD has not fully instantiated yet !");
@@ -304,20 +309,9 @@ void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPt
 	if(m_robotvel.linear.x == 0 && m_robotvel.angular.z == 0 ) // robot is physically stopped
 		m_eRobotState = ROBOT_STATE::ROBOT_IS_NOT_MOVING;
 
-	if(m_eRobotState >= ROBOT_STATE::FORCE_TO_STOP )
-	{
-		ROS_WARN("Force to stop flag is up cannot proceed mapdataCallback() \n");
-		return;
-	}
-ros::WallTime mapCallStartTime, mapCallendTime;
-mapCallStartTime = ros::WallTime::now();
-
-	float gmresolution ;
-	uint32_t gmheight, gmwidth;
-
 	nav_msgs::OccupancyGrid globalcostmap;
-	float cmresolution, cmstartx, cmstarty;
-	uint32_t cmwidth, cmheight;
+	float cmresolution, gmresolution, cmstartx, cmstarty;
+	uint32_t cmwidth, cmheight, gmheight, gmwidth;
 	std::vector<signed char> cmdata;
 
 	{
@@ -327,6 +321,48 @@ mapCallStartTime = ros::WallTime::now();
 		gmheight = m_gridmap.info.height ;
 		gmwidth = m_gridmap.info.width ;
 	}
+
+//	bool bis_target_covered = false ;
+//	// The 1st thing is to check whether the current target goal is covered or not
+//	{
+//		const std::unique_lock<mutex> lock(mutex_currgoal) ;
+//		float fx_world = m_targetgoal.pose.pose.position.x ;
+//		float fy_world = m_targetgoal.pose.pose.position.y ;
+//
+//		float fXstart = m_gridmap.info.origin.position.x ; // world coordinate in the costmap
+//		float fYstart = m_gridmap.info.origin.position.y ; // world coordinate in the costmap
+//
+//		std::vector<signed char> Data=m_gridmap.data;
+//		int ngmx = static_cast<int>( (fx_world - fXstart) / gmresolution ) ;
+//		int ngmy = static_cast<int>( (fy_world - fYstart) / gmresolution ) ;
+//		int ngmwidth = static_cast<int> (gmwidth) ;
+//		if( !frontier_sanity_check(ngmx, ngmy, ngmwidth, Data) )
+//			bis_target_covered = true ;
+//	}
+//
+//	// if the target is not covered, then we don't need to proceed any further.
+//	// if the target is covered... we need to calculate new frontiers
+//	ROS_INFO("@mapdataCallback() The robot is in in state [%s]", robot_state[m_eRobotState+1]);
+//	if( !bis_target_covered )
+//	{
+//		ROS_INFO("curr target goal (%f %f) has not covered yet \n", m_exploration_goal.points.front().x, m_exploration_goal.points.front().y);
+//
+//		if( m_eRobotState == ROBOT_STATE::ROBOT_IS_NOT_MOVING )
+//		{
+//			// we've reached the goal but for some reason the goal is not covered.. we need to replan to the target to move the robot base.
+//			ROS_ERROR("The goal is reached... but for some reason its neighboring cells are not covered. Proceeding to the fpt detection + planning procedure \n");
+//		}
+//		else
+//		{
+//			// approaching to the target...
+//			return ;
+//		}
+//	}
+//	else // the target goal is reached
+//	{
+//		ROS_INFO("The target goal is covered \n");
+//	}
+
 
 	{
 		const std::unique_lock<mutex> lock(mutex_costmap);
@@ -343,7 +379,7 @@ mapCallStartTime = ros::WallTime::now();
 		|| gmwidth  != cmwidth
 		|| gmheight != cmheight)
 	{
-		ROS_WARN("unreliable grid map input h/w (%d, %d) gcostmap h/w (%d, %d) \n",
+		ROS_WARN("unreliable grid map input h/w (%d, %d) gcostmap h/w (%d, %d). May be the (G)costmap has not been updated yet. \n",
 				gmheight, gmwidth,
 				cmheight, cmwidth);
 		return;
@@ -378,8 +414,8 @@ mapCallStartTime = ros::WallTime::now();
 		}
 	}
 
-	m_markerfrontierpub.publish(m_points); // Publish frontiers to renew Rviz
-	m_makergoalpub.publish(m_exploration_goal);
+//	m_markerfrontierpub.publish(m_points); 		// Publish frontiers to renew Rviz
+//	m_makergoalpub.publish(m_exploration_goal);	// Publish frontiers to renew Rviz
 
 // The robot is not moving (or ready to move)... we can go ahead plan the next action...
 // i.e.) We locate frontier points again, followed by publishing the new goal
@@ -612,34 +648,39 @@ mapCallStartTime = ros::WallTime::now();
 		p.y = mygoal.pose.pose.position.y ;
 		p.z = 0.0 ;
 		m_points.points.push_back(p);
-
 	}
+
+// for viz
+	m_markercandpub.publish(m_cands);
+	m_markerfrontierpub.publish(m_points);
 
 #ifdef FFD_DEBUG_MODE
 		imwrite(m_str_debugpath+"/frontier_cents.png", dst);
 #endif
 
-// generate a path trajectory
-// call make plan service
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 		generate a path trajectory
+// 		call make plan service
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	geometry_msgs::PoseStamped start = GetCurrRobotPose( );
 
-//ROS_INFO("resizing mpo_costmap \n");
-mpo_costmap->resizeMap( cmwidth, cmheight, cmresolution,
-					    cmstartx, cmstarty );
-//ROS_INFO("mpo_costmap has been reset \n");
-unsigned char* pmap = mpo_costmap->getCharMap() ;
-//ROS_INFO("w h datlen : %d %d %d \n", cmwidth, cmheight, cmdata.size() );
+	//ROS_INFO("resizing mpo_costmap \n");
+	mpo_costmap->resizeMap( 	cmwidth, cmheight, cmresolution,
+								cmstartx, cmstarty );
+	//ROS_INFO("mpo_costmap has been reset \n");
+	unsigned char* pmap = mpo_costmap->getCharMap() ;
+	//ROS_INFO("w h datlen : %d %d %d \n", cmwidth, cmheight, cmdata.size() );
 
-for(uint32_t ridx = 0; ridx < cmheight; ridx++)
-{
-	for(uint32_t cidx=0; cidx < cmwidth; cidx++)
+	for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 	{
-		uint32_t idx = ridx * cmwidth + cidx ;
-		signed char val = cmdata[idx];
-		pmap[idx] = val < 0 ? 255 : mp_cost_translation_table[val];
+		for(uint32_t cidx=0; cidx < cmwidth; cidx++)
+		{
+			uint32_t idx = ridx * cmwidth + cidx ;
+			signed char val = cmdata[idx];
+			pmap[idx] = val < 0 ? 255 : mp_cost_translation_table[val];
+		}
 	}
-}
 
 ///////////////////////////////////////////////////////////////////////
 // 1. estimate dist to each goal using euclidean distance heuristic (we need sorting here)
@@ -663,88 +704,88 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 	best_idx	= static_cast<size_t>(0) ;
 	float fendpot = POT_HIGH;
 
-	vector< uint32_t > gplansizes( m_points.points.size(), 0 ) ;
 ///////////////////////// /////////////////////////////////////////////////////////
 // 3. Do BB based openmp search
 //////////////////////////////////////////////////////////////////////////////////
 
-std::vector<geometry_msgs::Point> fpoints = m_points.points ;
+	std::vector<geometry_msgs::Point> fpoints = m_points.points ;
+	vector< uint32_t > gplansizes( fpoints.size(), 0 ) ;
 
-GlobalPlanningHandler o_gph( *mpo_costmap );
-std::vector<geometry_msgs::PoseStamped> plan;
-uint32_t fptidx;
-int tid;
-geometry_msgs::PoseStamped goal;
+	GlobalPlanningHandler o_gph( *mpo_costmap );
+	std::vector<geometry_msgs::PoseStamped> plan;
+	uint32_t fptidx;
+	int tid;
+	geometry_msgs::PoseStamped goal;
 
-omp_set_num_threads(mn_numthreads);
-omp_init_lock(&m_mplock);
+	omp_set_num_threads(mn_numthreads);
+	omp_init_lock(&m_mplock);
 
-ros::WallTime GPstartTime = ros::WallTime::now();
+	ros::WallTime GPstartTime = ros::WallTime::now();
 
-//ROS_INFO("begining BB A*\n");
+	//ROS_INFO("begining BB A*\n");
 
-#pragma omp parallel firstprivate( o_gph, fpoints, plan, tid, start, goal ) shared( fupperbound, best_idx )
-{
-
-	#pragma omp for
-	for (fptidx=0; fptidx < m_points.points.size(); fptidx++)
+	#pragma omp parallel firstprivate( o_gph, fpoints, plan, tid, start, goal ) shared( fupperbound, best_idx )
 	{
-		tid = omp_get_thread_num() ;
 
-//ROS_INFO("processing (%f %f) with thread %d/%d : %d", p.x, p.y, omp_get_thread_num(), omp_get_num_threads(), idx );
-		//fendpot = POT_HIGH ;
-		float fendpot;
-		o_gph.reinitialization( ) ;
-
-		geometry_msgs::PoseStamped goal = StampedPosefromSE2( fpoints[fptidx].x, fpoints[fptidx].y, 0.f );
-		goal.header.frame_id = m_worldFrameId ;
-//ROS_INFO("goal: %f %f \n", fpoints[fptidx].x, fpoints[fptidx].y );
-		bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
-
-//ROS_INFO("[tid %d: [%d] ] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, bplansuccess, fptidx,
-//										  start.pose.position.x, start.pose.position.y,
-//										  goal.pose.position.x, goal.pose.position.y, fendpot);
-		//gplansizes[fptidx] = myplan.size();
-		if( fendpot < fupperbound )
+		#pragma omp for
+		for (fptidx=0; fptidx < fpoints.size(); fptidx++)
 		{
-			omp_set_lock(&m_mplock);
-			fupperbound = fendpot; // set new bound;
-			best_idx = fptidx;
-			omp_unset_lock(&m_mplock);
+			tid = omp_get_thread_num() ;
+
+	//ROS_INFO("processing (%f %f) with thread %d/%d : %d", p.x, p.y, omp_get_thread_num(), omp_get_num_threads(), idx );
+			//fendpot = POT_HIGH ;
+			float fendpot;
+			o_gph.reinitialization( ) ;
+
+			geometry_msgs::PoseStamped goal = StampedPosefromSE2( fpoints[fptidx].x, fpoints[fptidx].y, 0.f );
+			goal.header.frame_id = m_worldFrameId ;
+	//ROS_INFO("goal: %f %f \n", fpoints[fptidx].x, fpoints[fptidx].y );
+			bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
+
+	//ROS_INFO("[tid %d: [%d] ] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, bplansuccess, fptidx,
+	//										  start.pose.position.x, start.pose.position.y,
+	//										  goal.pose.position.x, goal.pose.position.y, fendpot);
+			//gplansizes[fptidx] = myplan.size();
+			if( fendpot < fupperbound )
+			{
+				omp_set_lock(&m_mplock);
+				fupperbound = fendpot; // set new bound;
+				best_idx = fptidx;
+				omp_unset_lock(&m_mplock);
+			}
+	///////////////////////////////////////////////////////////////////////////
 		}
-///////////////////////////////////////////////////////////////////////////
 	}
-}
 
 	std::vector<geometry_msgs::PoseStamped> best_plan ;
 
-	p = m_points.points[best_idx];  // just for now... we need to fix it later
+	p = fpoints[best_idx];  // just for now... we need to fix it later
 	geometry_msgs::PoseStamped best_goal = StampedPosefromSE2( p.x, p.y, 0.f );
-	m_bestgoal.header.frame_id = m_worldFrameId ;
-	m_bestgoal.pose.pose = best_goal.pose ;
 
-	p.x = m_bestgoal.pose.pose.position.x ;
-	p.y = m_bestgoal.pose.pose.position.y ;
+	{
+		const std::unique_lock<mutex> lock(mutex_currgoal);
+		m_targetgoal.header.frame_id = m_worldFrameId ;
+		m_targetgoal.pose.pose = best_goal.pose ;
+		//////////////////////////////////////////////////////
+		// lets disable publishing goal if the robot is not used
+		m_currentgoalpub.publish(m_targetgoal);		// for control
+	}
+
+	p.x = m_targetgoal.pose.pose.position.x ;
+	p.y = m_targetgoal.pose.pose.position.y ;
 	p.z = 0.0 ;
-	m_exploration_goal.points.push_back(p);
 
-	m_markercandpub.publish(m_cands);
-	m_markerfrontierpub.publish(m_points);		// for viz
-//////////////////////////////////////////////////////
-// lets disable publishing goal if Fetch robot is not used
-	m_currentgoalpub.publish(m_bestgoal);		// for control
+	m_exploration_goal.points.push_back(p);
 /////////////////////////////////////////////////////
 	m_makergoalpub.publish(m_exploration_goal); // for viz
 
-// publish the best goal of the path plan
-//	ROS_INFO("@mapDataCallback start(%f %f) found the best goal(%f %f) best_len (%u)\n",
-//			start.pose.position.x, start.pose.position.y,
-//			m_bestgoal.pose.pose.position.x, m_bestgoal.pose.pose.position.y, best_len);
-
 	{
 		const std::unique_lock<mutex> lock(mutex_robot_state) ;
-		m_eRobotState == ROBOT_STATE::ROBOT_IS_READY_TO_MOVE;
+		m_eRobotState = ROBOT_STATE::ROBOT_IS_READY_TO_MOVE;
 	}
+
+
+
 
 //ros::WallTime mapCallEndTime = ros::WallTime::now();
 
@@ -757,9 +798,32 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 
 }
 
+
+void FrontierDetectorDMS::gobalPlanCallback(const visualization_msgs::Marker::ConstPtr& msg)
+{
+
+}
+
+
 void FrontierDetectorDMS::doneCB( const actionlib::SimpleClientGoalState& state )
 {
-    ROS_INFO("DONECB: Finished in state [%s]", state.toString().c_str());
+    ROS_INFO("@DONECB: simpleClientGoalState [%s]", state.toString().c_str());
+
+//	bool bis_target_covered = false ;
+//	// The 1st thing is to check whether the current target goal is covered or not
+//	{
+//		const std::unique_lock<mutex> lock(mutex_currgoal) ;
+//		float fx_world = m_targetgoal.pose.pose.position.x ;
+//		float fy_world = m_targetgoal.pose.pose.position.y ;
+//
+//		std::vector<signed char> Data=m_gridmap.data;
+//		int ngmx = static_cast<int>( (fx_world - m_gridmap.info.origin.position.x) / m_gridmap.info.resolution ) ;
+//		int ngmy = static_cast<int>( (fy_world - m_gridmap.info.origin.position.x) / m_gridmap.info.resolution ) ;
+//		int ngmwidth = static_cast<int> (m_gridmap.info.width) ;
+//		if( !frontier_sanity_check(ngmx, ngmy, ngmwidth, Data) )
+//			bis_target_covered = true ;
+//	}
+
     if (m_move_client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
          // do something as goal was reached
@@ -790,7 +854,7 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 {
 // call actionlib
 // robot is ready to move
-	ROS_INFO("Robot state in moveRobotCallback: %s \n ",  robot_state[m_eRobotState+1] );
+	ROS_INFO("@moveRobotCallback Robot is < %s > \n ",  robot_state[m_eRobotState+1] );
 
 	if( m_eRobotState >= ROBOT_STATE::FORCE_TO_STOP   )
 		return;
@@ -824,7 +888,7 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 
 void FrontierDetectorDMS::unreachablefrontierCallback(const geometry_msgs::PoseStamped::ConstPtr& msg )
 {
-	ROS_INFO("Robot state in unreachablefrontierCallback: %d \n ",  m_eRobotState);
+	ROS_INFO("@unreachablefrontierCallback Robot is < %s > \n ",  robot_state[m_eRobotState+1] );
 
 	geometry_msgs::PoseStamped unreachablepose = *msg ;
 	pointset pi ;

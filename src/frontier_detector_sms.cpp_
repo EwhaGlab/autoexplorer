@@ -1,3 +1,5 @@
+#include "../include/frontier_detector_sms.hpp_"
+
 /*********************************************************************
 * Software License Agreement (XXX License)
 *
@@ -37,7 +39,6 @@
 */
 
 
-#include "frontier_detector_sms.hpp"
 
 namespace autoexplorer
 {

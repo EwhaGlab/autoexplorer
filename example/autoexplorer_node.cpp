@@ -44,7 +44,8 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <cv_bridge/cv_bridge.h>
-#include "frontier_detector_sms.hpp"
+
+#include "../include/frontier_detector_sms.hpp_"
 #include "frontier_detector_dms.hpp"
 
 using namespace autoexplorer;
