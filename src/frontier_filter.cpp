@@ -154,7 +154,7 @@ static int cmapidx = 0;
 //ROS_INFO("ind rix cidx %d %d %d ", idx, ridx, cidx);
 				cost = Data[dataidx] ; // orig 0 ~ 254 --> mapped to 0 ~ 100
 				//if(cost >= 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
-				if(cost >=  m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
+				if(cost >  m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
 				{
 					//ncost++;
 					//totcost += static_cast<int>(cost);
@@ -268,7 +268,7 @@ void FrontierFilter::computeReachability( const set<pointset, pointset>& unreach
 			float fy = frontier_in_world.y ;
 			for (const auto & di : unreachable_frontiers)
 			{
-				float fdist = std::sqrt( (fx - di.d[0]) * (fx - di.d[0]) + (fy - di.d[1]) * (fy - di.d[1]) ) ;
+				float fdist = std::sqrt( (fx - di.p[0]) * (fx - di.p[0]) + (fy - di.p[1]) * (fy - di.p[1]) ) ;
 				if(fdist < mf_unreachable_dist_thr)
 				{
 //					ROS_WARN("(%f %f) is an identical point of (%f %f) which is an unreachable pt \n",

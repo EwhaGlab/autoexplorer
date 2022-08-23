@@ -67,6 +67,8 @@
 #include "nav_msgs/MapMetaData.h"
 #include "geometry_msgs/Point.h"
 #include "visualization_msgs/Marker.h"
+#include "visualization_msgs/MarkerArray.h"
+
 #include <tf/transform_listener.h>
 #include <fstream>
 
@@ -233,13 +235,35 @@ public:
 
 	inline bool isDone() const { return mb_explorationisdone; }
 
-//	bool comparator ( const std::pair<float,float>& lv, const std::pair<float,float>& rv)
-//	{
-//		return lv.first < rv.first;
-//	}
+	visualization_msgs::Marker SetVizMarker( int32_t ID, int32_t action, float fx, float fy, float fz=0, string frame_id = "map",	float fR=1.f, float fG=0.f, const float fB=1.f,
+						float fscale=0.5)
+	{
+		visualization_msgs::Marker  viz_marker;
+		viz_marker.header.frame_id= frame_id;
+		viz_marker.header.stamp=ros::Time(0);
+		viz_marker.ns= "markers";
+		viz_marker.id = ID;
+		viz_marker.action = action ;
 
-	void SetVizMarkers( const string& frame_id,	const float& fR, const float& fG, const float& fB,
-						const float& fscale, visualization_msgs::Marker&  viz_marker);
+		viz_marker.type = visualization_msgs::Marker::CUBE ;
+
+		viz_marker.scale.x= fscale;
+		viz_marker.scale.y= fscale;
+
+		viz_marker.color.r = fR;
+		viz_marker.color.g = fG;
+		viz_marker.color.b = fB;
+		viz_marker.color.a=1.0;
+		viz_marker.lifetime = ros::Duration();
+
+		viz_marker.pose.position.x = fx;
+		viz_marker.pose.position.y = fy;
+		viz_marker.pose.position.z = fz;
+		viz_marker.pose.orientation.w =1.0;
+
+		return viz_marker;
+	}
+
 
 	void saveGridmap( string filename, const nav_msgs::OccupancyGrid &mapData );
 	void saveFrontierCandidates( string filename, vector<FrontierPoint> voFrontierCandidates );
@@ -257,7 +281,9 @@ protected:
 	float m_fResolution ;
 	int m_nCorrectionWindowWidth ;
 
-	visualization_msgs::Marker m_points, m_cands, m_exploration_goal, m_unreachable_points ;
+	visualization_msgs::Marker  m_exploration_goal ;
+	visualization_msgs::MarkerArray m_frontier_points, m_cands, m_unreachable_points ;
+
 	nav_msgs::OccupancyGrid m_gridmap;
 	nav_msgs::OccupancyGrid m_globalcostmap ;
 	nav_msgs::Path			m_pathplan ;
@@ -283,6 +309,8 @@ protected:
 
 	geometry_msgs::PoseWithCovarianceStamped m_targetgoal ;
 	set<pointset, pointset> m_unreachable_frontier_set ;
+	set<pointset, pointset> m_curr_frontier_set ;
+	set<pointset, pointset> m_prev_frontier_set ;
 
 	// thrs
 	//float	m_costmap_conf_thr ;

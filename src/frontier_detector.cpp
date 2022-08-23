@@ -224,26 +224,47 @@ bool FrontierDetector::correctFrontierPosition( const nav_msgs::OccupancyGrid &g
 }
 
 
-void FrontierDetector::SetVizMarkers( const string& frame_id,
-					const float& fR, const float& fG, const float& fB, const float& fscale, visualization_msgs::Marker&  viz_marker)
-{
-	viz_marker.header.frame_id= frame_id;
-	viz_marker.header.stamp=ros::Time(0);
-	viz_marker.ns= "markers";
-	viz_marker.id = 0;
-	viz_marker.type = viz_marker.POINTS;
-
-	viz_marker.action = viz_marker.ADD;
-	viz_marker.pose.orientation.w =1.0;
-	viz_marker.scale.x= fscale;
-	viz_marker.scale.y= fscale;
-
-	viz_marker.color.r = fR;
-	viz_marker.color.g = fG;
-	viz_marker.color.b = fB;
-	viz_marker.color.a=1.0;
-	viz_marker.lifetime = ros::Duration();
-}
+//void FrontierDetector::SetVizMarker( const string& frame_id,
+//					const float& fR, const float& fG, const float& fB, const float& fscale, visualization_msgs::Marker&  viz_marker)
+//{
+//	viz_marker.header.frame_id= frame_id;
+//	viz_marker.header.stamp=ros::Time(0);
+//	viz_marker.ns= "markers";
+//	viz_marker.id = 0;
+//	viz_marker.type = viz_marker.POINTS;
+//
+//	viz_marker.action = viz_marker.ADD;
+//	viz_marker.pose.orientation.w =1.0;
+//	viz_marker.scale.x= fscale;
+//	viz_marker.scale.y= fscale;
+//
+//	viz_marker.color.r = fR;
+//	viz_marker.color.g = fG;
+//	viz_marker.color.b = fB;
+//	viz_marker.color.a=1.0;
+//	viz_marker.lifetime = ros::Duration();
+//}
+//
+//void FrontierDetector::SetVizMarkersArray( const string& frame_id,
+//					const float& fR, const float& fG, const float& fB, const float& fscale, visualization_msgs::Marker&  viz_marker)
+//{
+//	viz_marker.header.frame_id= frame_id;
+//	viz_marker.header.stamp=ros::Time(0);
+//	viz_marker.ns= "markers";
+//	viz_marker.id = 0;
+//	viz_marker.type = viz_marker.POINTS;
+//
+//	viz_marker.action = viz_marker.ADD;
+//	viz_marker.pose.orientation.w =1.0;
+//	viz_marker.scale.x= fscale;
+//	viz_marker.scale.y= fscale;
+//
+//	viz_marker.color.r = fR;
+//	viz_marker.color.g = fG;
+//	viz_marker.color.b = fB;
+//	viz_marker.color.a=1.0;
+//	viz_marker.lifetime = ros::Duration();
+//}
 
 //void accessFrontierPoint( ){}
 

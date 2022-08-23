@@ -45,8 +45,11 @@
 #include "global_planning_handler.hpp"
 #include <omp.h>
 #include "std_msgs/Empty.h"
+#include "visualization_msgs/Marker.h"
+#include "visualization_msgs/MarkerArray.h"
 #include <algorithm>
 #include <random>
+#include <unordered_set>
 
 //#define OCCUPANCY_THR (60)
 //#define FD_DEBUG_MODE
@@ -95,6 +98,8 @@ public:
 	int savegridmap( const nav_msgs::OccupancyGrid& gridmap, const string& filename ) ;
 	int savecostmap( const nav_msgs::OccupancyGrid& costmap, const string& filename ) ;
 
+	int frontier_summary( const vector<FrontierPoint>& voFrontierCurrFrame );
+
 	geometry_msgs::PoseStamped GetCurrRobotPose ( )
 	{
 		tf::StampedTransform map2baselink;
@@ -141,8 +146,27 @@ public:
 		{
 			return false ;
 		}
-
 	}
+
+
+
+//	static bool lexico_compare(const visualization_msgs::Marker& pt1, const visualization_msgs::Marker& pt2)
+//	{
+//		if(pt1.pose.position.x < pt2.pose.position.x) {return true; }
+//		if(pt1.pose.position.x > pt2.pose.position.x) {return false; }
+//		return(  pt1.pose.position.y < pt2.pose.position.y  ) ;
+//	}
+//
+//	static bool fpts_are_equal( const visualization_msgs::Marker& pt1, const visualization_msgs::Marker& pt2)
+//	{
+//		return ( (pt1.pose.position.x == pt2.pose.position.x) && (pt1.pose.position.y == pt2.pose.position.y) ) ;
+//	}
+//
+//	void remove_duplicate_fpts( vector<visualization_msgs::Marker>& points  )
+//	{
+//		std::sort(points.begin(), points.end(), lexico_compare);
+//		points.erase(std::unique(points.begin(), points.end(), fpts_are_equal), points.end());
+//	}
 
 
 protected:
@@ -154,6 +178,8 @@ protected:
 						m_currGoalSub, m_globalplanSub, m_unreachablefrontierSub ;
 	ros::Publisher 	m_targetspub, m_markercandpub, m_markerfrontierpub,
 						m_makergoalpub, m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub, m_resetgazebopub ;
+
+	int32_t mn_FrontierID, mn_UnreachableFptID ;
 
 	int mn_numthreads;
 	int m_nglobalcostmapidx ;
@@ -173,9 +199,17 @@ protected:
 	uint8_t* mp_cost_translation_table;
 
 	ofstream m_ofs_time ;
+	float mf_neighoringpt_decisionbound ;
+
+//	// valid and unique frontier pts list @ the current input frame
+//	vector<FrontierPoint> mvo_frontier_list;
+
 private:
 	std::mutex mutex_robot_state;
 	std::mutex mutex_unreachable_points;
+	std::mutex mutex_curr_frontier_set ;
+	std::mutex mutex_prev_frontier_set ;
+
 	std::mutex mutex_gridmap;
 	std::mutex mutex_costmap;
 	std::mutex mutex_upperbound;

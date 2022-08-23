@@ -57,14 +57,16 @@ namespace autoexplorer
 
 struct pointset
 {
-  float d[2];
+  float p[2];
+  pointset(float x, float y){p[0]=x; p[1]=y; };
+  pointset(){};
 
-  bool operator()( const pointset & dia, const pointset & dib) const
+  bool operator()( const pointset & pa, const pointset & pb) const
   {
     for (size_t n=0; n<2; ++n)
     {
-      if ( dia.d[n] < dib.d[n] ) return true;
-      if ( dia.d[n] > dib.d[n] ) return false;
+      if ( pa.p[n] < pb.p[n] ) return true;
+      if ( pa.p[n] > pb.p[n] ) return false;
     }
     return false;
   }
