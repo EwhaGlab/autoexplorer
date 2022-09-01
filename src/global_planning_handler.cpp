@@ -43,7 +43,7 @@ namespace autoexplorer
 {
 
 GlobalPlanningHandler::GlobalPlanningHandler( ):
-robot_base_frame_("vehicle"), // was "base_link"
+robot_base_frame_("base_link"), // was "base_link"
 global_frame_("map"),
 mb_initialized(false), mb_allow_unknown(true), mb_visualize_potential(false),
 mf_tolerance(0.0),
@@ -53,14 +53,15 @@ mp_cost_translation_table(NULL)
 	mb_initialized = true;
 }
 
-GlobalPlanningHandler::GlobalPlanningHandler( costmap_2d::Costmap2D &ocostmap ):
-robot_base_frame_("vehicle"), // was "base_link"
-global_frame_("map"),
+GlobalPlanningHandler::GlobalPlanningHandler( costmap_2d::Costmap2D &ocostmap, const std::string& worldframe, const std::string& baseframe  ):
+robot_base_frame_(baseframe), // was "base_link"
+global_frame_(worldframe),
 mb_initialized(false), mb_allow_unknown(true), mb_visualize_potential(false),
 mf_tolerance(0.0),
 mp_cost_translation_table(NULL)
 {
     //create the ros wrapper for the planner's costmap... and initializer a pointer we'll use with the underlying map
+	ROS_INFO(" gph initilized with (world frame: %s) and (base frame: %s) \n", global_frame_.c_str(), robot_base_frame_.c_str() );
 
 	m_costmap = costmap_2d::Costmap2D(ocostmap) ;
 	planner_ = boost::shared_ptr<navfn::NavFn>( new navfn::NavFn(0, 0));
@@ -122,8 +123,8 @@ void GlobalPlanningHandler::reinitialization(  )
 {
     //create the ros wrapper for the planner's costmap... and initializer a pointer we'll use with the underlying map
 
-	robot_base_frame_ = string("base_link");
-	global_frame_ = string("map");
+//	robot_base_frame_ = string("base_link");
+//	global_frame_ = string("map");
 //	mb_initialized = false;
 	mb_allow_unknown = true;
 	mb_visualize_potential = false;

@@ -7,7 +7,7 @@
 
     <!-- launch octomap -->
     <!--include file="$(find octomap_server)/launch/octomap_mapping.launch"/-->
-       
+        
     <arg name="namespace" default=""/>
     <arg name="numthreads" default="8"/>
     <arg name="slam_method" default="gtmapping"/> <!-- "gmapping" -->
@@ -18,15 +18,13 @@
     <arg name="rviz_config" value ="$(find autoexplorer)/launch/includes/rviz_config/autoexplorer.rviz"/>
     <rosparam command="load" file="$(find autoexplorer)/param/autoexploration.yaml"/>
     
-    <include file="$(find autoexplorer)/launch/includes/vehicle_sim.launch"/>
+    <!--include file="$(find autoexplorer)/launch/includes/explore_bench-corridor.launch"/-->
     
 	<node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" args="$(arg slam_method) $(arg numthreads)" output="screen"/>
     <!--node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" output="screen">
         <param name="frame_id" type="string" value="map" />
     </node-->
     
-    <!--node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/-->
-
-
+    <!--node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/-->    
     
 </launch>

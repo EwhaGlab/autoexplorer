@@ -730,7 +730,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	//set<> fpoints = m_valid_frontier_set ;
 	vector< uint32_t > gplansizes( m_curr_frontier_set.size(), 0 ) ;
 
-	GlobalPlanningHandler o_gph( *mpo_costmap );
+	GlobalPlanningHandler o_gph( *mpo_costmap, m_worldFrameId, m_baseFrameId );
 	std::vector<geometry_msgs::PoseStamped> plan;
 	uint32_t fptidx;
 	int tid;
@@ -812,7 +812,7 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 	// publish fpts to Rviz
 	for (const auto & pi : m_curr_frontier_set)
 	{
-		visualization_msgs::Marker vizmarker = SetVizMarker( mn_FrontierID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], 0.5, "map", 0.f, 1.f, 0.f );
+		visualization_msgs::Marker vizmarker = SetVizMarker( mn_FrontierID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], 0.5, m_worldFrameId, 0.f, 1.f, 0.f );
 		m_frontier_points.markers.push_back(vizmarker);
 		mn_FrontierID++ ;
 	}
@@ -820,7 +820,7 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 
 	// publish goal to Rviz
 	m_exploration_goal = SetVizMarker( 0, visualization_msgs::Marker::ADD, m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y, 0.7,
-											"map",	1.f, 0.f, 1.f, 1.f);
+			m_worldFrameId,	1.f, 0.f, 1.f, 1.f);
 	m_makergoalpub.publish(m_exploration_goal); // for viz
 
 	{

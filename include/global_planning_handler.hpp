@@ -31,7 +31,7 @@ class GlobalPlanningHandler
 
 public:
 	GlobalPlanningHandler( );
-	GlobalPlanningHandler( costmap_2d::Costmap2D &ocostmap );
+	GlobalPlanningHandler( costmap_2d::Costmap2D &ocostmap,  const std::string& worldframe, const std::string& baseframe );
 	virtual ~GlobalPlanningHandler();
 
 	void initialization() ;

@@ -1,7 +1,7 @@
 global_costmap:
 
     global_frame: map
-    robot_base_frame: sensor
+    robot_base_frame: base_footprint
     
     #inflation_radius: 0.55 #0.7
     cost_factor: 0.55 

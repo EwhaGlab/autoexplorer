@@ -1,0 +1,56 @@
+<!-- move base -->
+<launch>
+  <master auto="start"/>
+    
+  <!--arg name="slam_method" default="gmapping"/>   
+  <include file="$(find autoexplorer)/launch/includes/start_$(arg slam_method).launch">
+  </include-->
+  
+  <!--include file="$(find autoexplorer)/launch/includes/start_gmapping.launch">
+  </include-->
+  
+  <!--include file="$(find sim_env)/launch/simulation_environment/corridor_env_single_robot.launch">
+  </include-->
+
+  <!-- octomap -->
+
+  <!--remap from="base_scan" to="scan"/-->
+  <node name="scan2ptcloud" pkg="scan2ptcloud" type="scan2ptcloud_node">
+  </node>  
+  
+  <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 map odom 10">
+  </node>
+  
+  <include  file="$(find octomap_server)/launch/octomap_mapping.launch">
+     <!--param name="frame_id" type="string" value="robot1/map" /-->
+  </include>
+  
+  
+  <env name="ROSCONSOLE_CONFIG_FILE" value="$(find autoexplorer)/custom_rosconsole.conf"/>  
+  
+  <!--node pkg="tf" type="static_transform_publisher" name="base_link" args="0 0 -0.75 0 0 0 1  /sensor /base_link  2"/-->
+  
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
+    <!--remap from="odom" to="base_footprint"/-->
+    <!--param name="footprint_padding" value="0.01" /-->
+    <param name="controller_frequency" value="4.0" />
+    <!--param name="controller_patience" value="1.0" /--> <!--3.0-->
+    <param name="oscillation_timeout" value="12.0" />
+    <param name="oscillation_distance" value="0.5" />
+    <param name="planner_patience" value="1" />
+    <param name="controller_patience" value="1" /> 
+    <!--remap from="cmd_vel" to="mobile_base/commands/velocity"/-->
+    <!--remap from="cmd_vel" to="move_base_node/cmd_vel"/-->
+    <param name="recovery_behavior_enabled" value="false" />
+    <rosparam file="$(find autoexplorer)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find autoexplorer)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find autoexplorer)/param/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find autoexplorer)/param/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find autoexplorer)/param/base_local_planner_params.yaml" command="load" />  
+    <param name="global_costmap/global_frame" value="map"/>
+    <param name="global_costmap/robot_base_frame" value="base_footprint"/> 
+    <param name="local_costmap/global_frame" value="map"/>
+    <param name="local_costmap/robot_base_frame" value="base_footprint"/>
+  </node>  
+
+</launch>

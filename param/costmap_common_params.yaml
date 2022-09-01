@@ -3,7 +3,7 @@
 #For this example we'll configure the costmap in voxel-grid mode
 #map_type: costmap 
 
-robot_base_frame: sensor
+robot_base_frame: base_footprint
 
 #Set the tolerance we're willing to have for tf transforms
 transform_tolerance: 0.5
@@ -14,7 +14,7 @@ footprint_padding: 0 #0.03
 
 #Cost function parameters
 #inflater:
-robot_radius: 0.3 #0.3  #0.18
+robot_radius: 0.2 #0.3  #0.18
 inflation_radius: 0.7 #0.55 #0.7
 cost_scaling_factor: 1.0 #1.0 # steepness of inflation decay func
 
@@ -26,13 +26,13 @@ obstacles:
     observation_sources: point_cloud_sensor
     point_cloud_sensor:
         data_type: PointCloud2
-        topic: sensor_scan
+        topic: scan_ptcloud #sensor_scan
         marking: true
         clearing: true
         obstacle_range: 8.0 #4.0
         raytrace_range: 10.0 #5.0
         min_obstacle_height: 0.2 #0.25
-        max_obstacle_height: 0.6 #0.3
+        max_obstacle_height: 2.0 #0.3
     z_voxels: 16
     z_resolution: 0.125
     max_obstacle_height: 4 #2.0
