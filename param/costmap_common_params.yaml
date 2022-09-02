@@ -3,39 +3,18 @@
 #For this example we'll configure the costmap in voxel-grid mode
 #map_type: costmap 
 
-robot_base_frame: base_footprint
+obstacle_range: 3.0
+raytrace_range: 3.5
 
-#Set the tolerance we're willing to have for tf transforms
-transform_tolerance: 0.5
+footprint: [[-0.105, -0.105], [-0.105, 0.105], [0.041, 0.105], [0.041, -0.105]]
+#robot_radius: 0.105
 
-#footprint: [[-0.127, -0.127], [-0.18, 0.0], [-0.127, 0.127], [0.0, 0.18], [0.127, 0.127], [0.18, 0.0], [0.127, -0.127], [0.0, -0.18]]
+inflation_radius: 1.0
+cost_scaling_factor: 3.0
 
-footprint_padding: 0 #0.03
-
-#Cost function parameters
-#inflater:
-robot_radius: 0.2 #0.3  #0.18
-inflation_radius: 0.7 #0.55 #0.7
-cost_scaling_factor: 1.0 #1.0 # steepness of inflation decay func
-
-#The cost at which a cell is considered an obstacle when a map is read from the map_server
-lethal_cost_threshold: 253
-
-#Configuration for the sensors that the costmap will use to update a map
-obstacles:
-    observation_sources: point_cloud_sensor
-    point_cloud_sensor:
-        data_type: PointCloud2
-        topic: scan_ptcloud #sensor_scan
-        marking: true
-        clearing: true
-        obstacle_range: 8.0 #4.0
-        raytrace_range: 10.0 #5.0
-        min_obstacle_height: 0.2 #0.25
-        max_obstacle_height: 2.0 #0.3
-    z_voxels: 16
-    z_resolution: 0.125
-    max_obstacle_height: 4 #2.0
+map_type: costmap
+observation_sources: scan
+scan: {sensor_frame: base_scan, data_type: LaserScan, topic: scan, marking: true, clearing: true}
 
 #depth_camera_sensor: {sensor_frame: left_cam, data_type: PointCloud2, topic: /gt_point_cloud_xyz, marking: true, clearing: true, max_obstacle_height: 1.0, min_obstacle_height: 0.5}
 

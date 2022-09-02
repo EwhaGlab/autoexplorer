@@ -25,6 +25,16 @@
      <!--param name="frame_id" type="string" value="robot1/map" /-->
   </include>
   
+  <node pkg="turtlebot3_slam" type="flat_world_imu_node" name="flat_world_imu_node" output="log">
+    <remap from="imu_in" to="imu" />
+    <remap from="imu_out" to="flat_imu_in" />
+  </node>
+
+  <node pkg="sim_env" type="ImuChange.py" name="ImuChange_node" args="-c base_footprint" output="log">
+      <remap from="input" to="flat_imu_in"/>
+      <remap from="output" to="flat_imu"/>
+  </node>
+  
   
   <env name="ROSCONSOLE_CONFIG_FILE" value="$(find autoexplorer)/custom_rosconsole.conf"/>  
   
