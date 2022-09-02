@@ -297,23 +297,69 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_footprint:
-          Value: false
         base_link:
           Value: true
-        base_scan:
+        bellows_link:
           Value: false
-        caster_back_link:
+        bellows_link2:
           Value: false
-        imu_link:
+        bl_caster_link:
+          Value: false
+        br_caster_link:
+          Value: false
+        elbow_flex_link:
+          Value: false
+        estop_link:
+          Value: false
+        fl_caster_link:
+          Value: false
+        forearm_roll_link:
+          Value: false
+        fr_caster_link:
+          Value: false
+        gripper_link:
+          Value: false
+        head_camera_depth_frame:
+          Value: false
+        head_camera_depth_optical_frame:
+          Value: false
+        head_camera_link:
+          Value: false
+        head_camera_rgb_frame:
+          Value: false
+        head_camera_rgb_optical_frame:
+          Value: false
+        head_pan_link:
+          Value: false
+        head_tilt_link:
+          Value: false
+        l_gripper_finger_link:
+          Value: false
+        l_wheel_link:
+          Value: false
+        laser_link:
           Value: false
         map:
           Value: false
         odom:
           Value: false
-        wheel_left_link:
+        r_gripper_finger_link:
           Value: false
-        wheel_right_link:
+        r_wheel_link:
+          Value: false
+        shoulder_lift_link:
+          Value: false
+        shoulder_pan_link:
+          Value: false
+        torso_fixed_link:
+          Value: false
+        torso_lift_link:
+          Value: false
+        upperarm_roll_link:
+          Value: false
+        wrist_flex_link:
+          Value: false
+        wrist_roll_link:
           Value: false
       Marker Scale: 8
       Name: TF
@@ -323,18 +369,51 @@ Visualization Manager:
       Tree:
         map:
           odom:
-            base_footprint:
-              base_link:
-                base_scan:
+            base_link:
+              bl_caster_link:
+                {}
+              br_caster_link:
+                {}
+              estop_link:
+                {}
+              fl_caster_link:
+                {}
+              fr_caster_link:
+                {}
+              l_wheel_link:
+                {}
+              laser_link:
+                {}
+              r_wheel_link:
+                {}
+              torso_fixed_link:
+                {}
+              torso_lift_link:
+                bellows_link:
                   {}
-                caster_back_link:
+                bellows_link2:
                   {}
-                imu_link:
-                  {}
-                wheel_left_link:
-                  {}
-                wheel_right_link:
-                  {}
+                head_pan_link:
+                  head_tilt_link:
+                    head_camera_link:
+                      head_camera_depth_frame:
+                        head_camera_depth_optical_frame:
+                          {}
+                      head_camera_rgb_frame:
+                        head_camera_rgb_optical_frame:
+                          {}
+                shoulder_pan_link:
+                  shoulder_lift_link:
+                    upperarm_roll_link:
+                      elbow_flex_link:
+                        forearm_roll_link:
+                          wrist_flex_link:
+                            wrist_roll_link:
+                              gripper_link:
+                                l_gripper_finger_link:
+                                  {}
+                                r_gripper_finger_link:
+                                  {}
       Update Interval: 0
       Value: true
     - Class: rviz/Image
@@ -427,10 +506,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8697969913482666
+      Pitch: 0.8647969961166382
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.807316303253174
+      Yaw: 4.827331066131592
     Saved: ~
 Window Geometry:
   Displays:
@@ -451,4 +530,4 @@ Window Geometry:
     collapsed: true
   Width: 2331
   X: 457
-  Y: 349
+  Y: 319

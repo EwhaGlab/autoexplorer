@@ -14,26 +14,34 @@
 
   <!-- octomap -->
 
-  <!--remap from="base_scan" to="scan"/-->
   <node name="scan2ptcloud" pkg="scan2ptcloud" type="scan2ptcloud_node">
+      <!--remap from="base_scan" to="scan"/-->
   </node>  
   
-  <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 map odom 10">
-  </node>
+  <!--node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 map odom 10">
+  </node-->
   
   <include  file="$(find octomap_server)/launch/octomap_mapping.launch">
      <!--param name="frame_id" type="string" value="robot1/map" /-->
   </include>
   
-  <node pkg="turtlebot3_slam" type="flat_world_imu_node" name="flat_world_imu_node" output="log">
-    <remap from="imu_in" to="imu" />
-    <remap from="imu_out" to="flat_imu_in" />
+  <!-- start SLAM -->
+  <node pkg="slam_toolbox" type="lifelong_slam_toolbox_node" name="slam_toolbox">  <!--output="screen"-->
+      <remap from="/scan"  to="/base_scan"/>
+      <rosparam command="load" file="$(find slam_toolbox)/config/mapper_params_lifelong.yaml" />
   </node>
 
-  <node pkg="sim_env" type="ImuChange.py" name="ImuChange_node" args="-c base_footprint" output="log">
+  
+  
+  <!--node pkg="turtlebot3_slam" type="flat_world_imu_node" name="flat_world_imu_node" output="log">
+    <remap from="imu_in" to="imu" />
+    <remap from="imu_out" to="flat_imu_in" />
+  </node-->
+
+  <!--node pkg="sim_env" type="ImuChange.py" name="ImuChange_node" args="-c base_link" output="log">
       <remap from="input" to="flat_imu_in"/>
       <remap from="output" to="flat_imu"/>
-  </node>
+  </node-->
   
   
   <env name="ROSCONSOLE_CONFIG_FILE" value="$(find autoexplorer)/custom_rosconsole.conf"/>  
@@ -41,7 +49,7 @@
   <!--node pkg="tf" type="static_transform_publisher" name="base_link" args="0 0 -0.75 0 0 0 1  /sensor /base_link  2"/-->
   
   <node pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
-    <!--remap from="odom" to="base_footprint"/-->
+    <!--remap from="odom" to="base_link"/-->
     <!--param name="footprint_padding" value="0.01" /-->
     <param name="controller_frequency" value="4.0" />
     <!--param name="controller_patience" value="1.0" /--> <!--3.0-->
@@ -58,9 +66,9 @@
     <rosparam file="$(find autoexplorer)/param/global_costmap_params.yaml" command="load" />
     <rosparam file="$(find autoexplorer)/param/base_local_planner_params.yaml" command="load" />  
     <param name="global_costmap/global_frame" value="map"/>
-    <param name="global_costmap/robot_base_frame" value="base_footprint"/> 
+    <param name="global_costmap/robot_base_frame" value="base_link"/> 
     <param name="local_costmap/global_frame" value="map"/>
-    <param name="local_costmap/robot_base_frame" value="base_footprint"/>
+    <param name="local_costmap/robot_base_frame" value="base_link"/>
   </node>  
 
 </launch>
