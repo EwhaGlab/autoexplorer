@@ -1,5 +1,8 @@
 <!-- move base -->
 <launch>
+
+<group ns="robot1">
+
   <master auto="start"/>
     
   <!--arg name="slam_method" default="gmapping"/>   
@@ -15,21 +18,19 @@
   <!-- octomap -->
 
   <node name="scan2ptcloud" pkg="scan2ptcloud" type="scan2ptcloud_node">
-      <!--remap from="base_scan" to="scan"/-->
   </node>  
   
-  <!--node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 map odom 10">
-  </node-->
+  <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 robot1/map robot1/odom 10">
+  </node>
   
   <include  file="$(find octomap_server)/launch/octomap_mapping.launch">
-     <!--param name="frame_id" type="string" value="robot1/map" /-->
   </include>
   
   <!-- start SLAM -->
-  <node pkg="slam_toolbox" type="lifelong_slam_toolbox_node" name="slam_toolbox">  <!--output="screen"-->
+  <!--node pkg="slam_toolbox" type="lifelong_slam_toolbox_node" name="slam_toolbox" output="screen">
       <remap from="/scan"  to="/base_scan"/>
       <rosparam command="load" file="$(find slam_toolbox)/config/mapper_params_lifelong.yaml" />
-  </node>
+  </node-->
 
   
   
@@ -49,26 +50,23 @@
   <!--node pkg="tf" type="static_transform_publisher" name="base_link" args="0 0 -0.75 0 0 0 1  /sensor /base_link  2"/-->
   
   <node pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
-    <!--remap from="odom" to="base_link"/-->
-    <!--param name="footprint_padding" value="0.01" /-->
     <param name="controller_frequency" value="4.0" />
-    <!--param name="controller_patience" value="1.0" /--> <!--3.0-->
     <param name="oscillation_timeout" value="12.0" />
     <param name="oscillation_distance" value="0.5" />
     <param name="planner_patience" value="1" />
     <param name="controller_patience" value="1" /> 
-    <!--remap from="cmd_vel" to="mobile_base/commands/velocity"/-->
-    <!--remap from="cmd_vel" to="move_base_node/cmd_vel"/-->
     <param name="recovery_behavior_enabled" value="false" />
     <rosparam file="$(find autoexplorer)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
     <rosparam file="$(find autoexplorer)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
     <rosparam file="$(find autoexplorer)/param/local_costmap_params.yaml" command="load" />
     <rosparam file="$(find autoexplorer)/param/global_costmap_params.yaml" command="load" />
     <rosparam file="$(find autoexplorer)/param/base_local_planner_params.yaml" command="load" />  
-    <param name="global_costmap/global_frame" value="map"/>
-    <param name="global_costmap/robot_base_frame" value="base_link"/> 
-    <param name="local_costmap/global_frame" value="map"/>
-    <param name="local_costmap/robot_base_frame" value="base_link"/>
+    <param name="global_costmap/global_frame" value="robot1/map"/>
+    <param name="global_costmap/robot_base_frame" value="robot1/base_footprint"/> 
+    <param name="local_costmap/global_frame" value="robot1/map"/>
+    <param name="local_costmap/robot_base_frame" value="robot1/base_footprint"/>
   </node>  
+
+</group>
 
 </launch>

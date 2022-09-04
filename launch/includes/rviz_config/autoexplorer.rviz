@@ -32,7 +32,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: LaserScan
   - Class: rviz/Tool Properties
     Expanded:
       - /2D Nav Goal1
@@ -111,7 +111,7 @@ Visualization Manager:
       Draw Behind: true
       Enabled: true
       Name: Map
-      Topic: /map
+      Topic: /robot1/map
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -297,69 +297,23 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_link:
+        robot1/base_footprint:
+          Value: false
+        robot1/base_link:
           Value: true
-        bellows_link:
+        robot1/base_scan:
           Value: false
-        bellows_link2:
+        robot1/caster_back_link:
           Value: false
-        bl_caster_link:
+        robot1/imu_link:
           Value: false
-        br_caster_link:
+        robot1/map:
+          Value: true
+        robot1/odom:
           Value: false
-        elbow_flex_link:
+        robot1/wheel_left_link:
           Value: false
-        estop_link:
-          Value: false
-        fl_caster_link:
-          Value: false
-        forearm_roll_link:
-          Value: false
-        fr_caster_link:
-          Value: false
-        gripper_link:
-          Value: false
-        head_camera_depth_frame:
-          Value: false
-        head_camera_depth_optical_frame:
-          Value: false
-        head_camera_link:
-          Value: false
-        head_camera_rgb_frame:
-          Value: false
-        head_camera_rgb_optical_frame:
-          Value: false
-        head_pan_link:
-          Value: false
-        head_tilt_link:
-          Value: false
-        l_gripper_finger_link:
-          Value: false
-        l_wheel_link:
-          Value: false
-        laser_link:
-          Value: false
-        map:
-          Value: false
-        odom:
-          Value: false
-        r_gripper_finger_link:
-          Value: false
-        r_wheel_link:
-          Value: false
-        shoulder_lift_link:
-          Value: false
-        shoulder_pan_link:
-          Value: false
-        torso_fixed_link:
-          Value: false
-        torso_lift_link:
-          Value: false
-        upperarm_roll_link:
-          Value: false
-        wrist_flex_link:
-          Value: false
-        wrist_roll_link:
+        robot1/wheel_right_link:
           Value: false
       Marker Scale: 8
       Name: TF
@@ -367,53 +321,20 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        map:
-          odom:
-            base_link:
-              bl_caster_link:
-                {}
-              br_caster_link:
-                {}
-              estop_link:
-                {}
-              fl_caster_link:
-                {}
-              fr_caster_link:
-                {}
-              l_wheel_link:
-                {}
-              laser_link:
-                {}
-              r_wheel_link:
-                {}
-              torso_fixed_link:
-                {}
-              torso_lift_link:
-                bellows_link:
+        robot1/map:
+          robot1/odom:
+            robot1/base_footprint:
+              robot1/base_link:
+                robot1/base_scan:
                   {}
-                bellows_link2:
+                robot1/caster_back_link:
                   {}
-                head_pan_link:
-                  head_tilt_link:
-                    head_camera_link:
-                      head_camera_depth_frame:
-                        head_camera_depth_optical_frame:
-                          {}
-                      head_camera_rgb_frame:
-                        head_camera_rgb_optical_frame:
-                          {}
-                shoulder_pan_link:
-                  shoulder_lift_link:
-                    upperarm_roll_link:
-                      elbow_flex_link:
-                        forearm_roll_link:
-                          wrist_flex_link:
-                            wrist_roll_link:
-                              gripper_link:
-                                l_gripper_finger_link:
-                                  {}
-                                r_gripper_finger_link:
-                                  {}
+                robot1/imu_link:
+                  {}
+                robot1/wheel_left_link:
+                  {}
+                robot1/wheel_right_link:
+                  {}
       Update Interval: 0
       Value: true
     - Class: rviz/Image
@@ -476,14 +397,14 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: map
+    Fixed Frame: robot1/map
     Frame Rate: 30
   Name: root
   Tools:
     - Class: rviz/Interact
       Hide Inactive Objects: true
     - Class: rviz/SetGoal
-      Topic: /move_base_simple/goal
+      Topic: robot1/move_base_simple/goal
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /clicked_point
@@ -529,5 +450,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 2331
-  X: 457
-  Y: 319
+  X: 339
+  Y: 266

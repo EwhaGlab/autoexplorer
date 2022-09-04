@@ -14,7 +14,7 @@ cost_scaling_factor: 1.0
 
 map_type: costmap
 observation_sources: base_scan
-base_scan: {sensor_frame: laser_link, data_type: LaserScan, topic: base_scan, marking: true, clearing: true}
+base_scan: {sensor_frame: base_scan, data_type: LaserScan, topic: base_scan, marking: true, clearing: true}
 
 #depth_camera_sensor: {sensor_frame: left_cam, data_type: PointCloud2, topic: /gt_point_cloud_xyz, marking: true, clearing: true, max_obstacle_height: 1.0, min_obstacle_height: 0.5}
 

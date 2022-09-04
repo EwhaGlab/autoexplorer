@@ -659,7 +659,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 
 
 // print frontier list
-	//frontier_summary( voFrontierCands );
+	frontier_summary( voFrontierCands );
 
 	if( voFrontierCands.size() == 0 )
 	{
