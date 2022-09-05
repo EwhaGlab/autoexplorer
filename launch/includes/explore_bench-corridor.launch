@@ -47,7 +47,7 @@
   
   <!--node pkg="tf" type="static_transform_publisher" name="base_link" args="0 0 -0.75 0 0 0 1  /sensor /base_link  2"/-->
   
-  <node pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
+  <!--node pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
     <param name="controller_frequency" value="4.0" />
     <param name="oscillation_timeout" value="12.0" />
     <param name="oscillation_distance" value="0.5" />
@@ -63,9 +63,10 @@
     <param name="global_costmap/robot_base_frame" value="base_footprint"/> 
     <param name="local_costmap/global_frame" value="map"/>
     <param name="local_costmap/robot_base_frame" value="base_footprint"/>
-  </node>  
-
-  <!--arg name="cmd_vel_topic" default="cmd_vel" />
+  </node-->  
+  
+  <arg name="model" default="burger" doc="model type [burger, waffle, waffle_pi]"/>
+  <arg name="cmd_vel_topic" default="cmd_vel" />
   <arg name="odom_topic" default="odom" />
   <arg name="move_forward_only" default="false"/>
   <arg name="robot_name"/>
@@ -81,16 +82,16 @@
     <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
     <remap from="odom" to="$(arg odom_topic)"/>
 
-    <param name="global_costmap/global_frame" value="$(arg robot_name)/map"/>
-    <param name="global_costmap/robot_base_frame" value="$(arg robot_name)/base_footprint"/>
-    <param name="global_costmap/laser_scan_sensor/sensor_frame" value="$(arg robot_name)/base_scan"/>
-    <param name="global_costmap/laser_scan_sensor/topic" value="/$(arg robot_name)/scan"/>    
-    <param name="local_costmap/global_frame" value="$(arg robot_name)/odom"/>
-    <param name="local_costmap/robot_base_frame" value="$(arg robot_name)/base_footprint"/>
-    <param name="local_costmap/laser_scan_sensor/sensor_frame" value="$(arg robot_name)/base_scan"/>
-    <param name="local_costmap/laser_scan_sensor/topic" value="/$(arg robot_name)/scan"/>
-    <param name="local_costmap/obstacle_layer/laser_scan_sensor/topic" value="/$(arg robot_name)/scan"/>
-    <param name="TebLocalPlannerROS/map_frame" value="$(arg robot_name)/odom"/>
-  </node-->
+    <param name="global_costmap/global_frame" value="map"/>
+    <param name="global_costmap/robot_base_frame" value="base_footprint"/>
+    <param name="global_costmap/laser_scan_sensor/sensor_frame" value="base_scan"/>
+    <param name="global_costmap/laser_scan_sensor/topic" value="scan"/>    
+    <param name="local_costmap/global_frame" value="odom"/>
+    <param name="local_costmap/robot_base_frame" value="base_footprint"/>
+    <param name="local_costmap/laser_scan_sensor/sensor_frame" value="base_scan"/>
+    <param name="local_costmap/laser_scan_sensor/topic" value="scan"/>
+    <param name="local_costmap/obstacle_layer/laser_scan_sensor/topic" value="scan"/>
+    <param name="TebLocalPlannerROS/map_frame" value="odom"/>
+  </node>
   
 </launch>

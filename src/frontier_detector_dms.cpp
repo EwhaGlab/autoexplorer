@@ -63,8 +63,8 @@ mp_cost_translation_table(NULL)
 	int _nWeakCompThreshold ;
 	m_nh.param("/autoexplorer/weak_comp_thr", _nWeakCompThreshold, 10);
 	m_nh.param("/autoexplorer/num_downsamples", m_nNumPyrDownSample, 0);
-	m_nh.param("/autoexplorer/frame_id", m_worldFrameId, std::string("robot1/map"));
-	m_nh.param("move_base_node/global_costmap/robot_radius", m_fRobotRadius, 0.3);
+	m_nh.param("/autoexplorer/frame_id", m_worldFrameId, std::string("map"));
+	m_nh.param("move_base/global_costmap/robot_radius", m_fRobotRadius, 0.3);
 
 	m_nScale = pow(2, m_nNumPyrDownSample);
 	m_frontiers_region_thr = _nWeakCompThreshold / m_nScale ;
@@ -947,7 +947,7 @@ ROS_WARN("@unreachablefrontierCallback Registering (%f %f) as the unreachable pt
 	{
 		const std::unique_lock<mutex> lock(mutex_unreachable_points) ;
 		m_unreachable_frontier_set.insert( ufpt ) ;
-		visualization_msgs::Marker viz_marker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD, ufpt.p[0], ufpt.p[1], 0.5, "robot1/map",	1.f, 1.f, 0.f);
+		visualization_msgs::Marker viz_marker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD, ufpt.p[0], ufpt.p[1], 0.5, "map",	1.f, 1.f, 0.f);
 		m_unreachable_points.markers.push_back(viz_marker);
 		m_unreachpointpub.publish( m_unreachable_points );
 		mn_UnreachableFptID++ ;

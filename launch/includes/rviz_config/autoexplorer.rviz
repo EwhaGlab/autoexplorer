@@ -7,7 +7,10 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1/Frames1
+        - /Map1
+        - /Map2
         - /Map3
+        - /LaserScan1
         - /Odometry1/Shape1
         - /TF2
         - /TF2/Frames1
@@ -32,7 +35,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: LaserScan
   - Class: rviz/Tool Properties
     Expanded:
       - /2D Nav Goal1
@@ -89,19 +92,19 @@ Visualization Manager:
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: true
-      Enabled: false
+      Enabled: true
       Name: Map
-      Topic: /move_base_node/global_costmap/costmap
+      Topic: /move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
-      Value: false
+      Value: true
     - Alpha: 0.5
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: true
       Enabled: true
       Name: Map
-      Topic: /move_base_node/local_costmap/costmap
+      Topic: /move_base/local_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -207,7 +210,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Flat Squares
-      Topic: /robot1/scan
+      Topic: /scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -451,4 +454,4 @@ Window Geometry:
     collapsed: true
   Width: 2331
   X: 339
-  Y: 236
+  Y: 206

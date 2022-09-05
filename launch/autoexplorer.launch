@@ -7,7 +7,7 @@
 
     <!-- launch octomap -->
     <!--include file="$(find octomap_server)/launch/octomap_mapping.launch"/-->
-    <group ns="robot1">
+
     <arg name="namespace" default=""/>
     <arg name="numthreads" default="8"/>
     <arg name="slam_method" default="gtmapping"/> <!-- "gmapping" -->
@@ -26,5 +26,5 @@
     </node-->
     
     <!--node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/-->    
-    </group>
+
 </launch>
