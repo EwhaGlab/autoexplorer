@@ -32,7 +32,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
   - Class: rviz/Tool Properties
     Expanded:
       - /2D Nav Goal1
@@ -111,7 +111,7 @@ Visualization Manager:
       Draw Behind: true
       Enabled: true
       Name: Map
-      Topic: /robot1/map
+      Topic: /map
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -297,23 +297,23 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        robot1/base_footprint:
+        base_footprint:
           Value: false
-        robot1/base_link:
+        base_link:
           Value: true
-        robot1/base_scan:
+        base_scan:
           Value: false
-        robot1/caster_back_link:
+        caster_back_link:
           Value: false
-        robot1/imu_link:
+        imu_link:
           Value: false
-        robot1/map:
-          Value: true
-        robot1/odom:
+        map:
           Value: false
-        robot1/wheel_left_link:
+        odom:
           Value: false
-        robot1/wheel_right_link:
+        wheel_left_link:
+          Value: false
+        wheel_right_link:
           Value: false
       Marker Scale: 8
       Name: TF
@@ -321,19 +321,19 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        robot1/map:
-          robot1/odom:
-            robot1/base_footprint:
-              robot1/base_link:
-                robot1/base_scan:
+        map:
+          odom:
+            base_footprint:
+              base_link:
+                base_scan:
                   {}
-                robot1/caster_back_link:
+                caster_back_link:
                   {}
-                robot1/imu_link:
+                imu_link:
                   {}
-                robot1/wheel_left_link:
+                wheel_left_link:
                   {}
-                robot1/wheel_right_link:
+                wheel_right_link:
                   {}
       Update Interval: 0
       Value: true
@@ -397,14 +397,14 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: robot1/map
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
     - Class: rviz/Interact
       Hide Inactive Objects: true
     - Class: rviz/SetGoal
-      Topic: robot1/move_base_simple/goal
+      Topic: /move_base_simple/goal
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /clicked_point
@@ -427,10 +427,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8647969961166382
+      Pitch: 1.0347970724105835
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.827331066131592
+      Yaw: 4.77733039855957
     Saved: ~
 Window Geometry:
   Displays:
@@ -451,4 +451,4 @@ Window Geometry:
     collapsed: true
   Width: 2331
   X: 339
-  Y: 266
+  Y: 236
