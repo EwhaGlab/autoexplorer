@@ -6,33 +6,34 @@
     #  type: 'clear_costmap_recovery/ClearCostmapRecovery'
       
       
-      # If min_vel_x is too low, then the number of vel samples goes small --> DWA cannot find a valid trajectory to reach a neighboring goal
+      # If min_vel_x is too low, then the number of vel samples goes small --> TPS cannot find a valid trajectory to reach a neighboring goal
       # If their is no valid trajectory, then the robot keeps rotating around at the same position. 
 TrajectoryPlannerROS:
 
 # Robot Configuration Parameters
-  max_vel_x: 2.0
-  min_vel_x: 0.1
+  max_vel_x: 0.22
+  min_vel_x: -0.22
 
-  max_vel_theta:  1.0
-  min_vel_theta: -1.0
+  max_vel_theta:  2.0
+  min_vel_theta: -2.0
   min_in_place_vel_theta: 1.0
 
-  acc_lim_x: 1.0
+  acc_lim_x: 2.5
   acc_lim_y: 0.0
-  acc_lim_theta: 0.6
+  acc_lim_theta: 3.2
 
 # Goal Tolerance Parameters
   xy_goal_tolerance: 0.10
   yaw_goal_tolerance: 0.05
+  latch_xy_goal_tolerance: false
 
 # Differential-drive robot configuration
   holonomic_robot: false
 
 # Forward Simulation Parameters
-  sim_time: 0.8
+  sim_time: 1.5 #0.8
   vx_samples: 20
-  vtheta_samples: 20
+  vtheta_samples: 40
   sim_granularity: 0.05
   
 

@@ -43,8 +43,8 @@ namespace autoexplorer
 {
 
 GlobalPlanningHandler::GlobalPlanningHandler( ):
-robot_base_frame_("base_link"), // was "base_link"
-global_frame_("map"),
+robot_base_frame_("robot1/base_footprint"), // was "base_link"
+global_frame_("robot1/map"),
 mb_initialized(false), mb_allow_unknown(true), mb_visualize_potential(false),
 mf_tolerance(0.0),
 mp_cost_translation_table(NULL)

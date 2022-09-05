@@ -58,12 +58,12 @@ mp_cost_translation_table(NULL)
 	m_nh.param("/autoexplorer/global_width", m_nGlobalMapWidth, 4000) ;
 	m_nh.param("/autoexplorer/global_height", m_nGlobalMapHeight, 4000) ;
 	m_nh.param("/autoexplorer/unreachable_decision_bound", mf_neighoringpt_decisionbound, 0.2f);
-	m_nh.param("/move_base_node/global_costmap/resolution", m_fResolution, 0.05f) ;
+	m_nh.param("/move_base/global_costmap/resolution", m_fResolution, 0.05f) ;
 
 	int _nWeakCompThreshold ;
 	m_nh.param("/autoexplorer/weak_comp_thr", _nWeakCompThreshold, 10);
 	m_nh.param("/autoexplorer/num_downsamples", m_nNumPyrDownSample, 0);
-	m_nh.param("/autoexplorer/frame_id", m_worldFrameId, std::string("map"));
+	m_nh.param("/autoexplorer/frame_id", m_worldFrameId, std::string("robot1/map"));
 	m_nh.param("move_base_node/global_costmap/robot_radius", m_fRobotRadius, 0.3);
 
 	m_nScale = pow(2, m_nNumPyrDownSample);
@@ -85,12 +85,12 @@ mp_cost_translation_table(NULL)
 	m_mapframedataSub  	= m_nh.subscribe("map", 1, &FrontierDetectorDMS::mapdataCallback, this); // kmHan
 	//m_frontierCandSub		= m_nh.subscribe("filtered_shapes", 1, &FrontierDetectorDMS::frontierCandCallback, this);
 	m_currGoalSub 		= m_nh.subscribe("curr_goalpose",1 , &FrontierDetectorDMS::moveRobotCallback, this) ; // kmHan
-	m_globalCostmapSub 	= m_nh.subscribe("move_base_node/global_costmap/costmap", 1, &FrontierDetectorDMS::globalCostmapCallBack, this );
+	m_globalCostmapSub 	= m_nh.subscribe("move_base/global_costmap/costmap", 1, &FrontierDetectorDMS::globalCostmapCallBack, this );
 
 	m_poseSub		   	= m_nh.subscribe("pose", 10, &FrontierDetectorDMS::robotPoseCallBack, this);
 	m_velSub			= m_nh.subscribe("cmd_vel", 10, &FrontierDetectorDMS::robotVelCallBack, this);
 	m_unreachablefrontierSub = m_nh.subscribe("unreachable_posestamped", 1, &FrontierDetectorDMS::unreachablefrontierCallback, this);
-	m_makeplan_client = m_nh.serviceClient<nav_msgs::GetPlan>("move_base_node/make_plan");
+	m_makeplan_client = m_nh.serviceClient<nav_msgs::GetPlan>("move_base/make_plan");
 
 	m_uMapImg  	  = cv::Mat(m_nGlobalMapHeight, m_nGlobalMapWidth, CV_8U, cv::Scalar(127));
 
@@ -947,7 +947,7 @@ ROS_WARN("@unreachablefrontierCallback Registering (%f %f) as the unreachable pt
 	{
 		const std::unique_lock<mutex> lock(mutex_unreachable_points) ;
 		m_unreachable_frontier_set.insert( ufpt ) ;
-		visualization_msgs::Marker viz_marker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD, ufpt.p[0], ufpt.p[1], 0.5, "map",	1.f, 1.f, 0.f);
+		visualization_msgs::Marker viz_marker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD, ufpt.p[0], ufpt.p[1], 0.5, "robot1/map",	1.f, 1.f, 0.f);
 		m_unreachable_points.markers.push_back(viz_marker);
 		m_unreachpointpub.publish( m_unreachable_points );
 		mn_UnreachableFptID++ ;
