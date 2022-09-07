@@ -293,6 +293,102 @@ void FrontierDetectorDMS::robotVelCallBack( const geometry_msgs::Twist::ConstPtr
 	m_robotvel = *msg ;
 }
 
+//int FrontierDetectorDMS::savegridmap( const nav_msgs::OccupancyGrid& gridmap, const string& filename )
+//{
+//}
+
+int FrontierDetectorDMS::savemap( const nav_msgs::OccupancyGrid& map, const string& infofilename, const string& mapfilename )
+{
+	int nwidth  = map.info.width ;
+	int nheight = map.info.height ;
+	float fox = map.info.origin.position.x ;
+	float foy = map.info.origin.position.y ;
+	float fres = map.info.resolution ;
+
+	if( nwidth == 0 || nheight == 0 )
+	{
+		ROS_ERROR("Cannot save incomplete costmap \n");
+		return -1;
+	}
+
+
+	std::ofstream ofs_info( infofilename );
+	std::ofstream ofs_map(mapfilename);
+
+	std::vector<signed char> mapdata =map.data;
+	ofs_info << nwidth << " " << nheight << " " << fox << " " << foy << " " << fres << " " << endl;
+
+	for( int ii=0; ii < nheight; ii++ )
+	{
+		for( int jj=0; jj < nwidth; jj++ )
+		{
+			int dataidx = ii * nwidth + jj ;
+			int val = static_cast<int>( mapdata[ dataidx ] ) ;
+			ofs_map << val << " ";
+		}
+		ofs_map << "\n";
+	}
+	ofs_map.close();
+	return 1;
+}
+
+// save prev
+int FrontierDetectorDMS::saveprevfrontierpoint( const nav_msgs::OccupancyGrid& map, const string& frontierfile )
+{
+
+	int nwidth  = map.info.width ;
+	int nheight = map.info.height ;
+	float fox = map.info.origin.position.x ;
+	float foy = map.info.origin.position.y ;
+	float fres = map.info.resolution ;
+
+	std::ofstream ofs_prevfpts( frontierfile );
+
+	{
+		std::unique_lock<mutex> lock( mutex_prev_frontier_set );
+
+		// append valid previous frontier points by sanity check
+		for (const auto & pi : m_prev_frontier_set)
+		{
+			int ngmx = static_cast<int>( (pi.p[0] - fox) / fres ) ;
+			int ngmy = static_cast<int>( (pi.p[1] - fox) / fres ) ;
+
+			ofs_prevfpts << pi.p[0] << " " << pi.p[1] << " " << ngmx << " " << ngmy << 1 << " " << 1 << "\n" ;
+		}
+	}
+	ofs_prevfpts.close();
+
+
+	return 1;
+}
+
+
+int FrontierDetectorDMS::savefrontiercands( const nav_msgs::OccupancyGrid& map, const vector<FrontierPoint>& voFrontierPoints, const string& frontierfile )
+{
+
+	int nwidth  = map.info.width ;
+	int nheight = map.info.height ;
+	float fox = map.info.origin.position.x ;
+	float foy = map.info.origin.position.y ;
+	float fres = map.info.resolution ;
+
+	std::ofstream ofs_currfpts( frontierfile );
+
+	for(const auto & fpt : voFrontierPoints)
+	{
+		ofs_currfpts <<
+		fpt.GetCorrectedWorldPosition().x << " " << fpt.GetCorrectedWorldPosition().y << " " <<
+		fpt.GetCorrectedGridmapPosition().x << " " << fpt.GetCorrectedGridmapPosition().y << " " <<
+		fpt.GetCMConfidence() << " " << fpt.GetGMConfidence() << "\n" ;
+	}
+	ofs_currfpts.close();
+
+	return 1;
+}
+
+
+
+
 int FrontierDetectorDMS::frontier_summary( const vector<FrontierPoint>& voFrontierCurrFrame )
 {
 	ROS_INFO("\n========================================================================== \n"
@@ -657,9 +753,24 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	}
 
 
-
 // print frontier list
-	frontier_summary( voFrontierCands );
+// save frontier info ;
+	static int fileidx = 0;
+	std::stringstream ssfptfile, ssmapfile ;
+	ssfptfile << "fpt" << std::setw(4) << std::setfill('0') << fileidx << ".txt" ;
+	ssmapfile << "map" << std::setw(4) << std::setfill('0') << fileidx << ".txt";
+	std::string resdir("/home/hankm/results/explore_bench/");
+	std::string strprevfrontierfile = resdir + "prev_" + ssfptfile.str() ;
+	std::string strcurrfrontierfile = resdir + "curr_" + ssfptfile.str() ;
+	std::string strmapfile			= resdir + ssmapfile.str() ;
+	std::string strmapinfofile		= resdir + "mapinfo_" + ssmapfile.str();
+	//frontier_summary( voFrontierCands );
+	savemap( globalcostmap, strmapinfofile, strmapfile );
+	saveprevfrontierpoint( m_gridmap, strprevfrontierfile ) ;
+	savefrontiercands( m_gridmap, voFrontierCands, strcurrfrontierfile ) ;
+	fileidx++;
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 	if( voFrontierCands.size() == 0 )
 	{

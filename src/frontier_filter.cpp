@@ -152,7 +152,7 @@ static int cmapidx = 0;
 				//int dataidx = px_c + cidx + (py_c + ridx) * width ;
 				int dataidx = ridx * width + cidx ;
 //ROS_INFO("ind rix cidx %d %d %d ", idx, ridx, cidx);
-				cost = Data[dataidx] ; // orig 0 ~ 254 --> mapped to 0 ~ 100
+				cost = Data[dataidx] ; // 0 ~ 254 --> mapped to 0 ~ 100
 				//if(cost >= 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
 				if(cost >  m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
 				{
@@ -173,7 +173,7 @@ static int cmapidx = 0;
 
 		}
 		float fcost = static_cast<float>(totcost) / static_cast<float>( cellcnt )  ;
-		float fcm_conf = 1.f - fcost ;
+		float fcm_conf = 1.f - std::sqrt( fcost ) ;
 		voFrontierCandidates[idx].SetCostmapConfidence(fcm_conf);
 
 		ROS_DEBUG_NAMED("autoexplorer","pt cm conf: %d %d %f (%d/%d)\n", px_c, py_c, fcm_conf, totcost, cellcnt);

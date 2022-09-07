@@ -95,8 +95,9 @@ public:
 	cv::Point world2gridmap( cv::Point2f img_pt_roi );
 	cv::Point2f gridmap2world( cv::Point grid_pt );
 
-	int savegridmap( const nav_msgs::OccupancyGrid& gridmap, const string& filename ) ;
-	int savecostmap( const nav_msgs::OccupancyGrid& costmap, const string& filename ) ;
+	int savemap( const nav_msgs::OccupancyGrid& map, const string& infofilename, const string& mapfilename ) ;
+	int saveprevfrontierpoint( const nav_msgs::OccupancyGrid& map, const string& frontierfile ) ;
+	int savefrontiercands( const nav_msgs::OccupancyGrid& map, const vector<FrontierPoint>& voFrontierPoints, const string& frontierfile ) ;
 
 	int frontier_summary( const vector<FrontierPoint>& voFrontierCurrFrame );
 

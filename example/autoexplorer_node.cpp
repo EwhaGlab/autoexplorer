@@ -137,7 +137,7 @@ int main(int argc, char** argv)
 		  ROS_INFO("Setting num of thread %d \n", numthreads);
 		  front_detector_dms.SetNumThreads(numthreads);
 		  ros::spinOnce();
-		  front_detector_dms.initmotion();
+		  //front_detector_dms.initmotion();
 		  front_detector_dms.SetInitMotionCompleted();
 		  while( !front_detector_dms.isDone() && ros::ok() )
 		  {
