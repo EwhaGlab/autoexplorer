@@ -20,11 +20,15 @@
     
     <!--include file="$(find autoexplorer)/launch/includes/explore_bench-corridor.launch"/-->
     
-	<node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" args="$(arg slam_method) $(arg numthreads)" output="screen"/>
+    <node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" args="$(arg slam_method) $(arg numthreads)" output="screen"/>
+    <include file="$(find path_tracker)/launch/path_tracker.launch" output="screen"/>
     <!--node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" output="screen">
         <param name="frame_id" type="string" value="map" />
     </node-->
     
-    <!--node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/-->    
+    <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/>    
 
+    <!-- bag -->
+    <node pkg="rosbag" type="record" name="rosbag_record_cam" args="record -o /home/hankm/results/explore_bench/bag/"/>
+    
 </launch>

@@ -236,6 +236,7 @@ bool FrontierDetectorDMS::isValidPlan( vector<cv::Point>  )
 
 void FrontierDetectorDMS::publishDoneExploration( )
 {
+	ROS_INFO("The exploration task is done... publishing -done- msg" );
 	std_msgs::Bool done_task;
 	done_task.data = true;
 	m_donepub.publish( done_task );
@@ -755,6 +756,9 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 
 // print frontier list
 // save frontier info ;
+	ROS_INFO(" The num of tot frontier points left :  %d\n", m_curr_frontier_set.size() );
+	//frontier_summary( voFrontierCands );
+
 	static int fileidx = 0;
 	std::stringstream ssfptfile, ssmapfile ;
 	ssfptfile << "fpt" << std::setw(4) << std::setfill('0') << fileidx << ".txt" ;
@@ -764,7 +768,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	std::string strcurrfrontierfile = resdir + "curr_" + ssfptfile.str() ;
 	std::string strmapfile			= resdir + ssmapfile.str() ;
 	std::string strmapinfofile		= resdir + "mapinfo_" + ssmapfile.str();
-	//frontier_summary( voFrontierCands );
+
 	savemap( globalcostmap, strmapinfofile, strmapfile );
 	saveprevfrontierpoint( m_gridmap, strprevfrontierfile ) ;
 	savefrontiercands( m_gridmap, voFrontierCands, strcurrfrontierfile ) ;
@@ -772,7 +776,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-	if( voFrontierCands.size() == 0 )
+	if( m_curr_frontier_set.empty() )
 	{
 		ROS_WARN("no valid frontiers \n");
 		mb_explorationisdone = true;
@@ -875,7 +879,7 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 			geometry_msgs::PoseStamped goal = StampedPosefromSE2( cvgoalcands[fptidx].x , cvgoalcands[fptidx].y, 0.f );
 			goal.header.frame_id = m_worldFrameId ;
 	//ROS_INFO("goal: %f %f \n", fpoints[fptidx].x, fpoints[fptidx].y );
-			bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
+			bool bplansuccess = o_gph.makePlan(tid, fupperbound, false, start, goal, plan, fendpot);
 
 	//ROS_INFO("[tid %d: [%d] ] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, bplansuccess, fptidx,
 	//										  start.pose.position.x, start.pose.position.y,

@@ -4,7 +4,7 @@ autoexplorer:
     costmap_conf_thr:       0.8 # 0.4 (fetch)   # 0.1 (tesse virutal scenario)  # the higher the more strict  
     gridmap_conf_thr:       0.1 # 0.6 (fetch)   # 0.8 for (gmapping)            # the higher the more strict
     occupancy_thr:          40      # 0 ~ 100
-    lethal_cost_thr:        60 #1   # 0 ~ 100  uk= -1   
+    lethal_cost_thr:        40 #1   # 0 ~ 100  uk= -1   
     global_width:           4000 #8000
     global_height:          4000 #8000
     weak_comp_thr:          10

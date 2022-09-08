@@ -182,12 +182,14 @@ set_target_properties( autoexplorer PROPERTIES
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node example/autoexplorer_node.cpp)
 add_executable(twist2twiststamped_node example/twist2twiststamped_node.cpp)
+#add_executable(travel_tracker example/travel_tracker.py)
 
 #target_compile_options(autoexplorer PRIVATE ${OpenMP_FLAGS})
 #add_dependencies(autoexplorer ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME}_node autoexplorer)
 target_link_libraries(twist2twiststamped_node autoexplorer)
+#target_link_libraries(travel_tracker autoexplorer)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -223,6 +225,10 @@ target_link_libraries(twist2twiststamped_node autoexplorer)
 install(TARGETS ${PROJECT_NAME}_node
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+#install(TARGETS travel_tracker
+#    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 install(TARGETS twist2twiststamped_node
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
