@@ -879,7 +879,7 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 			geometry_msgs::PoseStamped goal = StampedPosefromSE2( cvgoalcands[fptidx].x , cvgoalcands[fptidx].y, 0.f );
 			goal.header.frame_id = m_worldFrameId ;
 	//ROS_INFO("goal: %f %f \n", fpoints[fptidx].x, fpoints[fptidx].y );
-			bool bplansuccess = o_gph.makePlan(tid, fupperbound, false, start, goal, plan, fendpot);
+			bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
 
 	//ROS_INFO("[tid %d: [%d] ] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, bplansuccess, fptidx,
 	//										  start.pose.position.x, start.pose.position.y,
