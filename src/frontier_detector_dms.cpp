@@ -251,7 +251,7 @@ void FrontierDetectorDMS::publishResetGazebo( )
 
 void FrontierDetectorDMS::globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 {
-	ROS_INFO("@globalCostmapCallBack \n");
+	//ROS_INFO("@globalCostmapCallBack \n");
 	const std::unique_lock<mutex> lock(mutex_costmap);
 //ROS_INFO("cm callback is called \n");
 	m_globalcostmap = *msg ;
@@ -427,7 +427,7 @@ void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPt
 
 ros::WallTime	mapCallStartTime = ros::WallTime::now();
 
-	ROS_INFO("@ mapdataCallback() ");
+	//ROS_INFO("@ mapdataCallback() ");
 
 	if(!m_isInitMotionCompleted)
 	{

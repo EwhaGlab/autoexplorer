@@ -65,7 +65,7 @@
     <param name="local_costmap/robot_base_frame" value="base_footprint"/>
   </node-->  
   
-  <!--arg name="model" default="burger" doc="model type [burger, waffle, waffle_pi]"/>
+  <arg name="model" default="burger" doc="model type [burger, waffle, waffle_pi]"/>
   <arg name="cmd_vel_topic" default="cmd_vel" />
   <arg name="odom_topic" default="odom" />
   <arg name="move_forward_only" default="false"/>
@@ -92,14 +92,14 @@
     <param name="local_costmap/laser_scan_sensor/topic" value="scan"/>
     <param name="local_costmap/obstacle_layer/laser_scan_sensor/topic" value="scan"/>
     <param name="TebLocalPlannerROS/map_frame" value="odom"/>
-  </node-->
-  
-  <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
+  </node>
+
+  <!-- move_base -->
+  <!--arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
   <arg name="cmd_vel_topic" default="/cmd_vel" />
   <arg name="odom_topic" default="odom" />
   <arg name="move_forward_only" default="false"/>
 
-  <!-- move_base -->
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
     <rosparam file="$(find turtlebot3_navigation)/param/costmap_common_params_$(arg model).yaml" command="load" ns="global_costmap" />
@@ -111,7 +111,7 @@
     <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
     <remap from="odom" to="$(arg odom_topic)"/>
     <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
-  </node>
+  </node-->
   
   
 </launch>
