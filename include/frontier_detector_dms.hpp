@@ -122,7 +122,39 @@ public:
 		return outPose;
 	}
 
-	inline bool frontier_sanity_check( int nx, int ny, int nwidth, const std::vector<signed char>& gmdata )
+	inline bool frontier_sanity_check( int nx, int ny, int nwidth, const std::vector<signed char>& cmdata )
+	{
+		// 0	1	2
+		// 3		5
+		// 6	7	8
+
+		int i0 = nwidth * (ny - 1) 	+	nx - 1 ;
+		int i1 = nwidth * (ny - 1) 	+	nx 		;
+		int i2 = nwidth * (ny - 1) 	+	nx + 1	;
+		int i3 = nwidth * ny			+	nx - 1 ;
+		int i5 = nwidth * ny			+	nx + 1 ;
+		int i6 = nwidth * (ny + 1)	+	nx - 1 ;
+		int i7 = nwidth * (ny + 1)	+	nx		;
+		int i8 = nwidth * (ny + 1)	+	nx + 1 ;
+
+		//ROS_INFO("width i0 val : %d %d %d\n", nwidth, i0, gmdata[i0] );
+		if( cmdata[i0] > m_nlethal_cost_thr || cmdata[i1] > m_nlethal_cost_thr || cmdata[i2] > m_nlethal_cost_thr || cmdata[i3] > m_nlethal_cost_thr ||
+			cmdata[i5] > m_nlethal_cost_thr || cmdata[i6] > m_nlethal_cost_thr || cmdata[i7] > m_nlethal_cost_thr || cmdata[i8] > m_nlethal_cost_thr )
+		{
+			return false;
+		}
+
+		if( cmdata[i0] < 0 || cmdata[i1] < 0 || cmdata[i2] < 0 || cmdata[i3] < 0 ||  cmdata[i5] < 0 || cmdata[i6] < 0 || cmdata[i7] < 0 || cmdata[i8] < 0 )
+		{
+			return true ;
+		}
+		else
+		{
+			return false ;
+		}
+	}
+
+	inline bool frontier__check( int nx, int ny, int nwidth, const std::vector<signed char>& gmdata )
 	{
 		// 0	1	2
 		// 3		5

@@ -743,9 +743,9 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		// append valid previous frontier points by sanity check
 		for (const auto & pi : m_prev_frontier_set)
 		{
-			int ngmx = static_cast<int>( (pi.p[0] - m_gridmap.info.origin.position.x) / gmresolution ) ;
-			int ngmy = static_cast<int>( (pi.p[1] - m_gridmap.info.origin.position.y) / gmresolution ) ;
-			if( frontier_sanity_check(ngmx, ngmy, gmwidth, gmdata) )
+			int ncmx = static_cast<int>( (pi.p[0] - globalcostmap.info.origin.position.x) / cmresolution ) ;
+			int ncmy = static_cast<int>( (pi.p[1] - globalcostmap.info.origin.position.y) / cmresolution ) ;
+			if( frontier_sanity_check(ncmx, ncmy, cmwidth, cmdata) )
 			{
 				pointset pnew( pi.p[0], pi.p[1] );
 				m_curr_frontier_set.insert( pnew );
@@ -759,20 +759,22 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	ROS_INFO(" The num of tot frontier points left :  %d\n", m_curr_frontier_set.size() );
 	//frontier_summary( voFrontierCands );
 
-	static int fileidx = 0;
-	std::stringstream ssfptfile, ssmapfile ;
-	ssfptfile << "fpt" << std::setw(4) << std::setfill('0') << fileidx << ".txt" ;
-	ssmapfile << "map" << std::setw(4) << std::setfill('0') << fileidx << ".txt";
-	std::string resdir("/home/hankm/results/explore_bench/");
-	std::string strprevfrontierfile = resdir + "prev_" + ssfptfile.str() ;
-	std::string strcurrfrontierfile = resdir + "curr_" + ssfptfile.str() ;
-	std::string strmapfile			= resdir + ssmapfile.str() ;
-	std::string strmapinfofile		= resdir + "mapinfo_" + ssmapfile.str();
 
-	savemap( globalcostmap, strmapinfofile, strmapfile );
-	saveprevfrontierpoint( m_gridmap, strprevfrontierfile ) ;
-	savefrontiercands( m_gridmap, voFrontierCands, strcurrfrontierfile ) ;
-	fileidx++;
+
+//	static int fileidx = 0;
+//	std::stringstream ssfptfile, ssmapfile ;
+//	ssfptfile << "fpt" << std::setw(4) << std::setfill('0') << fileidx << ".txt" ;
+//	ssmapfile << "map" << std::setw(4) << std::setfill('0') << fileidx << ".txt";
+//	std::string resdir("/home/hankm/results/explore_bench/");
+//	std::string strprevfrontierfile = resdir + "prev_" + ssfptfile.str() ;
+//	std::string strcurrfrontierfile = resdir + "curr_" + ssfptfile.str() ;
+//	std::string strmapfile			= resdir + ssmapfile.str() ;
+//	std::string strmapinfofile		= resdir + "mapinfo_" + ssmapfile.str();
+//
+//	savemap( globalcostmap, strmapinfofile, strmapfile );
+//	saveprevfrontierpoint( m_gridmap, strprevfrontierfile ) ;
+//	savefrontiercands( m_gridmap, voFrontierCands, strcurrfrontierfile ) ;
+//	fileidx++;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
