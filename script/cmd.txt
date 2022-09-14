@@ -1,0 +1,12 @@
+python exploration_metric_for_single_robot.py ~/nav_ws/src/Explore-Bench/exploration_benchmark/blueprints/corner.pgm ~/nav_ws/src/Explore-Bench/exploration_benchmark/blueprints/corner.yaml
+
+python exploration_metric_for_single_robot.py ~/nav_ws/src/Explore-Bench/exploration_benchmark/blueprints/corridor.pgm ~/nav_ws/src/Explore-Bench/exploration_benchmark/blueprints/corridor.yaml
+
+python exploration_metric_for_single_robot.py ~/nav_ws/src/Explore-Bench/exploration_benchmark/blueprints/loop.pgm ~/nav_ws/src/Explore-Bench/exploration_benchmark/blueprints/loop.yaml
+
+python exploration_metric_for_single_robot.py ~/nav_ws/src/Explore-Bench/exploration_benchmark/blueprints/loop_with_corridor.pgm ~/nav_ws/src/Explore-Bench/exploration_benchmark/blueprints/loop_with_corridor.yaml
+
+python exploration_metric_for_single_robot.py ~/nav_ws/src/Explore-Bench/exploration_benchmark/blueprints/room.pgm ~/nav_ws/src/Explore-Bench/exploration_benchmark/blueprints/room.yaml
+
+python exploration_metric_for_single_robot.py ~/nav_ws/src/Explore-Bench/exploration_benchmark/blueprints/room_with_corner.pgm ~/nav_ws/src/Explore-Bench/exploration_benchmark/blueprints/room_with_corner.yaml
+

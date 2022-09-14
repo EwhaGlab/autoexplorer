@@ -81,6 +81,8 @@ mp_cost_translation_table(NULL)
 	m_unreachpointpub = m_nh.advertise<visualization_msgs::MarkerArray>("unreachable_shapes", 10);
 	m_velpub		= m_nh.advertise<geometry_msgs::Twist>("cmd_vel",10);
 	m_donepub		= m_nh.advertise<std_msgs::Bool>("exploration_is_done",1);
+	m_startmsgPub	= m_nh.advertise<std_msgs::Bool>("begin_exploration",1);
+
 
 	m_mapframedataSub  	= m_nh.subscribe("map", 1, &FrontierDetectorDMS::mapdataCallback, this); // kmHan
 	//m_frontierCandSub		= m_nh.subscribe("filtered_shapes", 1, &FrontierDetectorDMS::frontierCandCallback, this);
@@ -139,6 +141,10 @@ mp_cost_translation_table(NULL)
 	mn_FrontierID = 0;
 	mn_UnreachableFptID = 0;
 	ROS_INFO("autoexplorer has initialized \n");
+
+	std_msgs::Bool begin_task;
+	begin_task.data = true;
+	m_startmsgPub.publish( begin_task );
 }
 
 FrontierDetectorDMS::~FrontierDetectorDMS()
@@ -239,7 +245,15 @@ void FrontierDetectorDMS::publishDoneExploration( )
 	ROS_INFO("The exploration task is done... publishing -done- msg" );
 	std_msgs::Bool done_task;
 	done_task.data = true;
+
+	m_frontier_points = visualization_msgs::MarkerArray() ;
+	m_markerfrontierpub.publish(m_frontier_points);
+	m_exploration_goal = visualization_msgs::Marker() ;
+	m_makergoalpub.publish(m_exploration_goal); // for viz
+
 	m_donepub.publish( done_task );
+
+	ros::spinOnce();
 }
 
 void FrontierDetectorDMS::publishResetGazebo( )
@@ -453,46 +467,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		gmwidth = m_gridmap.info.width ;
 	}
 
-//	bool bis_target_covered = false ;
-//	// The 1st thing is to check whether the current target goal is covered or not
-//	{
-//		const std::unique_lock<mutex> lock(mutex_currgoal) ;
-//		float fx_world = m_targetgoal.pose.pose.position.x ;
-//		float fy_world = m_targetgoal.pose.pose.position.y ;
-//
-//		float fXstart = m_gridmap.info.origin.position.x ; // world coordinate in the costmap
-//		float fYstart = m_gridmap.info.origin.position.y ; // world coordinate in the costmap
-//
-//		std::vector<signed char> Data=m_gridmap.data;
-//		int ngmx = static_cast<int>( (fx_world - fXstart) / gmresolution ) ;
-//		int ngmy = static_cast<int>( (fy_world - fYstart) / gmresolution ) ;
-//		int ngmwidth = static_cast<int> (gmwidth) ;
-//		if( !frontier_sanity_check(ngmx, ngmy, ngmwidth, Data) )
-//			bis_target_covered = true ;
-//	}
-//
-//	// if the target is not covered, then we don't need to proceed any further.
-//	// if the target is covered... we need to calculate new frontiers
-//	ROS_INFO("@mapdataCallback() The robot is in in state [%s]", robot_state[m_eRobotState+1]);
-//	if( !bis_target_covered )
-//	{
-//		ROS_INFO("curr target goal (%f %f) has not covered yet \n", m_exploration_goal.points.front().x, m_exploration_goal.points.front().y);
-//
-//		if( m_eRobotState == ROBOT_STATE::ROBOT_IS_NOT_MOVING )
-//		{
-//			// we've reached the goal but for some reason the goal is not covered.. we need to replan to the target to move the robot base.
-//			ROS_ERROR("The goal is reached... but for some reason its neighboring cells are not covered. Proceeding to the fpt detection + planning procedure \n");
-//		}
-//		else
-//		{
-//			// approaching to the target...
-//			return ;
-//		}
-//	}
-//	else // the target goal is reached
-//	{
-//		ROS_INFO("The target goal is covered \n");
-//	}
 
 
 	{
@@ -781,6 +755,28 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	if( m_curr_frontier_set.empty() )
 	{
 		ROS_WARN("no valid frontiers \n");
+
+		// refresh fpts in Rviz
+		visualization_msgs::MarkerArray ftmarkers_old = m_frontier_points ;
+		for(size_t idx=0; idx < ftmarkers_old.markers.size(); idx++)
+			ftmarkers_old.markers[idx].action = visualization_msgs::Marker::DELETE; //SetVizMarker( idx, visualization_msgs::Marker::DELETE, 0.f, 0.f, 0.5, "map", 0.f, 1.f, 0.f );
+		m_markerfrontierpub.publish(ftmarkers_old);
+		m_frontier_points.markers.resize(0);
+
+		// publish fpts to Rviz
+		for (const auto & pi : m_curr_frontier_set)
+		{
+			visualization_msgs::Marker vizmarker = SetVizMarker( mn_FrontierID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], 0.5, m_worldFrameId, 0.f, 1.f, 0.f );
+			m_frontier_points.markers.push_back(vizmarker);
+			mn_FrontierID++ ;
+		}
+		m_markerfrontierpub.publish(m_frontier_points);
+
+		// publish goal to Rviz
+		m_exploration_goal = SetVizMarker( 0, visualization_msgs::Marker::ADD, m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y, 0.7,
+				m_worldFrameId,	1.f, 0.f, 1.f, 1.f);
+		m_makergoalpub.publish(m_exploration_goal); // for viz
+
 		mb_explorationisdone = true;
 		return;
 	}

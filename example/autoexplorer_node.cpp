@@ -126,6 +126,7 @@ int main(int argc, char** argv)
 		  }
 		  //front_detector_dms.publishDone();
 		  front_detector_dms.publishDoneExploration();
+		  ros::Duration(0.5).sleep() ;
 		  break;
   	  }
 
@@ -152,6 +153,7 @@ int main(int argc, char** argv)
 		  }
 		  //front_detector_dms.publishDone();
 		  front_detector_dms.publishDoneExploration();
+		  ros::Duration(0.5).sleep() ;
 		  break;
   	  }
 

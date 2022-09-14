@@ -12,7 +12,6 @@ Panels:
         - /TF1/Frames1
         - /MarkerArray2
         - /Marker2
-        - /Marker2/Status1
       Splitter Ratio: 0.3347953259944916
     Tree Height: 661
   - Class: rviz/Selection
@@ -272,39 +271,6 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        base_scan:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        caster_back_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wheel_left_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wheel_right_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -447,16 +413,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 37.03516387939453
+      Distance: 47.008155822753906
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.6062573790550232
-        Y: -4.270411014556885
-        Z: 0.10587777942419052
+        X: 10.156503677368164
+        Y: -2.4346683025360107
+        Z: 0.1076662689447403
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -486,4 +452,4 @@ Window Geometry:
     collapsed: true
   Width: 2829
   X: 862
-  Y: 261
+  Y: 171
