@@ -159,6 +159,7 @@ public:
 	bool isReachable() const { return mb_isreachable; }
 
 	cv::Point GetInitGridmapPosition()		const {return mn_initposition_gm; };
+	cv::Point2f GetInitWorldPosition()		const {return mf_initposition_w; };
 	cv::Point GetCorrectedGridmapPosition() const {return mn_correctedposition_gm; };
 	cv::Point2f GetCorrectedWorldPosition() 	const {return mf_correctedposition_w; };
 

@@ -256,6 +256,10 @@ install(TARGETS twist2twiststamped_node
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
 
+catkin_install_python(PROGRAMS script/exploration_metric_for_single_robot.py
+                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+
 install(DIRECTORY lib/
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/../
   PATTERN ".git" EXCLUDE)

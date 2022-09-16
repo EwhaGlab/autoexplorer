@@ -209,7 +209,7 @@ protected:
 
 	ros::Subscriber 	m_mapsub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, m_globalCostmapUpdateSub, m_frontierCandSub,
 						m_currGoalSub, m_globalplanSub, m_unreachablefrontierSub ;
-	ros::Publisher 	m_targetspub, m_markercandpub, m_markerfrontierpub,
+	ros::Publisher 	m_targetspub, m_markercandpub, m_markerfrontierpub, m_markerfrontierregionPub,
 						m_makergoalpub, m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub, m_resetgazebopub, m_startmsgPub ;
 
 	int32_t mn_FrontierID, mn_UnreachableFptID ;

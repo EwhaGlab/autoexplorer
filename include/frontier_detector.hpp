@@ -249,6 +249,7 @@ public:
 
 		viz_marker.scale.x= fscale;
 		viz_marker.scale.y= fscale;
+		viz_marker.scale.z= fscale;
 
 		viz_marker.color.r = fR;
 		viz_marker.color.g = fG;

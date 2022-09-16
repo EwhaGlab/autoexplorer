@@ -78,7 +78,7 @@ def callback(data):
             print("T_95: ", curr_time - start_time)
             achieve_95 = True
 
-        if exploration_rate >= 0.99:
+        if exploration_rate >= 0.97:
             print("exploration ends!")
             print("T_total: ", curr_time - start_time)
             # # compute coverage std

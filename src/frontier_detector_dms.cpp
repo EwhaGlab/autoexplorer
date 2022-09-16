@@ -64,7 +64,7 @@ mp_cost_translation_table(NULL)
 	m_nh.param("/autoexplorer/weak_comp_thr", _nWeakCompThreshold, 10);
 	m_nh.param("/autoexplorer/num_downsamples", m_nNumPyrDownSample, 0);
 	m_nh.param("/autoexplorer/frame_id", m_worldFrameId, std::string("map"));
-	m_nh.param("move_base/global_costmap/robot_radius", m_fRobotRadius, 0.3);
+	m_nh.param("move_base/global_costmap/robot_radius", m_fRobotRadius, 0.15); // 0.3 for fetch
 
 	m_nScale = pow(2, m_nNumPyrDownSample);
 	m_frontiers_region_thr = _nWeakCompThreshold / m_nScale ;
@@ -78,6 +78,7 @@ mp_cost_translation_table(NULL)
 	m_makergoalpub = m_nh.advertise<visualization_msgs::Marker>("curr_goal_shape",10);
 	m_markercandpub = m_nh.advertise<visualization_msgs::MarkerArray>("detected_shapes", 10);
 	m_markerfrontierpub = m_nh.advertise<visualization_msgs::MarkerArray>("filtered_shapes", 10);
+	m_markerfrontierregionPub = m_nh.advertise<visualization_msgs::Marker>("FR_shapes", 1);
 	m_unreachpointpub = m_nh.advertise<visualization_msgs::MarkerArray>("unreachable_shapes", 10);
 	m_velpub		= m_nh.advertise<geometry_msgs::Twist>("cmd_vel",10);
 	m_donepub		= m_nh.advertise<std_msgs::Bool>("exploration_is_done",1);
@@ -176,8 +177,8 @@ ROS_INFO("+++++++++++++++++ end of the init motion ++++++++++++++\n");
 
 cv::Point2f FrontierDetectorDMS::gridmap2world( cv::Point img_pt_roi  )
 {
-	float fgx =  static_cast<float>(img_pt_roi.x) * m_fResolution + m_gridmap.info.origin.position.x  ;
-	float fgy =  static_cast<float>(img_pt_roi.y) * m_fResolution + m_gridmap.info.origin.position.y  ;
+	float fgx =  static_cast<float>(img_pt_roi.x) * m_gridmap.info.resolution + m_gridmap.info.origin.position.x  ;
+	float fgy =  static_cast<float>(img_pt_roi.y) * m_gridmap.info.resolution + m_gridmap.info.origin.position.y  ;
 
 	return cv::Point2f( fgx, fgy );
 }
@@ -440,7 +441,6 @@ void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPt
 {
 
 ros::WallTime	mapCallStartTime = ros::WallTime::now();
-
 	//ROS_INFO("@ mapdataCallback() ");
 
 	if(!m_isInitMotionCompleted)
@@ -466,8 +466,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		gmheight = m_gridmap.info.height ;
 		gmwidth = m_gridmap.info.width ;
 	}
-
-
 
 	{
 		const std::unique_lock<mutex> lock(mutex_costmap);
@@ -583,6 +581,16 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		drawContours( dst, contours, idx, color, cv::FILLED, 8, hierarchy );
 	}
 
+	// To publish FR to Rviz
+	FrontierPoint oFRpoint( cv::Point(contours[0][0].x, contours[0][0].y), gmheight, gmwidth, m_gridmap.info.origin.position.y, m_gridmap.info.origin.position.x,
+						   gmresolution, m_nNumPyrDownSample );
+
+	visualization_msgs::Marker vizfrontier_regions;
+	vizfrontier_regions = SetVizMarker( 0, visualization_msgs::Marker::ADD, oFRpoint.GetInitWorldPosition().x, oFRpoint.GetInitWorldPosition().y, 0.1,
+			m_worldFrameId,	1.f, 0.f, 0.f, 0.1);
+	vizfrontier_regions.type = visualization_msgs::Marker::POINTS;
+
+	geometry_msgs::Point point_w;
 	vector<cv::Point2f> fcents;
 	for(int i=0; i < contours.size(); i++)
 	{
@@ -591,8 +599,17 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		vector<cv::Point> contour = contours[i];
 		for( int j=0; j < contour.size(); j++)
 		{
+
+//			FrontierPoint oFRpoint( cv::Point(contour[j].x-ROI_OFFSET, contour[j].y-ROI_OFFSET), gmheight, gmwidth, m_gridmap.info.origin.position.y, m_gridmap.info.origin.position.x,
+//								   gmresolution, m_nNumPyrDownSample );
+//
+//			point_w.x = oFRpoint.GetInitWorldPosition().x ;
+//			point_w.y = oFRpoint.GetInitWorldPosition().y  ;
+//			vizfrontier_regions.points.push_back( point_w );
+
 			fx += static_cast<float>( contour[j].x ) ;
 			fy += static_cast<float>( contour[j].y ) ;
+
 			fcnt += 1.0;
 		}
 		fx = fx/fcnt ;
@@ -922,6 +939,9 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 	m_markerfrontierpub.publish(ftmarkers_old);
 	m_frontier_points.markers.resize(0);
 
+	// publish fpt regions to Rviz
+	m_markerfrontierregionPub.publish(vizfrontier_regions);
+
 	// publish fpts to Rviz
 	for (const auto & pi : m_curr_frontier_set)
 	{
@@ -935,6 +955,7 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 	m_exploration_goal = SetVizMarker( 0, visualization_msgs::Marker::ADD, m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y, 0.7,
 			m_worldFrameId,	1.f, 0.f, 1.f, 1.f);
 	m_makergoalpub.publish(m_exploration_goal); // for viz
+
 
 	{
 		const std::unique_lock<mutex> lock(mutex_robot_state) ;
