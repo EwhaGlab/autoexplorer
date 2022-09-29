@@ -104,6 +104,7 @@ public:
 
 	~FrontierPoint(){} ;
 
+	void SetFrontierRegion( std::vector<cv::Point> inpoints ){ mn_frontier_region = inpoints; }
 	void SetCostmapConfidence( float fconfidence){ mf_costmap_confidence = fconfidence ; }
 	void SetGridmapConfidence( float fconfidence){ mf_gridmap_confidence = fconfidence ; }
 	float GetCMConfidence() const { return mf_costmap_confidence; }
@@ -138,6 +139,11 @@ public:
 		mf_correctedposition_w = gridmap2world( mn_correctedposition_gm  );
 	}
 
+	void SetFrontierFlag( const float& fcm_conf, const float& fgm_conf, const bool& mb_isptcovered )
+	{
+		if( mf_gridmap_confidence < fgm_conf || mf_costmap_confidence < fcm_conf || mb_isptcovered)
+			mb_isfrontierpoint = false;
+	}
 
 	void SetFrontierFlag( const float& fcm_conf, const float& fgm_conf)
 	{
@@ -163,6 +169,21 @@ public:
 	cv::Point GetCorrectedGridmapPosition() const {return mn_correctedposition_gm; };
 	cv::Point2f GetCorrectedWorldPosition() 	const {return mf_correctedposition_w; };
 
+	void saveFrontierInfo( std::string strfilename )
+	{
+		std::ofstream ofs( strfilename ) ;
+
+		ofs << mn_initposition_gm.x << " " << mn_initposition_gm.y << std::endl;
+		ofs << mf_initposition_w.x  << " " << mf_initposition_w.y  << std::endl;
+		ofs << "\n" ;
+
+		for( int idx=0; idx < mn_frontier_region.size(); idx++ )
+		{
+			ofs << mn_frontier_region[idx].x << " " << mn_frontier_region[idx].y << std::endl;
+		}
+		ofs.close();
+	}
+
 private:
 
 	//bool m_bcostmap_consent, m_bgridmap_consent;
@@ -179,8 +200,11 @@ private:
 	cv::Point mn_correctedposition_gm ;		// on image (gm/cm) coord
 	int8_t m_ePointstate;
 
+	std::vector<cv::Point> mn_frontier_region ;
+
 	bool mb_isfrontierpoint ;
 	bool mb_isreachable ;
+	bool mb_isptcovered ;
 	int mn_height;
 	int mn_width;
 	int mn_globalcentx ;

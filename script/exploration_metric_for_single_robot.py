@@ -24,8 +24,9 @@ odom_log = []
 path_length_log = []
 time_log = []
 end_flag = False
-achieve_90 = False
 achieve_80 = False
+achieve_85 = False
+achieve_90 = False
 achieve_95 = False
 start_time = 0
 
@@ -46,10 +47,10 @@ def callback(data):
     # -1:unkown 0:free 100:obstacle
     msg_secs = data.header.stamp.secs
     now = rospy.get_time()
-    if (msg_secs + 1 < now):
+    if (msg_secs + 3 < now):
         return
     
-    global end_flag, start_time, achieve_80, achieve_90, achieve_95
+    global end_flag, start_time, achieve_80, achieve_85, achieve_90, achieve_95
     if not end_flag:
         gridmap = np.array(data.data).reshape((data.info.height, data.info.width))
         explored_map = (gridmap != -1).astype(int)
@@ -68,6 +69,11 @@ def callback(data):
             print("T_80: {}".format( curr_time - start_time) )
             achieve_80 = True
             
+        if exploration_rate >= 0.85 and (not achieve_85):
+            print("achieve 0.85 coverage rate!")
+            print("T_85: {}".format( curr_time - start_time) )
+            achieve_85 = True
+            
         if exploration_rate >= 0.9 and (not achieve_90):
             print("achieve 0.9 coverage rate!")
             print("T_90: {}".format( curr_time - start_time) )
@@ -78,7 +84,7 @@ def callback(data):
             print("T_95: ", curr_time - start_time)
             achieve_95 = True
 
-        if exploration_rate >= 0.97:
+        if exploration_rate >= 0.99:
             print("exploration ends!")
             print("T_total: ", curr_time - start_time)
             # # compute coverage std

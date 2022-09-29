@@ -55,6 +55,10 @@
 //#define FD_DEBUG_MODE
 #define ROI_OFFSET (10)
 #define DIST_HIGH  (1.0e10)
+#define FRONTIER_MARKER_SIZE (0.2)
+#define TARGET_MARKER_SIZE (0.3)
+#define UNREACHABLE_MARKER_SIZE (0.4)
+
 
 namespace autoexplorer
 {
