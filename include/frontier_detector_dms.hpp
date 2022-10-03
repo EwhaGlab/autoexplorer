@@ -105,6 +105,8 @@ public:
 
 	int frontier_summary( const vector<FrontierPoint>& voFrontierCurrFrame );
 
+	void updateUnreachablePointSet( const nav_msgs::OccupancyGrid& globalcostmap  ) ;
+
 	geometry_msgs::PoseStamped GetCurrRobotPose ( )
 	{
 		tf::StampedTransform map2baselink;
@@ -158,7 +160,7 @@ public:
 		}
 	}
 
-	inline bool frontier__check( int nx, int ny, int nwidth, const std::vector<signed char>& gmdata )
+	inline bool is_explored( int nx, int ny, int nwidth, const std::vector<signed char>& gmdata )
 	{
 		// 0	1	2
 		// 3		5
@@ -173,15 +175,13 @@ public:
 		int i7 = nwidth * (ny + 1)	+	nx		;
 		int i8 = nwidth * (ny + 1)	+	nx + 1 ;
 
-		//ROS_INFO("width i0 val : %d %d %d\n", nwidth, i0, gmdata[i0] );
-
 		if( gmdata[i0] < 0 || gmdata[i1] < 0 || gmdata[i2] < 0 || gmdata[i3] < 0 ||  gmdata[i5] < 0 || gmdata[i6] < 0 || gmdata[i7] < 0 || gmdata[i8] < 0 )
 		{
-			return true ;
+			return false ;
 		}
 		else
 		{
-			return false ;
+			return true ;
 		}
 	}
 
@@ -213,8 +213,9 @@ protected:
 
 	ros::Subscriber 	m_mapsub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, m_globalCostmapUpdateSub, m_frontierCandSub,
 						m_currGoalSub, m_globalplanSub, m_unreachablefrontierSub ;
-	ros::Publisher 	m_targetspub, m_markercandpub, m_markerfrontierpub, m_markerfrontierregionPub,
-						m_makergoalpub, m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub, m_resetgazebopub, m_startmsgPub ;
+	ros::Publisher 		m_targetspub, m_markercandpub, m_markerfrontierpub, m_markerfrontierregionPub, m_makergoalpub,
+						m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub, m_resetgazebopub, m_startmsgPub,
+						m_otherfrontierptsPub ;
 
 	int32_t mn_FrontierID, mn_UnreachableFptID ;
 
@@ -237,6 +238,7 @@ protected:
 
 	ofstream m_ofs_time ;
 	float mf_neighoringpt_decisionbound ;
+	bool mb_strict_unreachable_decision ;
 
 //	// valid and unique frontier pts list @ the current input frame
 //	vector<FrontierPoint> mvo_frontier_list;

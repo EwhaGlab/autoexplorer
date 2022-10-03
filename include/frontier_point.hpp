@@ -139,16 +139,20 @@ public:
 		mf_correctedposition_w = gridmap2world( mn_correctedposition_gm  );
 	}
 
-	void SetFrontierFlag( const float& fcm_conf, const float& fgm_conf, const bool& mb_isptcovered )
+	void SetFrontierFlag( const float& fcm_conf, const float& fgm_conf, const bool& bisexplored )
 	{
-		if( mf_gridmap_confidence < fgm_conf || mf_costmap_confidence < fcm_conf || mb_isptcovered)
+		if( mf_gridmap_confidence < fgm_conf || mf_costmap_confidence < fcm_conf || bisexplored )
 			mb_isfrontierpoint = false;
+		else
+			mb_isfrontierpoint = true;
 	}
 
 	void SetFrontierFlag( const float& fcm_conf, const float& fgm_conf)
 	{
 		if( mf_gridmap_confidence < fgm_conf || mf_costmap_confidence < fcm_conf)
 			mb_isfrontierpoint = false;
+		else
+			mb_isfrontierpoint = true;
 	}
 
 	void SetFrontierFlag( const bool& bflag )
