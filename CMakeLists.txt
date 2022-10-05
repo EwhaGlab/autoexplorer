@@ -17,7 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   costmap_2d
-  navfn
+  move_base
+  #navfn
 )
 
 find_package(OpenCV REQUIRED)
@@ -123,7 +124,7 @@ endif()
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS std_msgs nav_msgs roscpp rospy std_msgs costmap_2d #navfn
+  CATKIN_DEPENDS std_msgs nav_msgs roscpp rospy std_msgs costmap_2d move_base #navfn
   DEPENDS OpenCV OpenMP
 )
 
@@ -132,19 +133,17 @@ catkin_package(
 ###########
 #find_package(octomap_server REQUIRED)
 
+message("include " ${CATKIN_DEVEL_PREFIX})
+
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
  include
-  ~/catkin_ws/devel/include
+  ${CATKIN_DEVEL_PREFIX}/include
+  ${CATKIN_DEVEL_PREFIX}/../install/include
   ${catkin_INCLUDE_DIRS}
   #${octomap_server_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
-  ~/catkin_ws/src/navigation/move_base/include
-  ~/catkin_ws/src/navigation/nav_core/include
-  ~/catkin_ws/src/navigation/costmap_2d/include
-  ~/catkin_ws/src/autoexplorer/include
-  ~/catkin_ws/src/navigation/costmap_2d/include 
   #~/catkin_ws/src/navigation/navfn/include 
 )
 
