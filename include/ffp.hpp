@@ -114,7 +114,7 @@ public:
 
 				if( m_lattice[ qid ] != MarchStatus::KNOWN ) // meaning that we need to check for update
 				{
-					if( uImage.data[qid] == MapStatus::UNKNOWN  ) // if we can physically march front
+					if( uImage.data[qid] == MapStatus::FREE  ) // if we can physically march front
 					{
 						if(m_lattice[qid] == MarchStatus::FAR)
 						{

@@ -479,7 +479,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		m_eRobotState = ROBOT_STATE::ROBOT_IS_NOT_MOVING;
 
 	nav_msgs::OccupancyGrid globalcostmap;
-	float cmresolution, gmresolution, cmstartx, cmstarty;
+	float cmresolution, gmresolution, cmstartx, cmstarty, gmstartx, gmstarty;
 	uint32_t cmwidth, cmheight, gmheight, gmwidth;
 	std::vector<signed char> gmdata;
 	std::vector<signed char> cmdata;
@@ -491,6 +491,8 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		gmresolution = m_gridmap.info.resolution ;
 		gmheight = m_gridmap.info.height ;
 		gmwidth = m_gridmap.info.width ;
+		gmstartx = m_gridmap.info.origin.position.x ;
+		gmstarty = m_gridmap.info.origin.position.y ;
 	}
 
 	{
@@ -582,8 +584,12 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	cv::Mat img_roi = img_plus_offset(myroi) ;
 	img_.copyTo(img_roi) ;
 
+	geometry_msgs::PoseStamped start = GetCurrRobotPose( );
+	int ngmx = static_cast<int>( (start.pose.position.x - gmstartx) / gmresolution ) ;
+	int ngmy = static_cast<int>( (start.pose.position.y - gmstarty) / gmresolution ) ;
+
 	ffp::FrontPropagation oFP(img_plus_offset); // image uchar
-	oFP.update(img_plus_offset, cv::Point(0,0));
+	oFP.update(img_plus_offset, cv::Point(ngmx,ngmy));
 	oFP.extractFrontierRegion( img_plus_offset ) ;
 
 	cv::Mat img_frontiers_offset = oFP.GetFrontierContour() ;
@@ -861,7 +867,6 @@ ROS_WARN(" %d %d \n", frontier_offset.x, frontier_offset.y);
 // 		call make plan service
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	geometry_msgs::PoseStamped start = GetCurrRobotPose( );
 
 	//ROS_INFO("resizing mpo_costmap \n");
 	mpo_costmap->resizeMap( 	cmwidth, cmheight, cmresolution,
