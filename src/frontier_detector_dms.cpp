@@ -588,11 +588,9 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	int ngmx = static_cast<int>( (start.pose.position.x - gmstartx) / gmresolution ) ;
 	int ngmy = static_cast<int>( (start.pose.position.y - gmstarty) / gmresolution ) ;
 
-	ROS_INFO("begin FFP \n");
 	ffp::FrontPropagation oFP(img_plus_offset); // image uchar
-	oFP.update(img_plus_offset, cv::Point(ngmx,ngmy));
+	oFP.update(img_plus_offset, cv::Point(ngmx,ngmy), cv::Point(0,0) );
 	oFP.extractFrontierRegion( img_plus_offset ) ;
-	ROS_INFO("end FFP \n");
 
 	cv::Mat img_frontiers_offset = oFP.GetFrontierContour() ;
 
