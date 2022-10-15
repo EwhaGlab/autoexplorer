@@ -91,7 +91,11 @@ public:
 	bool isValidPlan( vector<cv::Point>  );
 	bool explorationisdone() const { return mb_explorationisdone; };
 	void publishDoneExploration() ;
-	void publishResetGazebo() ;
+
+	void publishFrontierPoints() ;
+	void publishFrontierPointMarkers( ) ;
+	void publishFrontierRegionMarkers( const vector<vector<cv::Point>>& contour  );
+	void publishGoalPointMarker( );
 
 //	geometry_msgs::PoseStamped StampedPosefromSE2( float x, float y, float yaw ) ;
 //	geometry_msgs::PoseStamped GetCurrPose ( ) ;
