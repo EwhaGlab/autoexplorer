@@ -16,7 +16,7 @@
   </include>
 
 
-      <include file="$(find sim_env)/launch/includes/robot.launch.xml">
+      <include file="$(find autoexplorer)/launch/includes/robot.launch.xml">
           <arg name="robot_name" value="burger"/>
           <arg name="model" value="$(arg model)"/>
           <arg name="init_pose" value="-x -10 -y 14 -z 0"/>
