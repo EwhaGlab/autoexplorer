@@ -34,7 +34,7 @@ roslaunch autoexplorer explorer_bench.launch
 roslaunch autoexplorer autoexplorer.launch
 ```
 
-##Citation
+## Citation
 Good luck with your projects! Please cite our paper if you think **autoexplorer** is helpful for your research work.
 
 ```
