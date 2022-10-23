@@ -180,6 +180,7 @@ set_target_properties( autoexplorer PROPERTIES
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node example/autoexplorer_node.cpp)
+add_executable(scan2ptcloud_node example/scan_to_ptcloud_node.cpp)
 
 #add_executable(travel_tracker example/travel_tracker.py)
 
@@ -187,6 +188,7 @@ add_executable(${PROJECT_NAME}_node example/autoexplorer_node.cpp)
 #add_dependencies(autoexplorer ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME}_node autoexplorer)
+target_link_libraries(scan2ptcloud_node autoexplorer)
 
 #target_link_libraries(travel_tracker autoexplorer)
 
@@ -222,6 +224,10 @@ target_link_libraries(${PROJECT_NAME}_node autoexplorer)
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
 install(TARGETS ${PROJECT_NAME}_node
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS scan2ptcloud_node
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
