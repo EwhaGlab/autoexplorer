@@ -1,39 +1,20 @@
 /*********************************************************************
-* Software License Agreement (XXX License)
-*
 *  Copyright (c) 2022, Ewha Graphics Lab
-*  All rights reserved.
 *
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
+* This file is a part of Autoexplorer
 *
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
+* Autoexplorer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+* License as published by the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
 *
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************
+* Autoexplorer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+* the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with Autoexplorer.
+* If not, see <http://www.gnu.org/licenses/>.
 
- *  Created on: Apr, 2022
- *      Author: Kyungmin Han (hankm@ewha.ac.kr)
+*      Author: Kyungmin Han (hankm@ewha.ac.kr)
 */
 
 #ifndef INCLUDE_FRONTIER_DETECTOR_DMS_HPP_
@@ -72,7 +53,7 @@ public:
 	virtual ~FrontierDetectorDMS();
 
 	void initmotion( );
-	inline void SetInitMotionCompleted(){ m_isInitMotionCompleted = true;  }
+	inline void SetInitMotionCompleted(){ mb_isinitmotion_completed = true;  }
 	inline void SetNumThreads(int numthreads){ mn_numthreads = numthreads; }
 
 	void globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg ) ;
@@ -148,8 +129,8 @@ public:
 		int i8 = nwidth * (ny + 1)	+	nx + 1 ;
 
 		//ROS_INFO("width i0 val : %d %d %d\n", nwidth, i0, gmdata[i0] );
-		if( cmdata[i0] > m_nlethal_cost_thr || cmdata[i1] > m_nlethal_cost_thr || cmdata[i2] > m_nlethal_cost_thr || cmdata[i3] > m_nlethal_cost_thr ||
-			cmdata[i5] > m_nlethal_cost_thr || cmdata[i6] > m_nlethal_cost_thr || cmdata[i7] > m_nlethal_cost_thr || cmdata[i8] > m_nlethal_cost_thr )
+		if( cmdata[i0] > mn_lethal_cost_thr || cmdata[i1] > mn_lethal_cost_thr || cmdata[i2] > mn_lethal_cost_thr || cmdata[i3] > mn_lethal_cost_thr ||
+			cmdata[i5] > mn_lethal_cost_thr || cmdata[i6] > mn_lethal_cost_thr || cmdata[i7] > mn_lethal_cost_thr || cmdata[i8] > mn_lethal_cost_thr )
 		{
 			return false;
 		}
@@ -215,23 +196,23 @@ protected:
 	ros::NodeHandle m_nh;
 	ros::NodeHandle m_nh_private;
 
-	ros::Subscriber 	m_mapsub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, m_globalCostmapUpdateSub, m_frontierCandSub,
+	ros::Subscriber 	m_mapSub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, m_globalCostmapUpdateSub, m_frontierCandSub,
 						m_currGoalSub, m_globalplanSub, m_unreachablefrontierSub ;
-	ros::Publisher 		m_targetspub, m_markercandpub, m_markerfrontierpub, m_markerfrontierregionPub, m_makergoalpub,
-						m_currentgoalpub, m_unreachpointpub, m_velpub, m_donepub, m_resetgazebopub, m_startmsgPub,
+	ros::Publisher 		m_targetsPub, m_markercandPub, m_markerfrontierPub, m_markerfrontierregionPub, m_makergoalPub,
+						m_currentgoalPub, m_unreachpointPub, m_velPub, m_donePub, m_resetgazeboPub, m_startmsgPub,
 						m_otherfrontierptsPub ;
 
 	int32_t mn_FrontierID, mn_UnreachableFptID ;
 
 	int mn_numthreads;
-	int m_nglobalcostmapidx ;
-	string m_str_debugpath ;
-	string m_str_inputparams ;
-	bool m_isInitMotionCompleted ;
+	int mn_globalcostmapidx ;
+	string mstr_debugpath ;
+	string mstr_inputparams ;
+	bool mb_isinitmotion_completed ;
 
-	cv::Mat m_uMapImg, m_uMapImgROI ;
+	cv::Mat mcvu_mapimg, mcvu_mapimgroi ;
 
-	FrontierFilter m_oFrontierFilter;
+	FrontierFilter mo_frontierfilter;
 	tf::TransformListener m_listener;
 
 	//GlobalPlanningHandler* mpo_gph ;

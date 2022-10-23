@@ -180,14 +180,14 @@ set_target_properties( autoexplorer PROPERTIES
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node example/autoexplorer_node.cpp)
-add_executable(twist2twiststamped_node example/twist2twiststamped_node.cpp)
+
 #add_executable(travel_tracker example/travel_tracker.py)
 
 #target_compile_options(autoexplorer PRIVATE ${OpenMP_FLAGS})
 #add_dependencies(autoexplorer ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME}_node autoexplorer)
-target_link_libraries(twist2twiststamped_node autoexplorer)
+
 #target_link_libraries(travel_tracker autoexplorer)
 
 ## Rename C++ executable without prefix
@@ -228,10 +228,6 @@ install(TARGETS ${PROJECT_NAME}_node
 #install(TARGETS travel_tracker
 #    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 #)
-
-install(TARGETS twist2twiststamped_node
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html

@@ -1,39 +1,20 @@
 /*********************************************************************
-* Software License Agreement (XXX License)
-*
 *  Copyright (c) 2022, Ewha Graphics Lab
-*  All rights reserved.
 *
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
+* This file is a part of Autoexplorer
 *
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
+* Autoexplorer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+* License as published by the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
 *
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************
+* Autoexplorer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+* the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with Autoexplorer.
+* If not, see <http://www.gnu.org/licenses/>.
 
- *  Created on: Apr, 2022
- *      Author: Kyungmin Han (hankm@ewha.ac.kr)
+*      Author: Kyungmin Han (hankm@ewha.ac.kr)
 */
 
 
@@ -73,21 +54,21 @@ public:
 
 	cv::Point2f gridmap2world( cv::Point img_pt_gm  )
 	{
-		float fpx = static_cast<float>(img_pt_gm.x) - m_nGlobalMapCentX;
-		float fpy = static_cast<float>(img_pt_gm.y) - m_nGlobalMapCentY;
+		float fpx = static_cast<float>(img_pt_gm.x) - mn_globalmap_centx;
+		float fpy = static_cast<float>(img_pt_gm.y) - mn_globalmap_centy;
 
 	//	ROS_INFO("%f %f %f %d %d\n", fpx, fResolution, fXstart, m_nScale, m_nNumPyrDownSample );
 	//	ROS_INFO("%f %f %f %d \n", fpy, fResolution, fYstart, m_nScale );
-		float fgx = ( fpx * m_fGMResolution ); // + fXstart ) ;
-		float fgy = ( fpy * m_fGMResolution ); // - fYstart ) ;
+		float fgx = ( fpx * mf_gmresolution ); // + fXstart ) ;
+		float fgy = ( fpy * mf_gmresolution ); // - fYstart ) ;
 
 		return cv::Point2f( fgx, fgy );
 	}
 	//
 	cv::Point world2gridmap( cv::Point2f grid_pt)
 	{
-		float fx = grid_pt.x / m_fGMResolution + m_nGlobalMapCentX;
-		float fy = grid_pt.y / m_fGMResolution + m_nGlobalMapCentY;
+		float fx = grid_pt.x / mf_gmresolution + mn_globalmap_centx;
+		float fy = grid_pt.y / mf_gmresolution + mn_globalmap_centy;
 
 		int nx = static_cast<int>( fx );
 		int ny = static_cast<int>( fy );
@@ -111,8 +92,8 @@ public:
 		int i8 = nwidth * (ny + 1)	+	nx + 1 ;
 
 		//ROS_INFO("width i0 val : %d %d %d\n", nwidth, i0, gmdata[i0] );
-		if( cmdata[i0] > m_nlethal_cost_thr || cmdata[i1] > m_nlethal_cost_thr || cmdata[i2] > m_nlethal_cost_thr || cmdata[i3] > m_nlethal_cost_thr ||
-			cmdata[i5] > m_nlethal_cost_thr || cmdata[i6] > m_nlethal_cost_thr || cmdata[i7] > m_nlethal_cost_thr || cmdata[i8] > m_nlethal_cost_thr )
+		if( cmdata[i0] > mn_lethal_cost_thr || cmdata[i1] > mn_lethal_cost_thr || cmdata[i2] > mn_lethal_cost_thr || cmdata[i3] > mn_lethal_cost_thr ||
+			cmdata[i5] > mn_lethal_cost_thr || cmdata[i6] > mn_lethal_cost_thr || cmdata[i7] > mn_lethal_cost_thr || cmdata[i8] > mn_lethal_cost_thr )
 		{
 			return false;
 		}
@@ -133,12 +114,12 @@ public:
 
 	inline float GetCostmapConf() const
 	{
-		return m_fcostmap_conf_thr ;
+		return mf_costmap_conf_thr ;
 	}
 
 	inline float GetGridmapConf()
 	{
-		return m_fgridmap_conf_thr ;
+		return mf_gridmap_conf_thr ;
 	}
 
 	void SetUnreachableDistThr( const float& fdist )
@@ -148,22 +129,22 @@ public:
 
 private:
 
-	int m_ncostmap_roi_size ;
-	int m_ngridmap_roi_size ;
+	int mn_costmap_roi_size ;
+	int mn_gridmap_roi_size ;
 
-	std::string m_str_debugpath;
-	float m_fgridmap_conf_thr;
-	float m_fcostmap_conf_thr;
+	std::string mstr_debugpath;
+	float mf_gridmap_conf_thr;
+	float mf_costmap_conf_thr;
 	float mf_unreachable_dist_thr ;
 
-	int m_noccupancy_thr;
-	int m_nlethal_cost_thr;
-	int m_nGlobalMapWidth ;
-	int m_nGlobalMapHeight;
-	int m_nGlobalMapCentX;
-	int m_nGlobalMapCentY;
-	float m_fGMResolution;
-	int m_nScale;
+	int mn_occupancy_thr;
+	int mn_lethal_cost_thr;
+	int mn_globalmap_width ;
+	int mn_globalmap_height;
+	int mn_globalmap_centx;
+	int mn_globalmap_centy;
+	float mf_gmresolution;
+	int mn_scale;
 
 };
 

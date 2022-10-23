@@ -1,39 +1,20 @@
 /*********************************************************************
-* Software License Agreement (XXX License)
-*
 *  Copyright (c) 2022, Ewha Graphics Lab
-*  All rights reserved.
 *
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
+* This file is a part of Autoexplorer
 *
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
+* Autoexplorer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+* License as published by the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
 *
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************
+* Autoexplorer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+* the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with Autoexplorer.
+* If not, see <http://www.gnu.org/licenses/>.
 
- *  Created on: Apr, 2022
- *      Author: Kyungmin Han (hankm@ewha.ac.kr)
+*      Author: Kyungmin Han (hankm@ewha.ac.kr)
 */
 
 
@@ -48,14 +29,14 @@ FrontierFilter::FrontierFilter(
 		int ncostmap_roi_size, int ngridmap_roi_size, std::string str_debugpath, int nNumPyrDownSample,
 		float fgridmap_conf_thr, float fcosmap_conf_thr, int noccupancy_thr, int nlethal_cost_thr,
 		int nGlobalMapWidth, int nGlobalMapHeight, float fGMResolution, float funreachable_decision_bound ):
-m_ncostmap_roi_size(ncostmap_roi_size), m_ngridmap_roi_size(ngridmap_roi_size), m_str_debugpath(str_debugpath),
-m_fcostmap_conf_thr(fcosmap_conf_thr), m_fgridmap_conf_thr(fgridmap_conf_thr), m_noccupancy_thr(noccupancy_thr), m_nlethal_cost_thr(nlethal_cost_thr),
-m_nGlobalMapWidth(nGlobalMapWidth), m_nGlobalMapHeight(nGlobalMapHeight), m_fGMResolution(fGMResolution),
+mn_costmap_roi_size(ncostmap_roi_size), mn_gridmap_roi_size(ngridmap_roi_size), mstr_debugpath(str_debugpath),
+mf_costmap_conf_thr(fcosmap_conf_thr), mf_gridmap_conf_thr(fgridmap_conf_thr), mn_occupancy_thr(noccupancy_thr), mn_lethal_cost_thr(nlethal_cost_thr),
+mn_globalmap_width(nGlobalMapWidth), mn_globalmap_height(nGlobalMapHeight), mf_gmresolution(fGMResolution),
 mf_unreachable_dist_thr(funreachable_decision_bound)
 {
-	m_nGlobalMapCentX = nGlobalMapWidth  / 2 ;
-	m_nGlobalMapCentY = nGlobalMapHeight / 2 ;
-	m_nScale		  = pow(2, nNumPyrDownSample) ;
+	mn_globalmap_centx = nGlobalMapWidth  / 2 ;
+	mn_globalmap_centy = nGlobalMapHeight / 2 ;
+	mn_scale		  = pow(2, nNumPyrDownSample) ;
 }
 FrontierFilter::~FrontierFilter()
 {
@@ -101,20 +82,10 @@ static int cmapidx = 0;
 		{
 			int cost = static_cast<int>( Data[ridx * width + cidx] ) ;
 			ofs_costmap << cost << " ";
-//			ofs_gridmap << m_gridmap.data[ ridx * width + cidx ] << " ";
-	//		costmap.data[ridx * width + cidx] = cost ;
-//			if(cost < 0 )
-//				ofs_costmap << 127 << " ";
-//			else if(cost == 0)
-//				ofs_costmap << 0 << " ";
-//			else
-//				ofs_costmap << cost * 2 + 50 << " ";
 		}
 		ofs_costmap << endl;
-//		ofs_gridmap << endl;
 	}
 	ofs_costmap.close();
-//	ofs_gridmap.close();
 #endif
 
 	for( size_t idx =0; idx < voFrontierCandidates.size(); idx++) // frontiers in image coord
@@ -131,10 +102,10 @@ static int cmapidx = 0;
 		int8_t cost ;
 		int32_t ncost = 0;
 
-		int sx = MAX(px_c - m_ncostmap_roi_size, 0);
-		int ex = MIN(px_c + m_ncostmap_roi_size, width) ;
-		int sy = MAX(py_c - m_ncostmap_roi_size, 0);
-		int ey = MIN(py_c + m_ncostmap_roi_size, height) ;
+		int sx = MAX(px_c - mn_costmap_roi_size, 0);
+		int ex = MIN(px_c + mn_costmap_roi_size, width) ;
+		int sy = MAX(py_c - mn_costmap_roi_size, 0);
+		int ey = MIN(py_c + mn_costmap_roi_size, height) ;
 //ROS_INFO("cm test window: %d %d %d %d \n", sx, ex, sy, ey);
 		//ofs_fpc << px_c << " " << py_c << endl;
 
@@ -154,7 +125,7 @@ static int cmapidx = 0;
 //ROS_INFO("ind rix cidx %d %d %d ", idx, ridx, cidx);
 				cost = Data[dataidx] ; // 0 ~ 254 --> mapped to 0 ~ 100
 				//if(cost >= 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
-				if(cost >  m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
+				if(cost >  mn_lethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
 				{
 					//ncost++;
 					//totcost += static_cast<int>(cost);
@@ -210,10 +181,10 @@ void FrontierFilter::measureGridmapConfidence( const nav_msgs::OccupancyGrid& gr
 		int8_t cost ;
 		int32_t ncost = 0;
 
-		int sx = MAX(px_g - m_ngridmap_roi_size, 0);
-		int ex = MIN(px_g + m_ngridmap_roi_size, width) ;
-		int sy = MAX(py_g - m_ngridmap_roi_size, 0);
-		int ey = MIN(py_g + m_ngridmap_roi_size, height) ;
+		int sx = MAX(px_g - mn_gridmap_roi_size, 0);
+		int ex = MIN(px_g + mn_gridmap_roi_size, width) ;
+		int sy = MAX(py_g - mn_gridmap_roi_size, 0);
+		int ey = MIN(py_g + mn_gridmap_roi_size, height) ;
 
 //ROS_INFO(" idx px py %u %d %d\n", idx, px_c, py_c);
 		cv::Mat roi = cv::Mat::zeros(ey - sy + 1, ex - sx + 1, CV_8S);

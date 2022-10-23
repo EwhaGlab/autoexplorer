@@ -1,39 +1,20 @@
 /*********************************************************************
-* Software License Agreement (XXX License)
-*
 *  Copyright (c) 2022, Ewha Graphics Lab
-*  All rights reserved.
 *
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
+* This file is a part of Autoexplorer
 *
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
+* Autoexplorer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+* License as published by the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
 *
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************
+* Autoexplorer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+* the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with Autoexplorer.
+* If not, see <http://www.gnu.org/licenses/>.
 
- *  Created on: Apr, 2022
- *      Author: Kyungmin Han (hankm@ewha.ac.kr)
+*      Author: Kyungmin Han (hankm@ewha.ac.kr)
 */
 
 
@@ -160,7 +141,7 @@ public:
 		cv::Mat uUnkn = uImage.clone();
 		cv::threshold( uUnkn, uUnkn, 187, ffp::MapStatus::UNKNOWN, cv::THRESH_BINARY ); // 187 ~ 255 --> 255
 
-		for(int iter=0; iter < m_nNumPyrDownSample; iter++ )
+		for(int iter=0; iter < mn_numpyrdownsample; iter++ )
 		{
 			pyrDown(uOccu, uOccu, cv::Size(uOccu.rows/2, uOccu.cols/2));
 			pyrDown(uUnkn, uUnkn, cv::Size(uUnkn.rows/2, uUnkn.cols/2));
@@ -275,12 +256,12 @@ protected:
 	string m_str_inputparams ;
 	cv::FileStorage m_fs;
 
-	int m_nNumPyrDownSample;
-	int m_nScale;
-	int m_nROISize ;
-	int m_nGlobalMapWidth, m_nGlobalMapHeight, m_nGlobalMapCentX, m_nGlobalMapCentY ; // global
-	float m_fResolution ;
-	int m_nCorrectionWindowWidth ;
+	int mn_numpyrdownsample;
+	int mn_scale;
+	int mn_roi_size ;
+	int mn_globalmap_width, mn_globalmap_height, mn_globalmap_centx, mn_globalmap_centy ; // global
+	float mf_resolution ;
+	int mn_correctionwindow_width ;
 
 	visualization_msgs::Marker  m_exploration_goal ;
 	visualization_msgs::MarkerArray m_frontier_points, m_cands, m_unreachable_points ;
@@ -296,7 +277,7 @@ protected:
 	std::string m_mapFrameId;
 	std::string m_baseFrameId ;
 
-	int m_ncols, m_nrows, m_nroi_origx, m_nroi_origy ;
+	int mn_cols, mn_rows, mn_roi_origx, mn_roi_origy ;
 	//int m_nCannotFindFrontierCount ;
 	bool mb_explorationisdone ;
 
@@ -316,11 +297,11 @@ protected:
 	// thrs
 	//float	m_costmap_conf_thr ;
 	//float	m_gridmap_conf_thr ;
-	int	m_noccupancy_thr ; // 0 ~ 100
-	int m_nlethal_cost_thr ;
-	double m_fRobotRadius ;
+	int	mn_occupancy_thr ; // 0 ~ 100
+	int mn_lethal_cost_thr ;
+	double mf_robot_radius ;
 
-	ROBOT_STATE m_eRobotState ;
+	ROBOT_STATE me_robotstate ;
 
 };
 

@@ -55,7 +55,7 @@ def callback(data):
     
     if (msg_secs + 3 < now):
         return
-    else
+    else:
         last_msg_time = msg_secs
 
     
