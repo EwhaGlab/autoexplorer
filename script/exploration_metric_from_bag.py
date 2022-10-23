@@ -1,8 +1,6 @@
 #! /usr/bin/env python
 
 '''
-subscribe /robot1/scan_map  /robot2/scan_map  /robot1/map  /robot2/map  /robot1/odom  /robot2/odom
-
 '''
 import sys
 import time
@@ -46,17 +44,17 @@ def get_gt(pgm_file, yaml_file):
 def callback(data):
     
     # -1:unkown 0:free 100:obstacle
-    global end_flag, start_time, achieve_80, achieve_85, achieve_90, achieve_95, last_msg_time
+    global end_flag, start_time, achieve_80, achieve_85, achieve_90, achieve_95, last_msg_time, begin_timing
     
-    msg_secs = data.header.stamp.secs
+    #msg_secs = data.header.stamp.secs
     now = rospy.get_time()
     
-    print("{} {}".format(msg_secs, now) )
+    #print("{} {}".format(msg_secs, now) )
     
-    if (msg_secs + 3 < now):
+    if (now + 3 < last_msg_time):
         return
-    else
-        last_msg_time = msg_secs
+    else:
+        last_msg_time = now
 
     
     if not end_flag:
@@ -146,7 +144,7 @@ def single_robot_coverage_rate_callback(data):
 def StartCallback(data):
     global start_time, begin_timing
     start_time = time.time()
-    begin_timing = True
+    last_msg_time = start_time
     print("Exploration start!")
     print("Start time: ", start_time)
 
@@ -155,7 +153,7 @@ def main(argv):
     gt_area = get_gt(argv[1], argv[2]) 
     rospy.init_node('exploration_metric', anonymous=True)
     rospy.Subscriber("begin_exploration", Bool, StartCallback)
-    rospy.Subscriber("map",  OccupancyGrid, callback, queue_size=1)
+    rospy.Subscriber("robot1/map",  OccupancyGrid, callback, queue_size=1)
     #rospy.Subscriber("odom", Odometry, odom_callback, queue_size=1)
     rospy.spin()
 

@@ -1,0 +1,13 @@
+<!-- -->
+<launch>
+
+  <arg name="use_sim_time"                value="true"/>
+  <arg name="pgm_file" value ="$(find autoexplorer)/blueprints/willowgarage_closed.pgm"/>
+  <arg name="yaml_file" value ="$(find autoexplorer)/blueprints/willowgarage_closed.yaml"/>
+
+  <node pkg="autoexplorer" type="exploration_metric_from_bag.py" name="metric" args="$(arg pgm_file) $(arg yaml_file)" output="screen"> 
+  </node>
+      
+  <!-- <node pkg="tf" type="static_transform_publisher" name="map_broadcaster" args="1 2 3 0 0 0 robot2/map robot2/odom 100" /> -->
+
+</launch>
