@@ -12,7 +12,7 @@ You need the ROS navigation stack to control an embodied agent.
 Autoexplorer runs best with our customized version of [navigation stack](https://github.com/han-kyung-min/navigation).  
 
 If you want to run this package in a synthetic environment, such as the Gazebo simulator, we recommend you install a mapping SW such as
-[OctoMap](https://github.com/OctoMap/octomap). Use [Turtlebot3](https://github.com/ROBOTIS-GIT/turtlebot3) packages to explore your favorite world. 
+OctoMap. Use [Turtlebot3](https://github.com/ROBOTIS-GIT/turtlebot3) packages to explore your favorite world. 
 Besides, we found [TEB](https://github.com/rst-tu-dortmund/teb_local_planner) local planner runs OK with this package, so you might want to consider having this local planner.
 In the case of solving real-world exploration problems with a mobile robot, you will need a SLAM SW to produce a 2D occupancy grid map. 
 We recommend installing [SLAM toolbox](https://github.com/SteveMacenski/slam_toolbox) for your localization and mapping.
