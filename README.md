@@ -28,6 +28,24 @@ catkin_make install
 
 ## Example 1: Autoexplorer in Willowgarage Gazebo world
 
+Make sure that your have installed the TEB local planner and the navigation stack listed above.
+
+### Install Turtlebot3 
+```
+sudo apt-get install ros-<ros_ver>-turtlebot3
+```
+### Install OctoMap (our customized version)
+```
+cd ~/catkin_ws/src
+git clone https://github.com/han-kyung-min/octomap_mapping.git
+git checkout explore_bench-nn_burger
+```
+### Install the packages
+```
+cd ~/catkin_ws
+catkin_make install
+```
+### Start the exploration task
 ```
 roslaunch autoexplorer willowgarage.launch
 roslaunch autoexplorer explorer_bench.launch
@@ -41,3 +59,5 @@ Good luck with your projects! Please cite our paper if you think **autoexplorer*
 K.M. Han and Y.J. Kim, "Autoexplorer: Autonomous Exploration of Unknown Environments using Fast Frontier-Region Detection and Parallel Path Planning," 
 2022 International Conference on Intelligent Robots and Systems (IROS), 2022
 ```
+
+Feel free to leave a message on the issue board if you find a problem with compiling this package.
