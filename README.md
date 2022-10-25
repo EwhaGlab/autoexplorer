@@ -60,4 +60,4 @@ K.M. Han and Y.J. Kim, "Autoexplorer: Autonomous Exploration of Unknown Environm
 2022 International Conference on Intelligent Robots and Systems (IROS), 2022
 ```
 
-Feel free to leave a message on the issue board if you find a problem with compiling this package.
+Feel free to leave a message on the issue board if you are having a trouble with compiling this package.
