@@ -46,6 +46,7 @@ cd ~/catkin_ws
 catkin_make install
 ```
 ### Start the exploration task
+Don't forget to "source ~/catkin_ws/install/setup.bash" before starting the launch files below
 ```
 roslaunch autoexplorer willowgarage.launch
 roslaunch autoexplorer explorer_bench.launch
