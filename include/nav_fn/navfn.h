@@ -78,6 +78,7 @@
 // priority buffers
 #define PRIORITYBUFSIZE 10000
 
+using namespace std;
 
 namespace navfn {
   /**
@@ -143,7 +144,7 @@ positions at about 1/2 cell resolution; else returns 0.
 
       // @brief  Calculates a plan using the A* heuristic based on the upperbound condition, returns true if one is found
 
-      bool calcNavFnBoundedAstar( const int& tid, const float& fupperbound, float& fendpot );	/**< calculates a plan, returns true if found */
+      int calcNavFnBoundedAstar( const int& tid, const float& fupperbound );	/**< calculates a plan, returns true if found */
 
       /**
        * @brief Caclulates the full navigation function using Dijkstra
@@ -241,7 +242,7 @@ positions at about 1/2 cell resolution; else returns 0.
        */
       bool propNavFnAstar(int cycles); /**< returns true if start point found */
 
-      bool propNavFnBoundedAstar( const int& tid, int cycles, const float fboundpot, float& fcurrnodepot ) ;
+      int propNavFnBoundedAstar( const int& tid, int cycles, const float fboundpot ) ;
 
       /** gradient and paths */
       float *gradx, *grady;		/**< gradient arrays, size of potential array */
@@ -270,9 +271,18 @@ positions at about 1/2 cell resolution; else returns 0.
       /** save costmap */
       void savemap(const char *fname); /**< write out costmap and start/goal states as fname.pgm and fname.txt */
 
+      inline void setAstarLog( string str_astarlog )
+      {
+			mofs_astarlog = ofstream(str_astarlog) ;
+      }
+
+      inline float getCurrnodePot() const {return mf_currnodepot; }
+
+
     private:
 
       float mf_bound;
+      float mf_currnodepot;
 
       std::ofstream mofs_astarlog;
   };

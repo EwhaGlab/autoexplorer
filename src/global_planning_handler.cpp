@@ -147,7 +147,7 @@ void GlobalPlanningHandler::reinitialization(  )
 //  return false;
 //}
 
-double GlobalPlanningHandler::getPointPotential(const geometry_msgs::Point& world_point)
+float GlobalPlanningHandler::getPointPotential(const geometry_msgs::Point& world_point)
 {
   if(!mb_initialized){
     //ROS_ERROR("GPH has not been initialized yet, but it is being used, please call initialize() before use");
@@ -418,17 +418,19 @@ ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f
     //return !plan.empty();
 }
 
-bool GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const bool& boneqgrid,
+int GlobalPlanningHandler::makePlan( string str_astar, const int& tid, const float& fbound, const bool& boneqgrid,
 			  const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
-		  	  std::vector<geometry_msgs::PoseStamped>& plan, float& fendpotential )
+		  	  std::vector<geometry_msgs::PoseStamped>& plan )
 {
 // does makePlan(), but breaks when f(n) > ubound occurs.
 // we don't need such path since f(n') >= f(n) which is the consistency property of Euclidean heuristic.
 
+	planner_->setAstarLog(str_astar) ;
+
     if(!mb_initialized)
     {
       ROS_ERROR("@GPH: This planner has not been initialized yet, but it is being used, please call initialize() before use");
-      return false;
+      return 0;
     }
 
 //ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f) to the goal (%f %f) \n",
@@ -436,21 +438,19 @@ bool GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const
     //clear the plan, just in case
     plan.clear();
 
-    ros::NodeHandle n;
-
     //until tf can handle transforming things that are way in the past... we'll require the goal to be in our global frame
     if(goal.header.frame_id != global_frame_)
     {
       ROS_ERROR("@GPH: The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
                 global_frame_.c_str(), goal.header.frame_id.c_str());
-      return false;
+      return 0;
     }
 
     if(start.header.frame_id != global_frame_)
     {
       ROS_ERROR("@GPH: The start pose passed to this planner must be in the %s frame.  It is instead in the %s frame.",
                 global_frame_.c_str(), start.header.frame_id.c_str());
-      return false;
+      return 0;
     }
 
     double wx = start.pose.position.x;
@@ -460,7 +460,7 @@ bool GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const
     if(!m_costmap.worldToMap(wx, wy, mx, my))
     {
       ROS_WARN("The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
-      return false;
+      return 0;
     }
 
     //clear the starting cell within the costmap because we know it can't be an obstacle
@@ -492,7 +492,7 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",m_costmap.get
       if(mf_tolerance <= 0.0)
       {
        // ROS_WARN_THROTTLE(1.0, "The goal sent to the global_planning_handler is off the global costmap. Planning will always fail to this goal.");
-        return false;
+        return 0;
       }
       mx = 0;
       my = 0;
@@ -510,9 +510,15 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",m_costmap.get
     //bool success = planner_->calcNavFnAstar(   );
     //bool success = planner_->calcNavFnDijkstra(true);
 
-    bool success = planner_->calcNavFnBoundedAstar( tid, fbound, fendpotential );
-    if(!success)
-    	return false;
+    // -1 : currnode > upperbound
+    // 1 : last node is open
+    // -3: last node is open but invalid plan
+    int success = planner_->calcNavFnBoundedAstar( tid, fbound ); // -3, -1, 1
+    float fendpotential = planner_->getCurrnodePot() ;
+    setEndPot( fendpotential );
+
+    if(success < 0)
+    	return success;
 
 	double resolution = m_costmap.getResolution();
 	geometry_msgs::PoseStamped p, best_pose;
@@ -552,13 +558,24 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",m_costmap.get
 		plan.push_back(goal_copy);
 
 		//ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
-		return !plan.empty();
+		if(fendpotential < fbound )
+		{
+			return 2; //!plan.empty();
+		}
+		else
+		{
+			return 1;
+		}
 	  }
 	  else
 	  {
 		//ROS_ERROR("@GPH: Failed to get a plan from potential when a legal potential was found. This shouldn't happen.");
-		return false;
+		return -6;
 	  }
+	}
+	else
+	{
+		return -7;
 	}
 
 //    if(success)
