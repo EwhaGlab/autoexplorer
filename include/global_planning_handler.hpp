@@ -42,7 +42,7 @@ public:
 
 	int makePlan(  string str_astar, const int& tid, const float& fbound, const bool& boneqgrid,
 					const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
-					std::vector<geometry_msgs::PoseStamped>& plan );
+					std::vector<geometry_msgs::PoseStamped>& plan, float& fendpotential );
 
     /**
      * @brief Get the potential, or naviagation cost, at a given point in the world (Note: You should call computePotential first)
@@ -50,8 +50,6 @@ public:
      * @return The navigation function's value at that point in the world
      */
     float getPointPotential(const geometry_msgs::Point& world_point);
-    inline float getEndPot() const { return mf_endpotential;  }
-    inline void setEndPot( const float& finpotential ) { mf_endpotential = finpotential; }
 
     bool getPlanFromPotential(const geometry_msgs::PoseStamped& goal, std::vector<geometry_msgs::PoseStamped>& plan) ;
 

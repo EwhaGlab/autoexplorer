@@ -205,7 +205,6 @@ namespace navfn {
     NavFn::setNavArr(int xs, int ys)
     {
       ROS_DEBUG("[NavFn] Array is %d x %d\n", xs, ys);
-      mf_currnodepot = 0.f;
 
       nx = xs;
       ny = ys;
@@ -384,7 +383,7 @@ namespace navfn {
     }
 
   int
-    NavFn::calcNavFnBoundedAstar( const int& tid, const float& fupperbound )
+    NavFn::calcNavFnBoundedAstar( const int& tid, const float& fupperbound, float& fendpot )
     {
 
 	  mf_bound = fupperbound ;
@@ -397,7 +396,7 @@ namespace navfn {
       // calculate the nav fn and path
       // -1 : currnode > upperbound
       // 1  : lastnode is open
-	  int bsuccess = propNavFnBoundedAstar(tid, nx*ny, fupperbound);  // -1 or 1
+	  int bsuccess = propNavFnBoundedAstar(tid, nx*ny, fupperbound, fendpot);  // -1 or 1
 	  if( bsuccess < 0)
 	  {
 		  //ROS_ERROR("[tid: %d][NavFn Astar] aborting this search \n", tid);
@@ -816,7 +815,7 @@ mofs_astarlog << "pot > potarr[n] case " << pot << " " <<  potarr[n] << std::end
         pb = curP; 
         i = curPe;
 
-        float fcurrpot = POT_HIGH;
+        float fcurrpot = POT_HIGH; //potarr[*curP];
         float fminpot  = POT_HIGH;
         while (i-- > 0)
         {
@@ -865,7 +864,7 @@ mofs_astarlog << "pot > potarr[n] case " << pot << " " <<  potarr[n] << std::end
 
 
   int
-    NavFn::propNavFnBoundedAstar(const int& tid, int cycles, const float fboundpot)
+    NavFn::propNavFnBoundedAstar(const int& tid, int cycles, const float fboundpot, float& fcurrnodepot)
     {
       int nwv = 0;			// max priority block size
       int nc = 0;			// number of cells put into priority blocks
@@ -900,9 +899,9 @@ mofs_astarlog << "pot > potarr[n] case " << pot << " " <<  potarr[n] << std::end
         // process current priority buffer
         pb = curP;
         i = curPe;
-        float fcurpot = POT_HIGH;
-        float fminpot = POT_HIGH;
-mofs_astarlog << "begin updateCellAstar() for " << curPe << " num cells" <<std::endl;
+        float fcurpot = potarr[*curP]; //POT_HIGH;
+        float fminpot = potarr[*curP]; //POT_HIGH;
+mofs_astarlog << "begin updateCellAstar() from curpot: "<< fcurpot << " for " << curPe << " num cells" <<std::endl;
         while (i-- > 0)
         {
           updateCellAstar(*pb++, fcurpot);
@@ -913,12 +912,12 @@ mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << fminpot 
 //ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
 
 		// B&B evaluation
-		mf_currnodepot = fminpot ;
+		fcurrnodepot = fminpot ;
 
-		if( mf_currnodepot > fboundpot + COST_NEUTRAL )
+		if( fcurrnodepot > fboundpot + COST_NEUTRAL )
 		{
 			status = -1;
-mofs_astarlog << "Aborting condition detected (curr node pot is already greator than the bound cond !" << std::endl;
+mofs_astarlog << "aborting condition detected " << std::endl;
 //ROS_INFO("[tid:%d] thread detected that the pot of currnode (%f) > bound (%f)\n", tid, fcurrnodepot, fboundpot);
 			break;
 		}

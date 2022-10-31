@@ -909,13 +909,12 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	fupperbound = static_cast<float>(DIST_HIGH) ;
 	best_idx	= static_cast<size_t>(0) ;
 
-	float fendpot = 0.f; //POT_HIGH;
 
 ///////////////////////// /////////////////////////////////////////////////////////
 // 3. Do BB based openmp search
 //////////////////////////////////////////////////////////////////////////////////
 
-	//set<> fpoints = m_valid_frontier_set ;
+	float fendpot = 0.f; //POT_HIGH;
 	vector< uint32_t > gplansizes( m_curr_frontier_set.size(), 0 ) ;
 
 	GlobalPlanningHandler o_gph( *mpo_costmap, m_worldFrameId, m_baseFrameId );
@@ -962,8 +961,7 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 
 			string str_astar  = (boost::format("/media/data/results/autoexplorer/mpbb/astar_%04d_%04d_%02d.txt") % ndebugframeidx % fptidx % tid ).str() ;
 
-			int bplansuccess = o_gph.makePlan(str_astar, tid, fupperbound, true, start, goal, plan);
-			fendpot    = o_gph.getEndPot();
+			int bplansuccess = o_gph.makePlan(str_astar, tid, fupperbound, true, start, goal, plan, fendpot);
 			{
 				omp_set_lock(&m_mplock);
 				cv::Point goal_gm = world2gridmap(cv::Point2f(goal.pose.position.x, goal.pose.position.y)) ;

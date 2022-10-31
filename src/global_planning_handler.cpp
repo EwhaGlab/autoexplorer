@@ -420,7 +420,7 @@ ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f
 
 int GlobalPlanningHandler::makePlan( string str_astar, const int& tid, const float& fbound, const bool& boneqgrid,
 			  const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
-		  	  std::vector<geometry_msgs::PoseStamped>& plan )
+		  	  std::vector<geometry_msgs::PoseStamped>& plan, float& fendpotential )
 {
 // does makePlan(), but breaks when f(n) > ubound occurs.
 // we don't need such path since f(n') >= f(n) which is the consistency property of Euclidean heuristic.
@@ -513,10 +513,7 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",m_costmap.get
     // -1 : currnode > upperbound
     // 1 : last node is open
     // -3: last node is open but invalid plan
-    int success = planner_->calcNavFnBoundedAstar( tid, fbound ); // -3, -1, 1
-    float fendpotential = planner_->getCurrnodePot() ;
-    setEndPot( fendpotential );
-
+    int success = planner_->calcNavFnBoundedAstar( tid, fbound, fendpotential ); // -3, -1, 1
     if(success < 0)
     	return success;
 
@@ -556,6 +553,8 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",m_costmap.get
 		geometry_msgs::PoseStamped goal_copy = best_pose;
 		goal_copy.header.stamp = ros::Time::now();
 		plan.push_back(goal_copy);
+
+		//planner_->writeAstarPlan(plan);
 
 		//ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
 		if(fendpotential < fbound )
