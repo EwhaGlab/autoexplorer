@@ -290,6 +290,7 @@ positions at about 1/2 cell resolution; else returns 0.
     private:
 
       float mf_bound;
+      float mf_minpot ;
 
       std::ofstream mofs_astarlog;
   };

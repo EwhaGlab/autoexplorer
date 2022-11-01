@@ -229,6 +229,8 @@ namespace navfn {
       memset(pending, 0, ns*sizeof(bool));
       gradx = new float[ns];
       grady = new float[ns];
+
+      mf_minpot = POT_HIGH;
     }
 
   //
@@ -602,7 +604,7 @@ namespace navfn {
 #define INVSQRT2 0.707106781
 
   inline void
-    NavFn::updateCellAstar(int n, float& fminpot) // fminpot is the pot of the lowest neighbor
+    NavFn::updateCellAstar(int n, float& fcurminpot) // fminpot is the pot of the lowest neighbor
     {
       // get neighbors
       float p_u,p_d,p_l,p_r;
@@ -666,8 +668,9 @@ mofs_astarlog << "[update] new pot (ta + hf, or ta + hf*v): " << pot << " potarr
           potarr[n] = pot;
           pot += dist;
 
-          fminpot = pot ;
-mofs_astarlog << "[update] pot + dist (f) : " << pot << " curT: " << curT << std::endl;
+          fcurminpot = pot ;
+//mofs_astarlog << "[update] pot + dist (f) : " << pot << " curT: " << curT << std::endl;
+  mofs_astarlog << "[update] fcurminpot = " << fcurminpot << " curT: " << curT << std::endl;
           if (pot < curT)	// low-cost buffer block 
           {
             if (p_l > pot+c_le) push_next(n-1);
@@ -685,11 +688,17 @@ mofs_astarlog << "[update] pot + dist (f) : " << pot << " curT: " << curT << std
         }
         else if( pot > potarr[n] )// by kmhan
         {
-mofs_astarlog << "pot > potarr[n] case " << pot << " " <<  potarr[n] << std::endl;
+mofs_astarlog << "pot > potarr[n] case !!!! " << pot << " " <<  potarr[n] << std::endl;
         }
-
+        else
+        {
+mofs_astarlog << pot << " == " << potarr[n]  << " fcurminpot = " << fcurminpot << endl;
+        }
       }
-
+      else
+      {
+mofs_astarlog << " cannot propagate into OBS   cost: " << costarr[n] << endl;
+      }
     }
 
 
@@ -899,20 +908,24 @@ mofs_astarlog << "pot > potarr[n] case " << pot << " " <<  potarr[n] << std::end
         // process current priority buffer
         pb = curP;
         i = curPe;
-        float fcurpot = potarr[*curP]; //POT_HIGH;
-        float fminpot = potarr[*curP]; //POT_HIGH;
+        float fcurpot = mf_minpot; //potarr[*curP]; //POT_HIGH;
+        //float fminpot = potarr[*curP]; //POT_HIGH;
 mofs_astarlog << "begin updateCellAstar() from curpot: "<< fcurpot << " for " << curPe << " num cells" <<std::endl;
         while (i-- > 0)
         {
           updateCellAstar(*pb++, fcurpot);
-          if( fcurpot < fminpot )
-        	  fminpot = fcurpot;
+          mofs_astarlog << "fcur / fmin " << fcurpot << " / " << mf_minpot << endl;
+          if( fcurpot < mf_minpot )
+          {
+        	  mofs_astarlog << "updating fminpot from " << mf_minpot << " to " << fcurpot << endl;
+        	  mf_minpot = fcurpot;
+          }
         }
-mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << fminpot << "/" << fboundpot << "\n" <<std::endl;
+mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << mf_minpot << "/" << fboundpot << "\n" <<std::endl;
 //ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
 
 		// B&B evaluation
-		fcurrnodepot = fminpot ;
+		fcurrnodepot = mf_minpot ;
 
 		if( fcurrnodepot > fboundpot + COST_NEUTRAL )
 		{
