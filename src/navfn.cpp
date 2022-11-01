@@ -229,6 +229,8 @@ namespace navfn {
       memset(pending, 0, ns*sizeof(bool));
       gradx = new float[ns];
       grady = new float[ns];
+
+      mf_minpot = POT_HIGH;
     }
 
   //
@@ -312,7 +314,7 @@ namespace navfn {
 			// values in range 0 to 252 -> values from COST_NEUTRAL to COST_OBS_ROS.
 			*cm = COST_OBS;
 			int v = *cmap;
-			if (v < COST_OBS_ROS-2 ) // 251 ~ 254  ==> OBS
+			if (v < COST_OBS_ROS - 2 ) // 251 ~ 254  ==> OBS
 			{
 			  *cm = 50;
 			}
@@ -357,8 +359,8 @@ namespace navfn {
   bool
     NavFn::calcNavFnAstar()
     {
-//mofs_astarlog = std::ofstream("/home/hankm/results/autoexploration/astarlog.txt");
-//mofs_astarlog << start[0] << " " << start[1] << " " << goal[0] << " " << goal[1] << " "
+////mofs_astarlog = std::ofstream("/home/hankm/results/autoexploration/astarlog.txt");
+////mofs_astarlog << start[0] << " " << start[1] << " " << goal[0] << " " << goal[1] << " "
 //			  << nx << " " << ny << " " << ns << std::endl;
 
       setupNavFn(true);
@@ -382,24 +384,25 @@ namespace navfn {
       }
     }
 
-  bool
+  int
     NavFn::calcNavFnBoundedAstar( const int& tid, const float& fupperbound, float& fendpot )
     {
 
 	  mf_bound = fupperbound ;
       setupNavFn(true);
 
-//mofs_astarlog = std::ofstream("/home/hankm/results/autoexploration/astar_log.txt");
-//mofs_astarlog << start[0] << " " << start[1] << " " << goal[0] << " " << goal[1] << std::endl;
+      //mofs_astarlog << start[0] << " " << start[1] << " " << goal[0] << " " << goal[1] << std::endl;
 
 //ROS_DEBUG("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0], start[1], goal[0], goal[1]);
 
       // calculate the nav fn and path
-	  bool bsuccess = propNavFnBoundedAstar(tid, nx*ny, fupperbound, fendpot);
-	  if(!bsuccess)
+      // -1 : currnode > upperbound
+      // 1  : lastnode is open
+	  int bsuccess = propNavFnBoundedAstar(tid, nx*ny, fupperbound, fendpot);  // -1 or 1
+	  if( bsuccess < 0)
 	  {
 		  //ROS_ERROR("[tid: %d][NavFn Astar] aborting this search \n", tid);
-		  return false;
+		  return bsuccess;
 	  }
       // path
       int len = calcPath(nx*4);
@@ -407,12 +410,12 @@ namespace navfn {
       if (len > 0)			// found plan
       {
        // ROS_WARN("[tid: %d][NavFn Astar] Path found, %d steps\n", len, tid);
-        return true;
+        return bsuccess;
       }
       else
       {
         //ROS_ERROR("[tid: %d][NavFn Astar] No path found\n", tid);
-        return false;
+        return -3;
       }
     }
 
@@ -447,7 +450,7 @@ namespace navfn {
       for (int i=0; i<ns; i++)
       {
         potarr[i] = POT_HIGH;
-        if (!keepit) costarr[i] = COST_NEUTRAL;
+        if (!keepit) costarr[i] = COST_NEUTRAL; // ignored since this arr is false
         gradx[i] = grady[i] = 0.0;
       }
 
@@ -477,7 +480,7 @@ namespace navfn {
       memset(pending, 0, ns*sizeof(bool));
 
       // set goal
-      int k = goal[0] + goal[1]*nx;
+      int k = goal[0] + goal[1]*nx; // <--- be careful!!  goal is set to "robot pose (start)"
       initCost(k,0);
 
       // find # of obstacle cells
@@ -601,7 +604,7 @@ namespace navfn {
 #define INVSQRT2 0.707106781
 
   inline void
-    NavFn::updateCellAstar(int n, float& fminpot) // fminpot is the pot of the lowest neighbor
+    NavFn::updateCellAstar(int n, float& fcurminpot) // fminpot is the pot of the lowest neighbor
     {
       // get neighbors
       float p_u,p_d,p_l,p_r;
@@ -613,8 +616,8 @@ namespace navfn {
       //	 potarr[n], l, r, u, d);
       // ROS_INFO("[Update] cost of %d: %d\n", n, costarr[n]);
 
-//mofs_astarlog << "[update potarray] " << potarr[n] << " " << p_l << " " << p_r << " " << p_u << " " << p_d << std::endl;
-//mofs_astarlog << "[update cost] " << static_cast<uint32_t>(costarr[n]) << std::endl;
+//mofs_astarlog << "update potarray @" << " n " << potarr[n] << " " << p_l << " " << p_r << " " << p_u << " " << p_d << std::endl;
+//mofs_astarlog << "update cost @" << " n " << static_cast<uint32_t>(costarr[n]) << std::endl;
 
       // find lowest, and its lowest neighbor
       float ta, tc;
@@ -648,7 +651,7 @@ namespace navfn {
 
         //ROS_INFO("[Update] new pot: %d\n", costarr[n]);
 //mofs_astarlog << "ta, dc, hf: " << ta << " " << dc << " " << hf << std::endl;
-//mofs_astarlog << "[update] new pot (ta + hf, or ta + hf*v): " << pot << " potarr[n]: " << potarr[n] << std::endl;
+//mofs_astarlog << "[update] new pot (ta + hf, or ta + hf*v): " << pot << " potarr[" << n << "]: " << potarr[n] << std::endl;
         // now add affected neighbors to priority blocks
         if (pot < potarr[n])
         {
@@ -665,8 +668,9 @@ namespace navfn {
           potarr[n] = pot;
           pot += dist;
 
-          fminpot = pot ;
-//mofs_astarlog << "[update] pot + dist (f) : " << pot << " curT: " << curT << std::endl;
+          fcurminpot = pot ;
+////mofs_astarlog << "[update] pot + dist (f) : " << pot << " curT: " << curT << std::endl;
+  //mofs_astarlog << "[update] fcurminpot = " << fcurminpot << " curT: " << curT << std::endl;
           if (pot < curT)	// low-cost buffer block 
           {
             if (p_l > pot+c_le) push_next(n-1);
@@ -684,11 +688,17 @@ namespace navfn {
         }
         else if( pot > potarr[n] )// by kmhan
         {
-//mofs_astarlog << "pot > potarr[n] case " << pot << " " <<  potarr[n] << std::endl;
+//mofs_astarlog << "pot > potarr[n] case !!!! " << pot << " " <<  potarr[n] << std::endl;
         }
-
+        else
+        {
+//mofs_astarlog << pot << " == " << potarr[n]  << " fcurminpot = " << fcurminpot << endl;
+        }
       }
-
+      else
+      {
+//mofs_astarlog << " cannot propagate into OBS   cost: " << costarr[n] << endl;
+      }
     }
 
 
@@ -814,7 +824,7 @@ namespace navfn {
         pb = curP; 
         i = curPe;
 
-        float fcurrpot = POT_HIGH;
+        float fcurrpot = POT_HIGH; //potarr[*curP];
         float fminpot  = POT_HIGH;
         while (i-- > 0)
         {
@@ -862,7 +872,7 @@ namespace navfn {
 
 
 
-  bool
+  int
     NavFn::propNavFnBoundedAstar(const int& tid, int cycles, const float fboundpot, float& fcurrnodepot)
     {
       int nwv = 0;			// max priority block size
@@ -876,6 +886,7 @@ namespace navfn {
       // set up start cell
       int startCell = start[1]*nx + start[0];
 
+      int status = 0;
       // do main cycle
       for (; cycle < cycles; cycle++) // go for this many cycles, unless interrupted
       {
@@ -899,13 +910,18 @@ namespace navfn {
         i = curPe;
         float fcurpot = mf_fminpot;
 
+//mofs_astarlog << "begin updateCellAstar() from curpot: "<< fcurpot << " for " << curPe << " num cells" <<std::endl;
         while (i-- > 0)
         {
           updateCellAstar(*pb++, fcurpot);
           if( fcurpot < mf_fminpot )
         	  mf_fminpot = fcurpot;
+          {
+        	  //mofs_astarlog << "updating fminpot from " << mf_minpot << " to " << fcurpot << endl;
+        	  mf_minpot = fcurpot;
+          }
         }
-//mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << fminpot << "/" << fboundpot << std::endl;
+//mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << mf_minpot << "/" << fboundpot << "\n" <<std::endl;
 //ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
 
 		// B&B evaluation
@@ -913,6 +929,7 @@ namespace navfn {
 
 		if( fcurrnodepot > fboundpot + COST_NEUTRAL )
 		{
+			status = -1;
 //mofs_astarlog << "aborting condition detected " << std::endl;
 //ROS_INFO("[tid:%d] thread detected that the pot of currnode (%f) > bound (%f)\n", tid, fcurrnodepot, fboundpot);
 			break;
@@ -941,8 +958,10 @@ namespace navfn {
 
         // check if we've hit the Start cell
         if (potarr[startCell] < POT_HIGH)
+        {
+        	status = 1;
           break;
-
+        }
       }
 //std::ofstream ofs_potarray("/home/hankm/results/autoexploration/potarray.txt");
 //for(int idx=0; idx < ns; idx++)
@@ -957,8 +976,8 @@ namespace navfn {
     //  ROS_DEBUG("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
     //      cycle,nc,(int)((nc*100.0)/(ns-nobs)),nwv);
 
-      if (potarr[startCell] < POT_HIGH) return true; // finished up here
-      else return false;
+      if (potarr[startCell] < POT_HIGH){status = 1; return status;} // finished up here
+      else{ return status;};
     }
 
 

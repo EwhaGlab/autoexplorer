@@ -1,6 +1,6 @@
 
 autoexplorer:
-    debug_data_save_path:   '/home/hankm/results/autoexploration'
+    debug_data_save_path:   '/media/data/results/autoexplorer'
     costmap_conf_thr:       0.4 #0.5 (works for willowgarage) # 0.4 (fetch)   # the higher the more strict  
     gridmap_conf_thr:       0.2 # 0.2 (willowgarage)          # the higher the more strict
     occupancy_thr:          50      # 0 ~ 100

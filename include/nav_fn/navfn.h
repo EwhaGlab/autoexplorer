@@ -46,6 +46,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <fstream>
+#include <vector>
+
+#include <geometry_msgs/PoseStamped.h>
 
 // cost defs
 #define COST_UNKNOWN_ROS 255		// 255 is unknown cost
@@ -78,6 +81,7 @@
 // priority buffers
 #define PRIORITYBUFSIZE 10000
 
+using namespace std;
 
 namespace navfn {
   /**
@@ -143,7 +147,7 @@ positions at about 1/2 cell resolution; else returns 0.
 
       // @brief  Calculates a plan using the A* heuristic based on the upperbound condition, returns true if one is found
 
-      bool calcNavFnBoundedAstar( const int& tid, const float& fupperbound, float& fendpot );	/**< calculates a plan, returns true if found */
+      int calcNavFnBoundedAstar( const int& tid, const float& fupperbound, float& fendpot );	/**< calculates a plan, returns true if found */
 
       /**
        * @brief Caclulates the full navigation function using Dijkstra
@@ -241,7 +245,7 @@ positions at about 1/2 cell resolution; else returns 0.
        */
       bool propNavFnAstar(int cycles); /**< returns true if start point found */
 
-      bool propNavFnBoundedAstar( const int& tid, int cycles, const float fboundpot, float& fcurrnodepot ) ;
+      int propNavFnBoundedAstar( const int& tid, int cycles, const float fboundpot, float& fcurrnodepot ) ;
 
       /** gradient and paths */
       float *gradx, *grady;		/**< gradient arrays, size of potential array */
@@ -270,12 +274,25 @@ positions at about 1/2 cell resolution; else returns 0.
       /** save costmap */
       void savemap(const char *fname); /**< write out costmap and start/goal states as fname.pgm and fname.txt */
 
+//      inline void setAstarLog( string str_astarlog )
+//      {
+//			mofs_astarlog = ofstream(str_astarlog) ;
+//      }
+//
+//      void writeAstarPlan( std::vector<geometry_msgs::PoseStamped>& plan )
+//      {
+//    	  mofs_astarlog << " plan found: " << endl;
+//    	  for(int idx=0; idx < plan.size(); idx++)
+//    	  	  mofs_astarlog << plan[idx].pose.position.x << " " << plan[idx].pose.position.y << endl;
+//    	  mofs_astarlog << endl;
+//      }
+
     private:
 
       float mf_bound;
       float mf_fminpot ;
 
-      std::ofstream mofs_astarlog;
+      //std::ofstream mofs_astarlog;
   };
 };
 

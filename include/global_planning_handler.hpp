@@ -40,7 +40,7 @@ public:
 	bool makePlan( const geometry_msgs::PoseStamped start, const geometry_msgs::PoseStamped goal,
 			  	  std::vector<geometry_msgs::PoseStamped>& plan );
 
-	bool makePlan(  const int& tid, const float& fbound, const bool& boneqgrid,
+	int makePlan(  string str_astar, const int& tid, const float& fbound, const bool& boneqgrid,
 					const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
 					std::vector<geometry_msgs::PoseStamped>& plan, float& fendpotential );
 
@@ -49,7 +49,7 @@ public:
      * @param world_point The point to get the potential for
      * @return The navigation function's value at that point in the world
      */
-    double getPointPotential(const geometry_msgs::Point& world_point);
+    float getPointPotential(const geometry_msgs::Point& world_point);
 
     bool getPlanFromPotential(const geometry_msgs::PoseStamped& goal, std::vector<geometry_msgs::PoseStamped>& plan) ;
 

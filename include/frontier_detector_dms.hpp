@@ -31,9 +31,10 @@
 #include <algorithm>
 #include <random>
 #include <unordered_set>
+#include <boost/format.hpp>
 
 //#define OCCUPANCY_THR (60)
-//#define FD_DEBUG_MODE
+#define DEBUG_MODE
 #define ROI_OFFSET (10)
 #define DIST_HIGH  (1.0e10)
 #define FRONTIER_MARKER_SIZE (0.2)
@@ -84,8 +85,8 @@ public:
 	cv::Point world2gridmap( cv::Point2f img_pt_roi );
 	cv::Point2f gridmap2world( cv::Point grid_pt );
 
-	int savemap( const nav_msgs::OccupancyGrid& map, const string& infofilename, const string& mapfilename ) ;
-	int saveprevfrontierpoint( const nav_msgs::OccupancyGrid& map, const string& frontierfile ) ;
+	int saveMap( const nav_msgs::OccupancyGrid& map, const string& infofilename, const string& mapfilename ) ;
+	int saveFrontierPoints( const nav_msgs::OccupancyGrid& map, const nav_msgs::Path& msg_frontiers, int bestidx, const string& frontierfile  ) ;
 	int savefrontiercands( const nav_msgs::OccupancyGrid& map, const vector<FrontierPoint>& voFrontierPoints, const string& frontierfile ) ;
 
 	int frontier_summary( const vector<FrontierPoint>& voFrontierCurrFrame );

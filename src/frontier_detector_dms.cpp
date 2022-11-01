@@ -296,13 +296,15 @@ void FrontierDetectorDMS::robotVelCallBack( const geometry_msgs::Twist::ConstPtr
 //{
 //}
 
-int FrontierDetectorDMS::savemap( const nav_msgs::OccupancyGrid& map, const string& infofilename, const string& mapfilename )
+int FrontierDetectorDMS::saveMap( const nav_msgs::OccupancyGrid& map, const string& infofilename, const string& mapfilename )
 {
 	int nwidth  = map.info.width ;
 	int nheight = map.info.height ;
 	float fox = map.info.origin.position.x ;
 	float foy = map.info.origin.position.y ;
 	float fres = map.info.resolution ;
+	std::vector<signed char> cmdata;
+	cmdata = map.data ;
 
 	if( nwidth == 0 || nheight == 0 )
 	{
@@ -310,12 +312,19 @@ int FrontierDetectorDMS::savemap( const nav_msgs::OccupancyGrid& map, const stri
 		return -1;
 	}
 
+	geometry_msgs::PoseStamped robotpose = GetCurrRobotPose();
+	float frx_w = (robotpose.pose.position.x - m_gridmap.info.origin.position.x) / m_gridmap.info.resolution ;
+	float fry_w = (robotpose.pose.position.y - m_gridmap.info.origin.position.y) / m_gridmap.info.resolution ;
+	int nrx_g = static_cast<int>(frx_w) ;
+	int nry_g = static_cast<int>(fry_w) ;
+	//int8_t cost = cmdata[ nwidth * nry_g + nrx_g ] ;
 
 	std::ofstream ofs_info( infofilename );
 	std::ofstream ofs_map(mapfilename);
 
 	std::vector<signed char> mapdata =map.data;
-	ofs_info << nwidth << " " << nheight << " " << fox << " " << foy << " " << fres << " " << endl;
+	ofs_info << nwidth << " " << nheight << " " << fox << " " << foy << " " << fres << " " <<
+			robotpose.pose.position.x << " " << robotpose.pose.position.y << endl;
 
 	for( int ii=0; ii < nheight; ii++ )
 	{
@@ -332,7 +341,7 @@ int FrontierDetectorDMS::savemap( const nav_msgs::OccupancyGrid& map, const stri
 }
 
 // save prev
-int FrontierDetectorDMS::saveprevfrontierpoint( const nav_msgs::OccupancyGrid& map, const string& frontierfile )
+int FrontierDetectorDMS::saveFrontierPoints( const nav_msgs::OccupancyGrid& map, const nav_msgs::Path& msg_frontiers, int bestidx, const string& frontierfile  )
 {
 
 	int nwidth  = map.info.width ;
@@ -340,27 +349,29 @@ int FrontierDetectorDMS::saveprevfrontierpoint( const nav_msgs::OccupancyGrid& m
 	float fox = map.info.origin.position.x ;
 	float foy = map.info.origin.position.y ;
 	float fres = map.info.resolution ;
+	std::vector<signed char> cmdata;
+	cmdata = map.data ;
 
-	std::ofstream ofs_prevfpts( frontierfile );
 
+	std::ofstream ofs_fpts( frontierfile );
+	ofs_fpts << msg_frontiers.poses.size() << " " << bestidx << endl;
 	{
-		std::unique_lock<mutex> lock( mutex_prev_frontier_set );
-
 		// append valid previous frontier points by sanity check
-		for (const auto & pi : m_prev_frontier_set)
+		for (const auto & pi : msg_frontiers.poses)
 		{
-			int ngmx = static_cast<int>( (pi.p[0] - fox) / fres ) ;
-			int ngmy = static_cast<int>( (pi.p[1] - fox) / fres ) ;
+			int ngmx = static_cast<int>( (pi.pose.position.x - fox) / fres ) ;
+			int ngmy = static_cast<int>( (pi.pose.position.y - fox) / fres ) ;
 
-			ofs_prevfpts << pi.p[0] << " " << pi.p[1] << " " << ngmx << " " << ngmy << 1 << " " << 1 << "\n" ;
+			//int8_t cost = cmdata[ nwidth * ngmy + ngmx ] ;
+
+			ofs_fpts << pi.pose.position.x << " " << pi.pose.position.y << " " << ngmx << " " << ngmy << "\n"; // << cost << "\n" ;
 		}
 	}
-	ofs_prevfpts.close();
 
+	ofs_fpts.close();
 
 	return 1;
 }
-
 
 int FrontierDetectorDMS::savefrontiercands( const nav_msgs::OccupancyGrid& map, const vector<FrontierPoint>& voFrontierPoints, const string& frontierfile )
 {
@@ -572,6 +583,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	geometry_msgs::PoseStamped start = GetCurrRobotPose( );
 	int ngmx = static_cast<int>( (start.pose.position.x - gmstartx) / gmresolution ) ;
 	int ngmy = static_cast<int>( (start.pose.position.y - gmstarty) / gmresolution ) ;
+	cv::Point start_gm (ngmx, ngmy);
 
 	ffp::FrontPropagation oFP(img_plus_offset); // image uchar
 	oFP.update(img_plus_offset, cv::Point(ngmx,ngmy), cv::Point(0,0) );
@@ -881,6 +893,12 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 // 	i)  We first sort fpts based on their euc heuristic(), then try makePlan() for each of fpts in turn.
 // 	ii) We need to sort them b/c the one with best heuristic could fail
 //////////////////////////////////////////////////////////////////////////////////
+#ifdef DEBUG_MODE
+	static int ndebugframeidx = 0;
+	// 1. save cost-map
+	string strofs_mpbb = (boost::format("%s/mpbb_state%04d.txt") % m_str_debugpath % ndebugframeidx ).str() ;
+	ofstream ofs_mpbb(strofs_mpbb) ;
+#endif
 
 	alignas(64) float fupperbound ;
 	alignas(64) size_t best_idx;
@@ -890,16 +908,13 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	std::vector<geometry_msgs::PoseStamped> initplan;
 	fupperbound = static_cast<float>(DIST_HIGH) ;
 	best_idx	= static_cast<size_t>(0) ;
-//	fXbest = static_cast<float>(0);
-//	fYbest = static_cast<float>(0);
 
-	float fendpot = POT_HIGH;
 
 ///////////////////////// /////////////////////////////////////////////////////////
 // 3. Do BB based openmp search
 //////////////////////////////////////////////////////////////////////////////////
 
-	//set<> fpoints = m_valid_frontier_set ;
+	float fendpot = 0.f; //POT_HIGH;
 	vector< uint32_t > gplansizes( m_curr_frontier_set.size(), 0 ) ;
 
 	GlobalPlanningHandler o_gph( *mpo_costmap, m_worldFrameId, m_baseFrameId );
@@ -907,6 +922,15 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	uint32_t fptidx;
 	int tid;
 	geometry_msgs::PoseStamped goal;
+	nav_msgs::Path msg_frontierpoints ;
+
+	for( const auto & pi : m_curr_frontier_set)
+	{
+		geometry_msgs::PoseStamped tmp_goal = StampedPosefromSE2( pi.p[0], pi.p[1], 0.f );
+		tmp_goal.header.frame_id = m_worldFrameId ;
+		msg_frontierpoints.poses.push_back(tmp_goal);
+	}
+
 
 ros::WallTime GPstartTime = ros::WallTime::now();
 
@@ -914,28 +938,37 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 	omp_init_lock(&m_mplock);
 
 	//ROS_INFO("begining BB A*\n");
-	vector<cv::Point2f> cvgoalcands;
-	for (const auto & pi : m_curr_frontier_set)
-		cvgoalcands.push_back( cv::Point2f( pi.p[0], pi.p[1] ) );
+//	vector<cv::Point2f> cvgoalcands;
+//	for (const auto & pi : m_curr_frontier_set)
+//		cvgoalcands.push_back( cv::Point2f( pi.p[0], pi.p[1] ) );
 
-
-	#pragma omp parallel firstprivate( o_gph, cvgoalcands, plan, tid, start, goal ) shared( fupperbound,  best_idx )
+	#pragma omp parallel firstprivate( o_gph, msg_frontierpoints, plan, tid, start, goal, fendpot ) shared( fupperbound,  best_idx, ofs_mpbb )
 	{
 
 		#pragma omp for
 		//for (const auto & pi : m_valid_frontier_set)
-		for( fptidx=0; fptidx < cvgoalcands.size() ; fptidx++)
+		for( fptidx=0; fptidx < msg_frontierpoints.poses.size() ; fptidx++)
 		{
 			tid = omp_get_thread_num() ;
 
 	//ROS_INFO("processing (%f %f) with thread %d/%d : %d", p.x, p.y, omp_get_thread_num(), omp_get_num_threads(), idx );
 			//fendpot = POT_HIGH ;
-			float fendpot;
+			//fendpot = 0.f;
 			o_gph.reinitialization( ) ;
-			geometry_msgs::PoseStamped goal = StampedPosefromSE2( cvgoalcands[fptidx].x , cvgoalcands[fptidx].y, 0.f );
+			geometry_msgs::PoseStamped goal = msg_frontierpoints.poses[fptidx];
 			goal.header.frame_id = m_worldFrameId ;
 	//ROS_INFO("goal: %f %f \n", fpoints[fptidx].x, fpoints[fptidx].y );
-			bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
+
+			string str_astar  = (boost::format("/media/data/results/autoexplorer/mpbb/astar_%04d_%04d_%02d.txt") % ndebugframeidx % fptidx % tid ).str() ;
+
+			int bplansuccess = o_gph.makePlan(str_astar, tid, fupperbound, false, start, goal, plan, fendpot);
+			{
+				omp_set_lock(&m_mplock);
+				cv::Point goal_gm = world2gridmap(cv::Point2f(goal.pose.position.x, goal.pose.position.y)) ;
+				ofs_mpbb << "[tid "<<tid <<"] ["<<bplansuccess << "] processed " << fptidx << " th point (" << start_gm.x << ", " << start_gm.y << ") to (" <<
+														goal_gm.x << ", " << goal_gm.y << ") marked \t" << fendpot << " / " << fupperbound << " potential \n " << endl;
+				omp_unset_lock(&m_mplock);
+			}
 
 			if( fendpot < fupperbound )
 			{
@@ -968,8 +1001,8 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 		tmpcnt++;
 	}
 
-	cv::Point2f cvbestgoal = cvgoalcands[best_idx] ;  // just for now... we need to fix it later
-	geometry_msgs::PoseStamped best_goal = StampedPosefromSE2( cvbestgoal.x, cvbestgoal.y, 0.f ) ; //ps.p[0], ps.p[1], 0.f );
+	//cv::Point2f cvbestgoal = cvgoalcands[best_idx] ;  // just for now... we need to fix it later
+	geometry_msgs::PoseStamped best_goal = msg_frontierpoints.poses[best_idx] ; //ps.p[0], ps.p[1], 0.f );
 	{
 		const std::unique_lock<mutex> lock(mutex_currgoal);
 		m_targetgoal.header.frame_id = m_worldFrameId ;
@@ -1006,27 +1039,25 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 			m_worldFrameId,	1.f, 0.f, 1.f, 1.f);
 	m_makergoalPub.publish(m_exploration_goal); // for viz
 
-//int ncmx = static_cast<int>( (m_exploration_goal.pose.position.x - globalcostmap.info.origin.position.x) / cmresolution ) ;
-//int ncmy = static_cast<int>( (m_exploration_goal.pose.position.y - globalcostmap.info.origin.position.y) / cmresolution ) ;
-//
-//int8_t c0 = globalcostmap.data[ ncmx - 1	+ (ncmy - 1)*cmwidth ];
-//int8_t c1 = globalcostmap.data[ ncmx		+ (ncmy - 1)*cmwidth ];
-//int8_t c2 = globalcostmap.data[ ncmx + 1	+ (ncmy - 1)*cmwidth ];
-//int8_t c3 = globalcostmap.data[ ncmx - 1	+  ncmy*cmwidth ] ;
-//int8_t c4 = globalcostmap.data[ ncmx		+  ncmy*cmwidth ] ;
-//int8_t c5 = globalcostmap.data[ ncmx + 1	+  ncmy*cmwidth ] ;
-//int8_t c6 = globalcostmap.data[ ncmx - 1	+  (ncmy + 1)*cmwidth ];
-//int8_t c7 = globalcostmap.data[ ncmx		+  (ncmy + 1)*cmwidth ];
-//int8_t c8 = globalcostmap.data[ ncmx + 1	+  (ncmy + 1)*cmwidth ];
-//
-//ROS_WARN("The goal (%f %f) covered: %d\n", m_exploration_goal.pose.position.x, m_exploration_goal.pose.position.y, frontier_sanity_check(ncmx, ncmy, cmwidth, cmdata) );
-//ROS_WARN("costmap %d %d %f %f \n", cmwidth, cmheight, cmstartx, cmstarty);
-//ROS_WARN("\n %d %d %d \n %d %d %d \n %d %d %d \n", c0, c1, c2, c3, c4, c5, c6, c7, c8);
 
-//std::string mapfilename("/media/hankm/mydata/results/explore_bench/costmap_msg.txt");
-//std::string infofilename("/media/hankm/mydata/results/explore_bench/costmap_msg_info.txt");
+#ifdef DEBUG_MODE
+//	static int ndebugframeidx = 0;
+	// 1. save cost-map
+	string strcostmap = (boost::format("%s/costmap%04d.txt") % m_str_debugpath % ndebugframeidx ).str() ;
+	string strcminfo  = (boost::format("%s/cminfo%04d.txt" ) % m_str_debugpath % ndebugframeidx ).str() ;
+	saveMap( globalcostmap, strcminfo, strcostmap );
 
-//savemap(globalcostmap, infofilename, mapfilename);
+	// 2. save frontier points / planning res
+	string strfrontierfile = (boost::format("%s/frontier%04d.txt") % m_str_debugpath % ndebugframeidx ).str() ;
+
+	// publish fpts to Rviz
+	saveFrontierPoints( globalcostmap, msg_frontierpoints, best_idx, strfrontierfile  );
+	// 3. save planning res
+
+
+	ndebugframeidx++ ;
+#endif
+
 
 	{
 		const std::unique_lock<mutex> lock(mutex_robot_state) ;
@@ -1036,8 +1067,11 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 	{
 		const std::unique_lock<mutex> lock_curr(mutex_curr_frontier_set);
 		const std::unique_lock<mutex> lock_prev(mutex_prev_frontier_set);
-		m_prev_frontier_set = m_curr_frontier_set  ;
+		set<pointset, pointset> frontier_set_tmp ;
+		frontier_set_tmp = m_curr_frontier_set ;
+		m_prev_frontier_set.clear() ;
 		m_curr_frontier_set.clear() ;
+		m_prev_frontier_set = frontier_set_tmp;
 	}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
