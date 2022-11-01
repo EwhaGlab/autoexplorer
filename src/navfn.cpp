@@ -314,7 +314,7 @@ namespace navfn {
 			// values in range 0 to 252 -> values from COST_NEUTRAL to COST_OBS_ROS.
 			*cm = COST_OBS;
 			int v = *cmap;
-			if (v < COST_OBS_ROS ) // 251 ~ 254  ==> OBS
+			if (v < COST_OBS_ROS - 2 ) // 251 ~ 254  ==> OBS
 			{
 			  *cm = 50;
 			}
@@ -359,8 +359,8 @@ namespace navfn {
   bool
     NavFn::calcNavFnAstar()
     {
-//mofs_astarlog = std::ofstream("/home/hankm/results/autoexploration/astarlog.txt");
-//mofs_astarlog << start[0] << " " << start[1] << " " << goal[0] << " " << goal[1] << " "
+////mofs_astarlog = std::ofstream("/home/hankm/results/autoexploration/astarlog.txt");
+////mofs_astarlog << start[0] << " " << start[1] << " " << goal[0] << " " << goal[1] << " "
 //			  << nx << " " << ny << " " << ns << std::endl;
 
       setupNavFn(true);
@@ -391,7 +391,7 @@ namespace navfn {
 	  mf_bound = fupperbound ;
       setupNavFn(true);
 
-      mofs_astarlog << start[0] << " " << start[1] << " " << goal[0] << " " << goal[1] << std::endl;
+      //mofs_astarlog << start[0] << " " << start[1] << " " << goal[0] << " " << goal[1] << std::endl;
 
 //ROS_DEBUG("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0], start[1], goal[0], goal[1]);
 
@@ -616,8 +616,8 @@ namespace navfn {
       //	 potarr[n], l, r, u, d);
       // ROS_INFO("[Update] cost of %d: %d\n", n, costarr[n]);
 
-mofs_astarlog << "update potarray @" << " n " << potarr[n] << " " << p_l << " " << p_r << " " << p_u << " " << p_d << std::endl;
-mofs_astarlog << "update cost @" << " n " << static_cast<uint32_t>(costarr[n]) << std::endl;
+//mofs_astarlog << "update potarray @" << " n " << potarr[n] << " " << p_l << " " << p_r << " " << p_u << " " << p_d << std::endl;
+//mofs_astarlog << "update cost @" << " n " << static_cast<uint32_t>(costarr[n]) << std::endl;
 
       // find lowest, and its lowest neighbor
       float ta, tc;
@@ -650,8 +650,8 @@ mofs_astarlog << "update cost @" << " n " << static_cast<uint32_t>(costarr[n]) <
         }
 
         //ROS_INFO("[Update] new pot: %d\n", costarr[n]);
-mofs_astarlog << "ta, dc, hf: " << ta << " " << dc << " " << hf << std::endl;
-mofs_astarlog << "[update] new pot (ta + hf, or ta + hf*v): " << pot << " potarr[" << n << "]: " << potarr[n] << std::endl;
+//mofs_astarlog << "ta, dc, hf: " << ta << " " << dc << " " << hf << std::endl;
+//mofs_astarlog << "[update] new pot (ta + hf, or ta + hf*v): " << pot << " potarr[" << n << "]: " << potarr[n] << std::endl;
         // now add affected neighbors to priority blocks
         if (pot < potarr[n])
         {
@@ -669,8 +669,8 @@ mofs_astarlog << "[update] new pot (ta + hf, or ta + hf*v): " << pot << " potarr
           pot += dist;
 
           fcurminpot = pot ;
-//mofs_astarlog << "[update] pot + dist (f) : " << pot << " curT: " << curT << std::endl;
-  mofs_astarlog << "[update] fcurminpot = " << fcurminpot << " curT: " << curT << std::endl;
+////mofs_astarlog << "[update] pot + dist (f) : " << pot << " curT: " << curT << std::endl;
+  //mofs_astarlog << "[update] fcurminpot = " << fcurminpot << " curT: " << curT << std::endl;
           if (pot < curT)	// low-cost buffer block 
           {
             if (p_l > pot+c_le) push_next(n-1);
@@ -688,16 +688,16 @@ mofs_astarlog << "[update] new pot (ta + hf, or ta + hf*v): " << pot << " potarr
         }
         else if( pot > potarr[n] )// by kmhan
         {
-mofs_astarlog << "pot > potarr[n] case !!!! " << pot << " " <<  potarr[n] << std::endl;
+//mofs_astarlog << "pot > potarr[n] case !!!! " << pot << " " <<  potarr[n] << std::endl;
         }
         else
         {
-mofs_astarlog << pot << " == " << potarr[n]  << " fcurminpot = " << fcurminpot << endl;
+//mofs_astarlog << pot << " == " << potarr[n]  << " fcurminpot = " << fcurminpot << endl;
         }
       }
       else
       {
-mofs_astarlog << " cannot propagate into OBS   cost: " << costarr[n] << endl;
+//mofs_astarlog << " cannot propagate into OBS   cost: " << costarr[n] << endl;
       }
     }
 
@@ -910,18 +910,18 @@ mofs_astarlog << " cannot propagate into OBS   cost: " << costarr[n] << endl;
         i = curPe;
         float fcurpot = mf_minpot; //potarr[*curP]; //POT_HIGH;
         //float fminpot = potarr[*curP]; //POT_HIGH;
-mofs_astarlog << "begin updateCellAstar() from curpot: "<< fcurpot << " for " << curPe << " num cells" <<std::endl;
+//mofs_astarlog << "begin updateCellAstar() from curpot: "<< fcurpot << " for " << curPe << " num cells" <<std::endl;
         while (i-- > 0)
         {
           updateCellAstar(*pb++, fcurpot);
-          mofs_astarlog << "fcur / fmin " << fcurpot << " / " << mf_minpot << endl;
+          //mofs_astarlog << "fcur / fmin " << fcurpot << " / " << mf_minpot << endl;
           if( fcurpot < mf_minpot )
           {
-        	  mofs_astarlog << "updating fminpot from " << mf_minpot << " to " << fcurpot << endl;
+        	  //mofs_astarlog << "updating fminpot from " << mf_minpot << " to " << fcurpot << endl;
         	  mf_minpot = fcurpot;
           }
         }
-mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << mf_minpot << "/" << fboundpot << "\n" <<std::endl;
+//mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << mf_minpot << "/" << fboundpot << "\n" <<std::endl;
 //ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
 
 		// B&B evaluation
@@ -930,7 +930,7 @@ mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << mf_minpo
 		if( fcurrnodepot > fboundpot + COST_NEUTRAL )
 		{
 			status = -1;
-mofs_astarlog << "aborting condition detected " << std::endl;
+//mofs_astarlog << "aborting condition detected " << std::endl;
 //ROS_INFO("[tid:%d] thread detected that the pot of currnode (%f) > bound (%f)\n", tid, fcurrnodepot, fboundpot);
 			break;
 		}
@@ -971,7 +971,7 @@ mofs_astarlog << "aborting condition detected " << std::endl;
 //ofs_potarray.close();
 
       last_path_cost_ = potarr[startCell];
-mofs_astarlog << "last_path_cost: " << potarr[startCell] << std::endl;
+//mofs_astarlog << "last_path_cost: " << potarr[startCell] << std::endl;
 
     //  ROS_DEBUG("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
     //      cycle,nc,(int)((nc*100.0)/(ns-nobs)),nwv);

@@ -274,25 +274,25 @@ positions at about 1/2 cell resolution; else returns 0.
       /** save costmap */
       void savemap(const char *fname); /**< write out costmap and start/goal states as fname.pgm and fname.txt */
 
-      inline void setAstarLog( string str_astarlog )
-      {
-			mofs_astarlog = ofstream(str_astarlog) ;
-      }
-
-      void writeAstarPlan( std::vector<geometry_msgs::PoseStamped>& plan )
-      {
-    	  mofs_astarlog << " plan found: " << endl;
-    	  for(int idx=0; idx < plan.size(); idx++)
-    	  	  mofs_astarlog << plan[idx].pose.position.x << " " << plan[idx].pose.position.y << endl;
-    	  mofs_astarlog << endl;
-      }
+//      inline void setAstarLog( string str_astarlog )
+//      {
+//			mofs_astarlog = ofstream(str_astarlog) ;
+//      }
+//
+//      void writeAstarPlan( std::vector<geometry_msgs::PoseStamped>& plan )
+//      {
+//    	  mofs_astarlog << " plan found: " << endl;
+//    	  for(int idx=0; idx < plan.size(); idx++)
+//    	  	  mofs_astarlog << plan[idx].pose.position.x << " " << plan[idx].pose.position.y << endl;
+//    	  mofs_astarlog << endl;
+//      }
 
     private:
 
       float mf_bound;
       float mf_minpot ;
 
-      std::ofstream mofs_astarlog;
+      //std::ofstream mofs_astarlog;
   };
 };
 
