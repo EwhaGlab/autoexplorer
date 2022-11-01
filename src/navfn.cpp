@@ -897,19 +897,19 @@ namespace navfn {
         // process current priority buffer
         pb = curP;
         i = curPe;
-        float fcurpot = POT_HIGH;
-        float fminpot = POT_HIGH;
+        float fcurpot = mf_fminpot;
+
         while (i-- > 0)
         {
           updateCellAstar(*pb++, fcurpot);
-          if( fcurpot < fminpot )
-        	  fminpot = fcurpot;
+          if( fcurpot < mf_fminpot )
+        	  mf_fminpot = fcurpot;
         }
 //mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << fminpot << "/" << fboundpot << std::endl;
 //ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
 
 		// B&B evaluation
-		fcurrnodepot = fminpot ;
+		fcurrnodepot = mf_fminpot ;
 
 		if( fcurrnodepot > fboundpot + COST_NEUTRAL )
 		{
