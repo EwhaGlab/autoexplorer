@@ -944,7 +944,6 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 				best_idx = fptidx;
 				omp_unset_lock(&m_mplock);
 			}
-			fptidx++;
 		}
 	}
 
