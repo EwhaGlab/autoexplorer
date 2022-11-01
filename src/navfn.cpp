@@ -918,7 +918,7 @@ namespace navfn {
         	  mf_fminpot = fcurpot;
           {
         	  //mofs_astarlog << "updating fminpot from " << mf_minpot << " to " << fcurpot << endl;
-        	  mf_minpot = fcurpot;
+        	  mf_fminpot = fcurpot;
           }
         }
 //mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << mf_minpot << "/" << fboundpot << "\n" <<std::endl;
