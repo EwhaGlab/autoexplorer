@@ -961,7 +961,7 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 
 			string str_astar  = (boost::format("/media/data/results/autoexplorer/mpbb/astar_%04d_%04d_%02d.txt") % ndebugframeidx % fptidx % tid ).str() ;
 
-			int bplansuccess = o_gph.makePlan(str_astar, tid, fupperbound, false, start, goal, plan, fendpot);
+			int bplansuccess = o_gph.makePlan(str_astar, tid, fupperbound, true, start, goal, plan, fendpot);
 			{
 				omp_set_lock(&m_mplock);
 				cv::Point goal_gm = world2gridmap(cv::Point2f(goal.pose.position.x, goal.pose.position.y)) ;

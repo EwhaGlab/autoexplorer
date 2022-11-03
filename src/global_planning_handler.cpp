@@ -425,7 +425,7 @@ int GlobalPlanningHandler::makePlan( string str_astar, const int& tid, const flo
 // does makePlan(), but breaks when f(n) > ubound occurs.
 // we don't need such path since f(n') >= f(n) which is the consistency property of Euclidean heuristic.
 
-	//planner_->setAstarLog(str_astar) ;
+	planner_->setAstarLog(str_astar) ;
 
     if(!mb_initialized)
     {
@@ -554,7 +554,7 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",m_costmap.get
 		goal_copy.header.stamp = ros::Time::now();
 		plan.push_back(goal_copy);
 
-		//planner_->writeAstarPlan(plan);
+		planner_->writeAstarPlan(plan);
 
 		//ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
 		if(fendpotential < fbound )

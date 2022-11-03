@@ -910,18 +910,17 @@ namespace navfn {
         i = curPe;
         float fcurpot = mf_minpot;
 
-//mofs_astarlog << "begin updateCellAstar() from curpot: "<< fcurpot << " for " << curPe << " num cells" <<std::endl;
+mofs_astarlog << "begin updateCellAstar() from curpot: "<< fcurpot << " for " << curPe << " num cells" <<std::endl;
         while (i-- > 0)
         {
           updateCellAstar(*pb++, fcurpot);
           if( fcurpot < mf_minpot )
-        	  mf_minpot = fcurpot;
           {
-        	  //mofs_astarlog << "updating fminpot from " << mf_minpot << " to " << fcurpot << endl;
+        	  mofs_astarlog << "updating fminpot from " << mf_minpot << " to " << fcurpot << endl;
         	  mf_minpot = fcurpot;
           }
         }
-//mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << mf_minpot << "/" << fboundpot << "\n" <<std::endl;
+mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << mf_minpot << "/" << fboundpot << "\n" <<std::endl;
 //ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
 
 		// B&B evaluation
@@ -930,7 +929,7 @@ namespace navfn {
 		if( fcurrnodepot > fboundpot + COST_NEUTRAL )
 		{
 			status = -1;
-//mofs_astarlog << "aborting condition detected " << std::endl;
+mofs_astarlog << "aborting condition detected. i.e) currnode reached the bound condition " << std::endl;
 //ROS_INFO("[tid:%d] thread detected that the pot of currnode (%f) > bound (%f)\n", tid, fcurrnodepot, fboundpot);
 			break;
 		}
