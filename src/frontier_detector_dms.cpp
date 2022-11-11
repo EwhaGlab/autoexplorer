@@ -880,6 +880,21 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		}
 	}
 
+//std::ofstream ofs_map("/media/data/results/single_planner/outmap.txt");
+//
+//for( int ii=0; ii < cmheight; ii++ )
+//{
+//	for( int jj=0; jj < cmwidth; jj++ )
+//	{
+//		int dataidx = ii * cmwidth + jj ;
+//		int val = static_cast<int>( pmap[ dataidx ] ) ;
+//		ofs_map << val << " ";
+//	}
+//	ofs_map << "\n";
+//}
+//ofs_map.close();
+
+
 ///////////////////////////////////////////////////////////////////////
 // 1. estimate dist to each goal using euclidean distance heuristic (we need sorting here)
 ///////////////////////////////////////////////////////////////////////
@@ -959,9 +974,9 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 			goal.header.frame_id = m_worldFrameId ;
 	//ROS_INFO("goal: %f %f \n", fpoints[fptidx].x, fpoints[fptidx].y );
 
-			string str_astar  = (boost::format("/media/data/results/autoexplorer/mpbb/astar_%04d_%04d_%02d.txt") % ndebugframeidx % fptidx % tid ).str() ;
+			//string str_astar  = (boost::format("/media/data/results/autoexplorer/mpbb/astar_%04d_%04d_%02d.txt") % ndebugframeidx % fptidx % tid ).str() ;
 
-			int bplansuccess = o_gph.makePlan(str_astar, tid, fupperbound, true, start, goal, plan, fendpot);
+			int bplansuccess = o_gph.makePlan( tid, fupperbound, false, start, goal, plan, fendpot);
 			{
 				omp_set_lock(&m_mplock);
 				cv::Point goal_gm = world2gridmap(cv::Point2f(goal.pose.position.x, goal.pose.position.y)) ;
@@ -970,7 +985,7 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 				omp_unset_lock(&m_mplock);
 			}
 
-			if( fendpot < fupperbound )
+			if( fendpot > 0 && fendpot < fupperbound  )
 			{
 				omp_set_lock(&m_mplock);
 				fupperbound = fendpot; // set new bound;

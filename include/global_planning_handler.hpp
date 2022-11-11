@@ -40,7 +40,7 @@ public:
 	bool makePlan( const geometry_msgs::PoseStamped start, const geometry_msgs::PoseStamped goal,
 			  	  std::vector<geometry_msgs::PoseStamped>& plan );
 
-	int makePlan(  string str_astar, const int& tid, const float& fbound, const bool& boneqgrid,
+	int makePlan(   const int& tid, const float& fbound, const bool& boneqgrid,
 					const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
 					std::vector<geometry_msgs::PoseStamped>& plan, float& fendpotential );
 

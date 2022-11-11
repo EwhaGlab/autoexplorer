@@ -418,14 +418,12 @@ ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f
     //return !plan.empty();
 }
 
-int GlobalPlanningHandler::makePlan( string str_astar, const int& tid, const float& fbound, const bool& boneqgrid,
+int GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const bool& boneqgrid,
 			  const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
 		  	  std::vector<geometry_msgs::PoseStamped>& plan, float& fendpotential )
 {
 // does makePlan(), but breaks when f(n) > ubound occurs.
 // we don't need such path since f(n') >= f(n) which is the consistency property of Euclidean heuristic.
-
-	planner_->setAstarLog(str_astar) ;
 
     if(!mb_initialized)
     {
