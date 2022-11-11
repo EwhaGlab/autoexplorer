@@ -254,7 +254,7 @@ namespace navfn {
             // values in range 0 to 252 -> values from COST_NEUTRAL to COST_OBS_ROS.
             *cm = COST_OBS;
             int v = *cmap;
-            if (v < COST_OBS_ROS)
+            if (v < COST_OBS_ROS - 2 )
             {
               v = COST_NEUTRAL+COST_FACTOR*v;
               if (v >= COST_OBS)
@@ -263,7 +263,7 @@ namespace navfn {
             }
             else if(v == COST_UNKNOWN_ROS && allow_unknown)
             {
-				v = COST_OBS-1;
+				v = COST_NEUTRAL; //COST_OBS-1;
 				*cm = v;
 			}
           }
@@ -888,6 +888,7 @@ namespace navfn {
 
       int status = 0;
       // do main cycle
+      float fcurpot = potarr[*curP];
       for (; cycle < cycles; cycle++) // go for this many cycles, unless interrupted
       {
         //
@@ -914,18 +915,18 @@ namespace navfn {
         while (i-- > 0)
         {
           updateCellAstar(*pb++, fcurpot);
-          if( fcurpot < mf_minpot )
-        	  mf_minpot = fcurpot;
-          {
-        	  //mofs_astarlog << "updating fminpot from " << mf_minpot << " to " << fcurpot << endl;
-        	  mf_minpot = fcurpot;
-          }
+//          if( fcurpot < mf_minpot )
+//        	  mf_minpot = fcurpot;
+//          {
+//        	  //mofs_astarlog << "updating fminpot from " << mf_minpot << " to " << fcurpot << endl;
+//        	  mf_minpot = fcurpot;
+//          }
         }
 //mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << mf_minpot << "/" << fboundpot << "\n" <<std::endl;
 //ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
 
 		// B&B evaluation
-		fcurrnodepot = mf_minpot ;
+		fcurrnodepot = fcurpot ;
 
 		if( fcurrnodepot > fboundpot + COST_NEUTRAL )
 		{
