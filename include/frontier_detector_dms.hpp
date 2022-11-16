@@ -34,7 +34,7 @@
 #include <boost/format.hpp>
 
 //#define OCCUPANCY_THR (60)
-#define DEBUG_MODE
+//#define DEBUG_MODE
 #define ROI_OFFSET (10)
 #define DIST_HIGH  (1.0e10)
 #define FRONTIER_MARKER_SIZE (0.2)
@@ -125,6 +125,7 @@ public:
 		int i2 = nwidth * (ny - 1) 	+	nx + 1	;
 		int i3 = nwidth * ny			+	nx - 1 ;
 		int i5 = nwidth * ny			+	nx + 1 ;
+		int i4 = nwidth * ny			+ 	nx ;
 		int i6 = nwidth * (ny + 1)	+	nx - 1 ;
 		int i7 = nwidth * (ny + 1)	+	nx		;
 		int i8 = nwidth * (ny + 1)	+	nx + 1 ;

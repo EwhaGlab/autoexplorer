@@ -457,7 +457,7 @@ void FrontierDetectorDMS::updateUnreachablePointSet( const nav_msgs::OccupancyGr
 void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) //const octomap_server::mapframedata& msg )
 {
 
-//ROS_INFO("start mapdata callback routine\n");
+ROS_INFO("******************************* start mapdata callback routine	 *************** \n");
 
 ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	//ROS_INFO("@ mapdataCallback() ");
@@ -623,9 +623,10 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		// append valid previous frontier points after the sanity check
 		for (const auto & pi : m_prev_frontier_set)
 		{
-			int ngmx = static_cast<int>( (pi.p[0] - m_gridmap.info.origin.position.x) / gmresolution ) ;
-			int ngmy = static_cast<int>( (pi.p[1] - m_gridmap.info.origin.position.y) / gmresolution ) ;
-			if( frontier_sanity_check(ngmx, ngmy, cmwidth, cmdata) )
+			int ngmx = static_cast<int>( (pi.p[0] - globalcostmap.info.origin.position.x) / cmresolution ) ;
+			int ngmy = static_cast<int>( (pi.p[1] - globalcostmap.info.origin.position.y) / cmresolution ) ;
+			//if( frontier_sanity_check(ngmx, ngmy, cmwidth, cmdata) )
+			if( cmdata[ ngmy * cmwidth + ngmx ] == -1 )
 			{
 				pointset pnew( pi.p[0], pi.p[1] );
 				m_curr_frontier_set.insert( pnew );
@@ -753,7 +754,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 				cv::Point frontier_in_gm = voFrontierCands[idx].GetCorrectedGridmapPosition();
 				//bool bisexplored = false; //is_explored(frontier_in_gm.x, frontier_in_gm.y, gmwidth, gmdata) ;
 				int gmidx = gmwidth * frontier_in_gm.y	+	frontier_in_gm.x ;
-				bool bisexplored = gmdata[gmidx] >=0 ? true : false ;
+				bool bisexplored = cmdata[gmidx] >=0 ? true : false ;
 				voFrontierCands[idx].SetFrontierFlag( fcm_conf, fgm_conf, bisexplored );
 			}
 			set<pointset, pointset> unreachable_frontiers;
@@ -880,21 +881,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		}
 	}
 
-//std::ofstream ofs_map("/media/data/results/single_planner/outmap.txt");
-//
-//for( int ii=0; ii < cmheight; ii++ )
-//{
-//	for( int jj=0; jj < cmwidth; jj++ )
-//	{
-//		int dataidx = ii * cmwidth + jj ;
-//		int val = static_cast<int>( pmap[ dataidx ] ) ;
-//		ofs_map << val << " ";
-//	}
-//	ofs_map << "\n";
-//}
-//ofs_map.close();
-
-
 ///////////////////////////////////////////////////////////////////////
 // 1. estimate dist to each goal using euclidean distance heuristic (we need sorting here)
 ///////////////////////////////////////////////////////////////////////
@@ -957,7 +943,7 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 //	for (const auto & pi : m_curr_frontier_set)
 //		cvgoalcands.push_back( cv::Point2f( pi.p[0], pi.p[1] ) );
 
-	#pragma omp parallel firstprivate( o_gph, msg_frontierpoints, plan, tid, start, goal, fendpot ) shared( fupperbound,  best_idx, ofs_mpbb )
+	#pragma omp parallel firstprivate( o_gph, msg_frontierpoints, plan, tid, start, goal, fendpot ) shared( fupperbound,  best_idx) //, ofs_mpbb )
 	{
 
 		#pragma omp for
@@ -977,13 +963,17 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 			//string str_astar  = (boost::format("/media/data/results/autoexplorer/mpbb/astar_%04d_%04d_%02d.txt") % ndebugframeidx % fptidx % tid ).str() ;
 
 			int bplansuccess = o_gph.makePlan( tid, fupperbound, false, start, goal, plan, fendpot);
+
+#ifdef DEBUG_MODE
 			{
 				omp_set_lock(&m_mplock);
 				cv::Point goal_gm = world2gridmap(cv::Point2f(goal.pose.position.x, goal.pose.position.y)) ;
+
 				ofs_mpbb << "[tid "<<tid <<"] ["<<bplansuccess << "] processed " << fptidx << " th point (" << start_gm.x << ", " << start_gm.y << ") to (" <<
 														goal_gm.x << ", " << goal_gm.y << ") marked \t" << fendpot << " / " << fupperbound << " potential \n " << endl;
 				omp_unset_lock(&m_mplock);
 			}
+#endif
 
 			if( fendpot > 0 && fendpot < fupperbound  )
 			{
@@ -1048,11 +1038,7 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 	}
 	m_markerfrontierPub.publish(m_frontier_points);
 
-	// publish goal to Rviz
-	m_exploration_goal.points.clear();
-	m_exploration_goal = SetVizMarker( -1, visualization_msgs::Marker::ADD, m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y, (float)TARGET_MARKER_SIZE,
-			m_worldFrameId,	1.f, 0.f, 1.f, 1.f);
-	m_makergoalPub.publish(m_exploration_goal); // for viz
+
 
 
 #ifdef DEBUG_MODE
@@ -1072,7 +1058,6 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 
 	ndebugframeidx++ ;
 #endif
-
 
 	{
 		const std::unique_lock<mutex> lock(mutex_robot_state) ;
@@ -1103,6 +1088,8 @@ ROS_DEBUG("\n "
 		 "	 \t mapDataCallback exec time (ms): %f ( %f planning time) \n "
 		 " ************************************************************************* \n "
 		, mapcallback_time, planning_time);
+
+ROS_INFO("*****************	 End of mapdata callback routine	 **************************** \n");
 
 }
 
@@ -1186,6 +1173,14 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 	goal.target_pose.pose.position.y = goalpose.pose.pose.position.y ;
 	goal.target_pose.pose.orientation.w = goalpose.pose.pose.orientation.w ;
 
+	ROS_INFO("new destination target is set to <%f  %f> \n", goal.target_pose.pose.position.x, goal.target_pose.pose.position.y );
+
+	// publish goal to Rviz
+	m_exploration_goal.points.clear();
+	m_exploration_goal = SetVizMarker( -1, visualization_msgs::Marker::ADD, m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y, (float)TARGET_MARKER_SIZE,
+			m_worldFrameId,	1.f, 0.f, 1.f, 1.f);
+	m_makergoalPub.publish(m_exploration_goal); // for viz
+
 // inspect the path
 //////////////////////////////////////////////////////////////////////////////////////////////
 //ROS_INFO("+++++++++++++++++++++++++ @moveRobotCallback, sending a goal +++++++++++++++++++++++++++++++++++++\n");
@@ -1233,7 +1228,8 @@ ROS_WARN("@unreachablefrontierCallback Registering (%f %f) as the unreachable pt
 		}
 		int ncmx = static_cast<int>( (ufpt.p[0] - globalcostmap.info.origin.position.x) / globalcostmap.info.resolution ) ;
 		int ncmy = static_cast<int>( (ufpt.p[1] - globalcostmap.info.origin.position.y) / globalcostmap.info.resolution ) ;
-		if( frontier_sanity_check(ncmx, ncmy, globalcostmap.info.width, cmdata) )
+		//if( frontier_sanity_check(ncmx, ncmy, globalcostmap.info.width, cmdata) )
+		if( cmdata[ ncmy * globalcostmap.info.width + ncmx ] == -1 )
 			return ;
 	}
 
