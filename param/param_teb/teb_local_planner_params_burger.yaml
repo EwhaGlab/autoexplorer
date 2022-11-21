@@ -6,6 +6,8 @@ recovery_behaviors:
       type: 'rotate_recovery/RotateRecovery'
     - name: 'aggressive_reset'
       type: 'clear_costmap_recovery/ClearCostmapRecovery'
+    #- name: 'move_slow_reset'
+      #type: 'move_slow_and_clear/MoveSlowAndClear'
 
 
 TebLocalPlannerROS:

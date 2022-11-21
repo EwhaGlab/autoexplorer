@@ -111,6 +111,7 @@ public:
 	void measureCostmapConfidence( const nav_msgs::OccupancyGrid& costmapData, std::vector<FrontierPoint>& voFrontierCandidates ) ;
 	void measureGridmapConfidence( const nav_msgs::OccupancyGrid& gridmapData, std::vector<FrontierPoint>& voFrontierCandidates ) ;
 	void computeReachability( const set<pointset, pointset>& unreachable_frontiers, std::vector<FrontierPoint>& voFrontierCandidates ) ;
+	bool isReachable( const set<pointset, pointset>& unreachable_frontiers, const float& fxcand, const float& fycand ) ;
 
 	inline float GetCostmapConf() const
 	{

@@ -25,6 +25,7 @@
 #include "frontier_filter.hpp"
 #include "global_planning_handler.hpp"
 #include <omp.h>
+#include <algorithm>
 #include "std_msgs/Empty.h"
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
@@ -45,6 +46,14 @@
 namespace autoexplorer
 {
 
+enum PrevExpState {
+  ABORTED = 0,
+  SUCCEEDED
+};
+static const char *prevstate_str[] =
+        { "ABORTED", "SUCCEEDED" };
+
+
 using namespace std;
 
 class FrontierDetectorDMS: public FrontierDetector
@@ -53,7 +62,7 @@ public:
 	FrontierDetectorDMS(const ros::NodeHandle private_nh_, const ros::NodeHandle &nh_);
 	virtual ~FrontierDetectorDMS();
 
-	void initmotion( );
+	void initmotion( const float& fvx, const float& fvy, const float& ftheta );
 	inline void SetInitMotionCompleted(){ mb_isinitmotion_completed = true;  }
 	inline void SetNumThreads(int numthreads){ mn_numthreads = numthreads; }
 
@@ -76,9 +85,13 @@ public:
 
 	void publishFrontierPoints() ;
 	void publishFrontierPointMarkers( ) ;
-	void publishFrontierRegionMarkers( const vector<vector<cv::Point>>& contour  );
-	void publishGoalPointMarker( );
+	void publishFrontierRegionMarkers( const visualization_msgs::Marker& vizfrontier_regions  );
+	void publishGoalPointMarker(  const geometry_msgs::PoseWithCovarianceStamped& targetgoal );
+	void publishUnreachbleMarker( const geometry_msgs::PoseStamped& unreachablepose );
+	void publishUnreachablePoints( ); // const geometry_msgs::PoseStamped& unreachablepose );
+	void appendUnreachablePoint( const geometry_msgs::PoseStamped& unreachablepose ) ;
 
+	void updatePrevFrontierPointsList( );
 //	geometry_msgs::PoseStamped StampedPosefromSE2( float x, float y, float yaw ) ;
 //	geometry_msgs::PoseStamped GetCurrPose ( ) ;
 
@@ -92,6 +105,10 @@ public:
 	int frontier_summary( const vector<FrontierPoint>& voFrontierCurrFrame );
 
 	void updateUnreachablePointSet( const nav_msgs::OccupancyGrid& globalcostmap  ) ;
+
+	int selectNextBestPoint( const geometry_msgs::PoseStamped& robotpose, const nav_msgs::Path& goalexclusivefpts, geometry_msgs::PoseStamped& nextbestpoint  ) ;
+	int selectEscapingPoint( geometry_msgs::PoseStamped& escapepoint) ;
+	int moveBackWard() ;
 
 	geometry_msgs::PoseStamped GetCurrRobotPose ( )
 	{
@@ -117,7 +134,7 @@ public:
 	inline bool frontier_sanity_check( int nx, int ny, int nwidth, const std::vector<signed char>& cmdata )
 	{
 		// 0	1	2
-		// 3		5
+		// 3	4	5
 		// 6	7	8
 
 		int i0 = nwidth * (ny - 1) 	+	nx - 1 ;
@@ -129,15 +146,16 @@ public:
 		int i6 = nwidth * (ny + 1)	+	nx - 1 ;
 		int i7 = nwidth * (ny + 1)	+	nx		;
 		int i8 = nwidth * (ny + 1)	+	nx + 1 ;
+		int nleathalcost = 70 ;
 
 		//ROS_INFO("width i0 val : %d %d %d\n", nwidth, i0, gmdata[i0] );
-		if( cmdata[i0] > mn_lethal_cost_thr || cmdata[i1] > mn_lethal_cost_thr || cmdata[i2] > mn_lethal_cost_thr || cmdata[i3] > mn_lethal_cost_thr ||
-			cmdata[i5] > mn_lethal_cost_thr || cmdata[i6] > mn_lethal_cost_thr || cmdata[i7] > mn_lethal_cost_thr || cmdata[i8] > mn_lethal_cost_thr )
+		if( cmdata[i0] > nleathalcost || cmdata[i1] > nleathalcost || cmdata[i2] > nleathalcost || cmdata[i3] > nleathalcost ||
+			cmdata[i5] > nleathalcost || cmdata[i6] > nleathalcost || cmdata[i7] > nleathalcost || cmdata[i8] > nleathalcost )
 		{
 			return false;
 		}
 
-		if( cmdata[i0] < 0 || cmdata[i1] < 0 || cmdata[i2] < 0 || cmdata[i3] < 0 ||  cmdata[i5] < 0 || cmdata[i6] < 0 || cmdata[i7] < 0 || cmdata[i8] < 0 )
+		if( cmdata[i4] < 0 )
 		{
 			return true ;
 		}
@@ -173,25 +191,22 @@ public:
 	}
 
 
+    inline bool equals_to_prevgoal( const geometry_msgs::PoseStamped& in_goal )
+    {
+//    	  ROS_WARN("prev/curr goal (%f %f), (%f %f) \n",
+//    			  previous_goal_.pose.position.x, previous_goal_.pose.position.y,
+//				  planner_goal_.pose.position.x, planner_goal_.pose.position.y
+//    	  );
 
-//	static bool lexico_compare(const visualization_msgs::Marker& pt1, const visualization_msgs::Marker& pt2)
-//	{
-//		if(pt1.pose.position.x < pt2.pose.position.x) {return true; }
-//		if(pt1.pose.position.x > pt2.pose.position.x) {return false; }
-//		return(  pt1.pose.position.y < pt2.pose.position.y  ) ;
-//	}
-//
-//	static bool fpts_are_equal( const visualization_msgs::Marker& pt1, const visualization_msgs::Marker& pt2)
-//	{
-//		return ( (pt1.pose.position.x == pt2.pose.position.x) && (pt1.pose.position.y == pt2.pose.position.y) ) ;
-//	}
-//
-//	void remove_duplicate_fpts( vector<visualization_msgs::Marker>& points  )
-//	{
-//		std::sort(points.begin(), points.end(), lexico_compare);
-//		points.erase(std::unique(points.begin(), points.end(), fpts_are_equal), points.end());
-//	}
+  	  float fxdiff = (m_previous_goal.pose.pose.position.x - in_goal.pose.position.x) ;
+  	  float fydiff = (m_previous_goal.pose.pose.position.y - in_goal.pose.position.y) ;
+  	  return std::sqrt( fxdiff * fxdiff + fydiff * fydiff ) < 0.001 ? true : false;
+    }
 
+    static float euc_dist(const cv::Point2f& lhs, const cv::Point2f& rhs)
+    {
+        return (float)sqrt(  (lhs.x - rhs.x) * (lhs.x - rhs.x) + (lhs.y - rhs.y) * (lhs.y - rhs.y)  );
+    }
 
 protected:
 
@@ -201,7 +216,7 @@ protected:
 	ros::Subscriber 	m_mapSub, m_poseSub, m_velSub, m_mapframedataSub, m_globalCostmapSub, m_globalCostmapUpdateSub, m_frontierCandSub,
 						m_currGoalSub, m_globalplanSub, m_unreachablefrontierSub ;
 	ros::Publisher 		m_targetsPub, m_markercandPub, m_markerfrontierPub, m_markerfrontierregionPub, m_makergoalPub,
-						m_currentgoalPub, m_unreachpointPub, m_velPub, m_donePub, m_resetgazeboPub, m_startmsgPub,
+						m_currentgoalPub, m_marker_unreachpointPub, m_unreachpointPub, m_velPub, m_donePub, m_resetgazeboPub, m_startmsgPub,
 						m_otherfrontierptsPub ;
 
 	int32_t mn_FrontierID, mn_UnreachableFptID ;
@@ -227,12 +242,15 @@ protected:
 	float mf_neighoringpt_decisionbound ;
 	bool mb_strict_unreachable_decision ;
 
-//	// valid and unique frontier pts list @ the current input frame
-//	vector<FrontierPoint> mvo_frontier_list;
+	geometry_msgs::PoseWithCovarianceStamped m_previous_goal ;
+	PrevExpState me_prev_exploration_state ;
+	int mn_prev_nbv_posidx ;
+	ros::Time m_last_oscillation_reset ;
+	geometry_msgs::PoseStamped m_previous_robot_pose ;
 
 private:
 	std::mutex mutex_robot_state;
-	std::mutex mutex_unreachable_points;
+	std::mutex mutex_unreachable_frontier_set;
 	std::mutex mutex_curr_frontier_set ;
 	std::mutex mutex_prev_frontier_set ;
 

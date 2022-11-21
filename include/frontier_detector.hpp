@@ -263,8 +263,8 @@ protected:
 	float mf_resolution ;
 	int mn_correctionwindow_width ;
 
-	visualization_msgs::Marker  m_exploration_goal ;
-	visualization_msgs::MarkerArray m_frontier_points, m_cands, m_unreachable_points ;
+	visualization_msgs::Marker  m_targetgoal_marker ;
+	visualization_msgs::MarkerArray m_frontierpoint_markers, m_cands, m_unreachable_markers ;
 
 	nav_msgs::OccupancyGrid m_gridmap;
 	nav_msgs::OccupancyGrid m_globalcostmap ;

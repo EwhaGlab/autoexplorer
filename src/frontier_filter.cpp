@@ -250,9 +250,17 @@ void FrontierFilter::computeReachability( const set<pointset, pointset>& unreach
 			}
 		}
 	}
-
 }
 
+bool FrontierFilter::isReachable( const set<pointset, pointset>& unreachable_frontiers, const float& fxcand, const float& fycand )
+{
+	for (const auto & di : unreachable_frontiers)
+	{
+		float fdist = std::sqrt( (fxcand - di.p[0]) * (fxcand - di.p[0]) + (fycand - di.p[1]) * (fycand - di.p[1]) ) ;
+		if(fdist < mf_unreachable_dist_thr)
+			return false;
+	}
+}
 
 
 }

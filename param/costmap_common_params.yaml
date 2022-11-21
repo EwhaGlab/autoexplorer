@@ -10,7 +10,7 @@ raytrace_range: 10.0
 robot_radius: 0.3
 
 inflation_radius: 0.4
-cost_scaling_factor: 1.0
+cost_scaling_factor: 1.0 #1.0 # decay faster if the number if high
 
 map_type: costmap
 observation_sources: base_scan
