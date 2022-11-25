@@ -1,20 +1,31 @@
 /*********************************************************************
-*  Copyright (c) 2022, Ewha Graphics Lab
-*
-* This file is a part of Autoexplorer
-*
-* Autoexplorer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-* License as published by the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* Autoexplorer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-* the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with Autoexplorer.
-* If not, see <http://www.gnu.org/licenses/>.
-
-*      Author: Kyungmin Han (hankm@ewha.ac.kr)
+Copyright 2022 The Ewha Womans University.
+All Rights Reserved.
+Permission to use, copy, modify OR distribute this software and its
+documentation for educational, research and non-profit purposes, without
+fee, and without a written agreement is hereby granted, provided that the
+above copyright notice and the following three paragraphs appear in all
+copies.
+IN NO EVENT SHALL THE EWHA WOMANS UNIVERSITY BE
+LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR
+CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE
+USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE EWHA WOMANS UNIVERSITY
+BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+THE EWHA WOMANS UNIVERSITY SPECIFICALLY DISCLAIM ANY
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE EWHA WOMANS UNIVERSITY
+HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
+UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+The authors may be contacted via:
+Mail:        Y. J. Kim, Kyung Min Han
+             Computer Graphics Lab
+             Department of Computer Science and Engineering
+             Ewha Womans University
+             11-1 Daehyun-Dong Seodaemun-gu, Seoul, Korea 120-750
+Phone:       +82-2-3277-6798
+EMail:       kimy@ewha.ac.kr
+             hankm@ewha.ac.kr
 */
 
 #ifndef INCLUDE_TWIST2TWISTSTAMPED_HPP_
