@@ -99,7 +99,7 @@ public:
 	void publishFrontierRegionMarkers( const visualization_msgs::Marker& vizfrontier_regions  );
 	void publishGoalPointMarker(  const geometry_msgs::PoseWithCovarianceStamped& targetgoal );
 	void publishUnreachbleMarker( const geometry_msgs::PoseStamped& unreachablepose );
-	void publishUnreachablePoints( ); // const geometry_msgs::PoseStamped& unreachablepose );
+	void publishUnreachableMarkers( ); // const geometry_msgs::PoseStamped& unreachablepose );
 	void appendUnreachablePoint( const geometry_msgs::PoseStamped& unreachablepose ) ;
 
 	void updatePrevFrontierPointsList( );

@@ -3,8 +3,8 @@
 #For this example we'll configure the costmap in voxel-grid mode
 #map_type: costmap 
 
-obstacle_range: 8.0
-raytrace_range: 10.0
+obstacle_range: 4.0
+raytrace_range: 5.0
 
 #footprint: [[-0.105, -0.105], [-0.105, 0.105], [0.041, 0.105], [0.041, -0.105]]
 robot_radius: 0.3

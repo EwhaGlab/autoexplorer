@@ -27,7 +27,7 @@ Phone:       +82-2-3277-6798
 EMail:       kimy@ewha.ac.kr
              hankm@ewha.ac.kr
 */
-*/
+
 
 #ifndef INCLUDE_FFP_HPP_
 #define INCLUDE_FFP_HPP_

@@ -298,7 +298,7 @@ void FrontierDetectorDMS::publishGoalPointMarker( const geometry_msgs::PoseWithC
 //	mn_UnreachableFptID++ ;
 //}
 
-void FrontierDetectorDMS::publishUnreachablePoints( ) //const geometry_msgs::PoseStamped& unreachablepose )
+void FrontierDetectorDMS::publishUnreachableMarkers( ) //const geometry_msgs::PoseStamped& unreachablepose )
 {
 	// first we refresh/update viz markers
 	visualization_msgs::MarkerArray ftmarkers_old = m_unreachable_markers ;
@@ -307,12 +307,15 @@ void FrontierDetectorDMS::publishUnreachablePoints( ) //const geometry_msgs::Pos
 	m_marker_unreachpointPub.publish(ftmarkers_old);
 	m_unreachable_markers.markers.resize(0);
 
-	// create new markers and publish them to Rviz
-	for (const auto & pi : m_unreachable_frontier_set)
+	const std::unique_lock<mutex> lock_unrc(mutex_unreachable_frontier_set) ;
 	{
-		visualization_msgs::Marker vizmarker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], (float)FRONTIER_MARKER_SIZE, m_worldFrameId, 0.f, 1.f, 0.f );
-		m_unreachable_markers.markers.push_back(vizmarker);
-		mn_UnreachableFptID++ ;
+		// create new markers and publish them to Rviz
+		for (const auto & pi : m_unreachable_frontier_set)
+		{
+			visualization_msgs::Marker vizmarker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], (float)FRONTIER_MARKER_SIZE, m_worldFrameId, 1.f, 1.f, 0.f );
+			m_unreachable_markers.markers.push_back(vizmarker);
+			mn_UnreachableFptID++ ;
+		}
 	}
 	m_marker_unreachpointPub.publish(m_unreachable_markers);
 }
@@ -338,12 +341,22 @@ void FrontierDetectorDMS::appendUnreachablePoint( const geometry_msgs::PoseStamp
 		if( cmdata[ ncmy * globalcostmap.info.width + ncmx ] == -1 )
 			return ;
 	}
-	else
+
 	{
-		ROS_INFO("@unreachablefrontierCallback Registering (%f %f) as the unreachable pt \n", ufpt.p[0], ufpt.p[1] );
 		const std::unique_lock<mutex> lock_unrc(mutex_unreachable_frontier_set) ;
 		m_unreachable_frontier_set.insert( ufpt ) ;
+		ROS_WARN("@unreachablefrontierCallback Registering (%f %f) as the unreachable pt. Tot unreachable pts: %d \n", ufpt.p[0], ufpt.p[1], m_unreachable_frontier_set.size() );
 	}
+
+//	{
+//		std::unique_lock<mutex> lock(mutex_curr_frontier_set);
+//		for (const auto & pi : m_curr_frontier_set)
+//		{
+//			float fdist = std::sqrt( (ufpt.p[0] - pi.p[0]) * (ufpt.p[0] - pi.p[0]) + (ufpt.p[1] - pi.p[1]) * (ufpt.p[1] - pi.p[1]) ) ;
+//			if(fdist < mf_neighoringpt_decisionbound)
+//				m_curr_frontier_set.erase(pi);
+//		}
+//	}
 }
 
 void FrontierDetectorDMS::updatePrevFrontierPointsList( )
@@ -986,7 +999,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 
 	publishFrontierPointMarkers( ) ;
 	publishFrontierRegionMarkers ( vizfrontier_regions );
-	publishUnreachablePoints( );
 
 	if( m_curr_frontier_set.empty() ) // terminating condition
 	{
@@ -1166,7 +1178,7 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 		// publish current goal as unreachable pt
 		geometry_msgs::PoseStamped ufpt = StampedPosefromSE2( m_previous_goal.pose.pose.position.x, m_previous_goal.pose.pose.position.y, 0.f ) ;
 		appendUnreachablePoint(  ufpt ) ;
-		publishUnreachablePoints( );
+		publishUnreachableMarkers( );
 
 		updatePrevFrontierPointsList( ) ;
 
@@ -1185,6 +1197,9 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 			mb_explorationisdone = true;
 			return;
 		}
+
+		geometry_msgs::PoseStamped ufpt = StampedPosefromSE2( best_goal.pose.position.x, best_goal.pose.position.y, 0.f ) ;
+		appendUnreachablePoint(  ufpt ) ;
 
 		ROS_ASSERT( goalexclusivefpts.poses.size() >  mn_prev_nbv_posidx + 1 );
 
@@ -1262,6 +1277,7 @@ ROS_INFO("\n*********target cost******\n********* %02d %02d %02d ********\n*****
 
 
 //	m_otherfrontierptsPub.publish(goalexclusivefpts);
+	publishUnreachableMarkers( );
 	m_currentgoalPub.publish(m_targetgoal);		// for control
 
 ros::WallTime mapCallEndTime = ros::WallTime::now();

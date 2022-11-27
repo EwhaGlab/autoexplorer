@@ -27,6 +27,7 @@ Phone:       +82-2-3277-6798
 EMail:       kimy@ewha.ac.kr
              hankm@ewha.ac.kr
 */
+
 #ifndef INCLUDE_GLOBAL_PLANNING_HANDLER_HPP_
 #define INCLUDE_GLOBAL_PLANNING_HANDLER_HPP_
 

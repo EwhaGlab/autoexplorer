@@ -274,7 +274,7 @@ protected:
 	float mf_resolution ;
 	int mn_correctionwindow_width ;
 
-	visualization_msgs::Marker  m_targetgoal_marker ;
+	visualization_msgs::Marker  m_targetgoal_marker, m_optimaltarget_marker ;
 	visualization_msgs::MarkerArray m_frontierpoint_markers, m_cands, m_unreachable_markers ;
 
 	nav_msgs::OccupancyGrid m_gridmap;
@@ -300,7 +300,7 @@ protected:
 	ros::ServiceClient m_makeplan_client;
 //	cv::Mat m_uMapImg, m_uMapImgROI ;
 
-	geometry_msgs::PoseWithCovarianceStamped m_targetgoal ;
+	geometry_msgs::PoseWithCovarianceStamped m_targetgoal, m_optimal_targetgoal ; // actual goal /  optimal goal
 	set<pointset, pointset> m_unreachable_frontier_set ;
 	set<pointset, pointset> m_curr_frontier_set ;
 	set<pointset, pointset> m_prev_frontier_set ;
