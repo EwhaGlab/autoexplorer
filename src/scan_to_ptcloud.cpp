@@ -121,7 +121,7 @@ void Scan2PointCloud::scanCallback( const sensor_msgs::LaserScan::ConstPtr& scan
 	sensor_msgs::PointCloud cloud;
 	m_projector.transformLaserScanToPointCloud(scan_in->header.frame_id,*scan_in, cloud, m_tfListener);
 
-	ROS_INFO("cloud size: %d \n", cloud.points.size());
+	//ROS_INFO("cloud size: %ld \n", cloud.points.size());
 
 	sensor_msgs::PointCloud2 cloud2;
 	sensor_msgs::convertPointCloudToPointCloud2(cloud, cloud2);
