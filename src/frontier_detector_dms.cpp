@@ -300,15 +300,6 @@ void FrontierDetectorDMS::publishGoalPointMarker( const geometry_msgs::PoseWithC
 	m_makergoalPub.publish(m_targetgoal_marker); // for viz
 }
 
-//void FrontierDetectorDMS::publishUnreachbleMarker( const geometry_msgs::PoseStamped& unreachablepose )
-//{
-//	visualization_msgs::Marker viz_marker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD,
-//			unreachablepose.pose.position.x, unreachablepose.pose.position.y, (float)UNREACHABLE_MARKER_SIZE, "map", 1.f, 1.f, 0.f);
-//	m_unreachable_markers.markers.push_back(viz_marker);
-//	m_marker_unreachpointPub.publish( m_unreachable_markers );
-//	mn_UnreachableFptID++ ;
-//}
-
 void FrontierDetectorDMS::publishUnreachableMarkers( ) //const geometry_msgs::PoseStamped& unreachablepose )
 {
 	// first we refresh/update viz markers
@@ -359,15 +350,6 @@ void FrontierDetectorDMS::appendUnreachablePoint( const geometry_msgs::PoseStamp
 		ROS_WARN("@unreachablefrontierCallback Registering (%f %f) as the unreachable pt. Tot unreachable pts: %d \n", ufpt.p[0], ufpt.p[1], m_unreachable_frontier_set.size() );
 	}
 
-//	{
-//		std::unique_lock<mutex> lock(mutex_curr_frontier_set);
-//		for (const auto & pi : m_curr_frontier_set)
-//		{
-//			float fdist = std::sqrt( (ufpt.p[0] - pi.p[0]) * (ufpt.p[0] - pi.p[0]) + (ufpt.p[1] - pi.p[1]) * (ufpt.p[1] - pi.p[1]) ) ;
-//			if(fdist < mf_neighoringpt_decisionbound)
-//				m_curr_frontier_set.erase(pi);
-//		}
-//	}
 }
 
 void FrontierDetectorDMS::updatePrevFrontierPointsList( )
@@ -428,10 +410,6 @@ void FrontierDetectorDMS::robotVelCallBack( const geometry_msgs::Twist::ConstPtr
 {
 	m_robotvel = *msg ;
 }
-
-//int FrontierDetectorDMS::savegridmap( const nav_msgs::OccupancyGrid& gridmap, const string& filename )
-//{
-//}
 
 int FrontierDetectorDMS::saveMap( const nav_msgs::OccupancyGrid& map, const string& infofilename, const string& mapfilename )
 {
@@ -739,9 +717,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		}
 	}
 
-//	m_markerfrontierpub.publish(m_points); 		// Publish frontiers to renew Rviz
-//	m_makergoalpub.publish(m_exploration_goal);	// Publish frontiers to renew Rviz
-
 // The robot is not moving (or ready to move)... we can go ahead plan the next action...
 // i.e.) We locate frontier points again, followed by publishing the new goal
 
@@ -1000,22 +975,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	ROS_INFO(" The num of tot frontier points left :  %d\n", m_curr_frontier_set.size() );
 	//frontier_summary( voFrontierCands );
 
-//	static int fileidx = 0;
-//	std::stringstream ssfptfile, ssmapfile ;
-//	ssfptfile << "fpt" << std::setw(4) << std::setfill('0') << fileidx << ".txt" ;
-//	ssmapfile << "map" << std::setw(4) << std::setfill('0') << fileidx << ".txt";
-//	std::string resdir("/home/hankm/results/explore_bench/");
-//	std::string strprevfrontierfile = resdir + "prev_" + ssfptfile.str() ;
-//	std::string strcurrfrontierfile = resdir + "curr_" + ssfptfile.str() ;
-//	std::string strmapfile			= resdir + ssmapfile.str() ;
-//	std::string strmapinfofile		= resdir + "mapinfo_" + ssmapfile.str();
-//
-//	savemap( globalcostmap, strmapinfofile, strmapfile );
-//	saveprevfrontierpoint( m_gridmap, strprevfrontierfile ) ;
-//	savefrontiercands( m_gridmap, voFrontierCands, strcurrfrontierfile ) ;
-//	fileidx++;
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 	publishFrontierPointMarkers( ) ;
 	publishFrontierRegionMarkers ( vizfrontier_regions );
 
@@ -1110,10 +1069,6 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 	omp_init_lock(&m_mplock);
 
 	//ROS_INFO("begining BB A*\n");
-//	vector<cv::Point2f> cvgoalcands;
-//	for (const auto & pi : m_curr_frontier_set)
-//		cvgoalcands.push_back( cv::Point2f( pi.p[0], pi.p[1] ) );
-
 	#pragma omp parallel firstprivate( o_gph, msg_frontierpoints, plan, tid, start, goal, fendpot ) shared( fupperbound,  best_idx)
 	{
 
@@ -1205,8 +1160,6 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 		mb_strict_unreachable_decision = true;
 		m_last_oscillation_reset = ros::Time::now();
 		return ;
-		// do escape routine
-		//moveBackWard();
 	}
 	else if( equals_to_prevgoal( best_goal ) ) //|| me_prev_exploration_state == ABORTED ) // cond to select the next best alternative
 	{
@@ -1288,19 +1241,19 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 	m_previous_robot_pose = start;
 
 // print costval of the targetgoal
-cv::Point gmpt = world2gridmap( cv::Point2f( m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y )  ) ;
-int c0 = static_cast<int>( cmdata[ cmwidth * (gmpt.y-1) + gmpt.x-1 ] ) ;
-int c1 = static_cast<int>( cmdata[ cmwidth * (gmpt.y-1) + gmpt.x ] ) ;
-int c2 = static_cast<int>( cmdata[ cmwidth * (gmpt.y-1) + gmpt.x+1 ] ) ;
-int c3 = static_cast<int>( cmdata[ cmwidth * gmpt.y + gmpt.x-1 ] ) ;
-int c4 = static_cast<int>( cmdata[ cmwidth * gmpt.y + gmpt.x ] ) ;
-int c5 = static_cast<int>( cmdata[ cmwidth * gmpt.y + gmpt.x+1 ] ) ;
-int c6 = static_cast<int>( cmdata[ cmwidth * (gmpt.y+1) + gmpt.x-1 ] ) ;
-int c7 = static_cast<int>( cmdata[ cmwidth * (gmpt.y+1) + gmpt.x ] ) ;
-int c8 = static_cast<int>( cmdata[ cmwidth * (gmpt.y+1) + gmpt.x+1 ] ) ;
-
-ROS_INFO("\n*********target cost******\n********* %02d %02d %02d ********\n********* %02d %02d %02d ********\n********* %02d %02d %02d ********\n",
-		c0,c1,c2,c3,c4,c5,c6,c7,c8);
+//cv::Point gmpt = world2gridmap( cv::Point2f( m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y )  ) ;
+//int c0 = static_cast<int>( cmdata[ cmwidth * (gmpt.y-1) + gmpt.x-1 ] ) ;
+//int c1 = static_cast<int>( cmdata[ cmwidth * (gmpt.y-1) + gmpt.x ] ) ;
+//int c2 = static_cast<int>( cmdata[ cmwidth * (gmpt.y-1) + gmpt.x+1 ] ) ;
+//int c3 = static_cast<int>( cmdata[ cmwidth * gmpt.y + gmpt.x-1 ] ) ;
+//int c4 = static_cast<int>( cmdata[ cmwidth * gmpt.y + gmpt.x ] ) ;
+//int c5 = static_cast<int>( cmdata[ cmwidth * gmpt.y + gmpt.x+1 ] ) ;
+//int c6 = static_cast<int>( cmdata[ cmwidth * (gmpt.y+1) + gmpt.x-1 ] ) ;
+//int c7 = static_cast<int>( cmdata[ cmwidth * (gmpt.y+1) + gmpt.x ] ) ;
+//int c8 = static_cast<int>( cmdata[ cmwidth * (gmpt.y+1) + gmpt.x+1 ] ) ;
+//
+//ROS_INFO("\n*********target cost******\n********* %02d %02d %02d ********\n********* %02d %02d %02d ********\n********* %02d %02d %02d ********\n",
+//		c0,c1,c2,c3,c4,c5,c6,c7,c8);
 
 
 //	m_otherfrontierptsPub.publish(goalexclusivefpts);

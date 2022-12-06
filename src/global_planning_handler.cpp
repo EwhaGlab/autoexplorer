@@ -352,90 +352,6 @@ ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f
     	return false;
     }
 
-
-//    double resolution = mp_costmap->getResolution();
-//    geometry_msgs::PoseStamped p, best_pose;
-//    p = goal;
-//
-//    bool found_legal = false;
-//    double best_sdist = DBL_MAX;
-//
-//    p.pose.position.y = goal.pose.position.y - mf_tolerance;
-//
-//    while(p.pose.position.y <= goal.pose.position.y + mf_tolerance)
-//    {
-//      p.pose.position.x = goal.pose.position.x - mf_tolerance;
-//      while(p.pose.position.x <= goal.pose.position.x + mf_tolerance)
-//      {
-//        double potential = getPointPotential(p.pose.position);
-//        double sdist = sq_distance(p, goal);
-//        if(potential < POT_HIGH && sdist < best_sdist)
-//        {
-//          best_sdist = sdist;
-//          best_pose = p;
-//          found_legal = true;
-//        }
-//        p.pose.position.x += resolution;
-//      }
-//      p.pose.position.y += resolution;
-//    }
-//
-//    if(found_legal)
-//    {
-//      //extract the plan
-//      if(getPlanFromPotential(best_pose, plan))
-//      {
-//        //make sure the goal we push on has the same timestamp as the rest of the plan
-//        geometry_msgs::PoseStamped goal_copy = best_pose;
-//        goal_copy.header.stamp = ros::Time::now();
-//        plan.push_back(goal_copy);
-//
-//        ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
-//
-//      }
-//      else
-//      {
-//        ROS_ERROR("@GPH: Failed to get a plan from potential when a legal potential was found. This shouldn't happen.");
-//      }
-//    }
-
-
-//    if (mb_visualize_potential)
-//    {
-//      // Publish the potentials as a PointCloud2
-//      sensor_msgs::PointCloud2 cloud;
-//      cloud.width = 0;
-//      cloud.height = 0;
-//      cloud.header.stamp = ros::Time::now();
-//      cloud.header.frame_id = global_frame_;
-//      sensor_msgs::PointCloud2Modifier cloud_mod(cloud);
-//      cloud_mod.setPointCloud2Fields(4, "x", 1, sensor_msgs::PointField::FLOAT32,
-//                                        "y", 1, sensor_msgs::PointField::FLOAT32,
-//                                        "z", 1, sensor_msgs::PointField::FLOAT32,
-//                                        "pot", 1, sensor_msgs::PointField::FLOAT32);
-//      cloud_mod.resize(planner_->ny * planner_->nx);
-//      sensor_msgs::PointCloud2Iterator<float> iter_x(cloud, "x");
-//
-//      PotarrPoint pt;
-//      float *pp = planner_->potarr;
-//      double pot_x, pot_y;
-//      for (unsigned int i = 0; i < (unsigned int)planner_->ny*planner_->nx ; i++)
-//      {
-//        if (pp[i] < 10e7)
-//        {
-//          mapToWorld(i%planner_->nx, i/planner_->nx, pot_x, pot_y);
-//          iter_x[0] = pot_x;
-//          iter_x[1] = pot_y;
-//          iter_x[2] = pp[i]/pp[planner_->start[1]*planner_->nx + planner_->start[0]]*20;
-//          iter_x[3] = pp[i];
-//          ++iter_x;
-//        }
-//      }
-//      potarr_pub_.publish(cloud);
-//    }
-//ROS_WARN("Astar was successful (%d) found a legal plan: (%d) is plan empty: (%d)\n", success, found_legal, plan.empty() );
-
-    //return !plan.empty();
 }
 
 int GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const bool& boneqgrid,
@@ -594,44 +510,6 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",m_costmap.get
 	{
 		return -7;
 	}
-
-//    if(success)
-//    {
-//		//planner_->calcPath(mp_costmap->getSizeInCellsX() * 4);
-//
-//		//extract the plan
-//		float *x = planner_->getPathX();
-//		float *y = planner_->getPathY();
-//		int len = planner_->getPathLen();
-//		ros::Time plan_time = ros::Time::now();
-//
-//		for(int i = len - 1; i >= 0; --i)
-//		{
-//		  //convert the plan to world coordinates
-//		  double world_x, world_y;
-//		  mapToWorld(x[i], y[i], world_x, world_y);
-//
-//		  geometry_msgs::PoseStamped pose;
-//		  pose.header.stamp = plan_time;
-//		  pose.header.frame_id = global_frame_;
-//		  pose.pose.position.x = world_x;
-//		  pose.pose.position.y = world_y;
-//		  pose.pose.position.z = 0.0;
-//		  pose.pose.orientation.x = 0.0;
-//		  pose.pose.orientation.y = 0.0;
-//		  pose.pose.orientation.z = 0.0;
-//		  pose.pose.orientation.w = 1.0;
-//		  plan.push_back(pose);
-//		}
-//
-//		ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
-//		return true;
-//    }
-//    else
-//    {
-//    	ROS_ERROR("@GPH: Failed to get a plan from the Astar search");
-//    	return false;
-//    }
 
 }
 

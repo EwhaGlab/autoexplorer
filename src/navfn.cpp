@@ -184,17 +184,6 @@ namespace navfn {
       start[1] = g[1];
       ROS_DEBUG("[NavFn] Setting start to %d,%d\n", start[0], start[1]);
 
-      // reset cost arround the goal (by hkm)
-//      COSTTYPE *cm = costarr;
-//      cm[ g[0] + g[1]*nx ] = 0 ;
-//
-//      for(int r=-2; r < 2; r++)
-//      {
-//    	  for(int c=-2; c < 2; c++)
-//    	  {
-//    		  cm[ g[0] + c + (g[1] + r)*nx ] = 0 ;
-//    	  }
-//      }
     }
 
   //
@@ -916,48 +905,17 @@ namespace navfn {
         i = curPe;
         float fcurpot = mf_minpot;
 
-        //fcurpot = mf_minpot;
-//mofs_astarlog << "begin updateCellAstar() from curpot: "<< fcurpot << " for " << curPe << " num cells" <<std::endl;
         while (i-- > 0)
         {
           updateCellAstar(*pb++, fcurpot);
-//          if( fcurpot < mf_minpot )
-//        	  mf_minpot = fcurpot;
-//          {
-//        	  //mofs_astarlog << "updating fminpot from " << mf_minpot << " to " << fcurpot << endl;
-//        	  mf_minpot = fcurpot;
-//          }
         }
-//mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << mf_minpot << "/" << fboundpot << "\n" <<std::endl;
-//ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
 
 		// B&B evaluation
 		fcurrnodepot = fcurpot ;
 
-//		float fcurpot = potarr[*curP];
-//		mf_minpot = potarr[*curP];
-////mofs_astarlog << "begin updateCellAstar() from curpot: "<< fcurpot << " for " << curPe << " num cells" <<std::endl;
-//		while (i-- > 0)
-//		{
-//		  updateCellAstar(*pb++, fcurpot);
-//		  if( fcurpot < mf_minpot )
-//		  {
-//			  //mofs_astarlog << "updating fminpot from " << mf_minpot << " to " << fcurpot << endl;
-//			  mf_minpot = fcurpot;
-//		  }
-//		}
-////mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << mf_minpot << "/" << fboundpot << "\n" <<std::endl;
-////ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
-//
-//		// B&B evaluation
-//		fcurrnodepot = mf_minpot; //mf_minpot ;
-
-
 		if( fcurrnodepot > fboundpot ) //+ COST_NEUTRAL )
 		{
 			status = -1;
-//mofs_astarlog << "aborting condition detected. i.e) currnode reached the bound condition " << std::endl;
-//ROS_INFO("[tid:%d] thread detected that the pot of currnode (%f) > bound (%f)\n", tid, fcurrnodepot, fboundpot);
 			break;
 		}
 
@@ -989,18 +947,8 @@ namespace navfn {
           break;
         }
       }
-//std::ofstream ofs_potarray("/home/hankm/results/autoexploration/potarray.txt");
-//for(int idx=0; idx < ns; idx++)
-//{
-//	ofs_potarray << potarr[idx] << " ";
-//}
-//ofs_potarray.close();
 
       last_path_cost_ = potarr[startCell];
-//mofs_astarlog << "last_path_cost: " << potarr[startCell] << std::endl;
-
-    //  ROS_DEBUG("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
-    //      cycle,nc,(int)((nc*100.0)/(ns-nobs)),nwv);
 
       if (potarr[startCell] < POT_HIGH){status = 1; return status;} // finished up here
       else{ return status;};
