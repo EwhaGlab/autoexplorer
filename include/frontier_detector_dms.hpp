@@ -266,7 +266,8 @@ protected:
 
 	geometry_msgs::PoseWithCovarianceStamped m_previous_goal ;
 	PrevExpState me_prev_exploration_state ;
-	int mn_prev_nbv_posidx ;
+	//int mn_prev_nbv_posidx ;
+	bool mb_nbv_selected ;
 	ros::Time m_last_oscillation_reset ;
 	geometry_msgs::PoseStamped m_previous_robot_pose ;
 

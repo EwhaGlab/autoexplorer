@@ -52,7 +52,7 @@ mn_globalcostmapidx(0), mn_numthreads(16),
 mb_isinitmotion_completed(false),
 mp_cost_translation_table(NULL),
 mb_strict_unreachable_decision(true),
-me_prev_exploration_state( SUCCEEDED ), mn_prev_nbv_posidx(-1)
+me_prev_exploration_state( SUCCEEDED ), mb_nbv_selected(false) //, mn_prev_nbv_posidx(-1)
 {
 	float fcostmap_conf_thr, fgridmap_conf_thr; // mf_unreachable_decision_bound ;
 	int nweakcomp_threshold ;
@@ -590,12 +590,12 @@ int FrontierDetectorDMS::selectNextBestPoint( const geometry_msgs::PoseStamped& 
 		ROS_INFO("dist to alternative goals (%f %f) : %f \n", pi.x, pi.y, fdist );
 	}
 
-	ROS_ASSERT( ++mn_prev_nbv_posidx >= 0 ); // to prev possible oscillation in selecting next best point
+//	ROS_ASSERT( ++mn_prev_nbv_posidx >= 0 ); // to prev possible oscillation in selecting next best point
 
-	ROS_WARN("The next best target is < %f %f > \n", cvfrontierpoints[mn_prev_nbv_posidx].x, cvfrontierpoints[mn_prev_nbv_posidx].y);
+	ROS_WARN("The next best target is < %f %f > \n", cvfrontierpoints[0].x, cvfrontierpoints[0].y);
 
-	nextbestpoint.pose.position.x = cvfrontierpoints[mn_prev_nbv_posidx].x ;
-	nextbestpoint.pose.position.y = cvfrontierpoints[mn_prev_nbv_posidx].y ;
+	nextbestpoint.pose.position.x = cvfrontierpoints[0].x ;
+	nextbestpoint.pose.position.y = cvfrontierpoints[0].y ;
 	nextbestpoint.header.frame_id = m_worldFrameId ;
 	nextbestpoint.header.stamp = ros::Time::now();
 }
@@ -1165,18 +1165,20 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 	{
 		ROS_WARN(" The best target <%f %f> found by the planner is the same as the previous goal. Need to select an alternative target. \n",
 				best_goal.pose.position.x,  best_goal.pose.position.y );
+
+		mb_nbv_selected = true ;
 		if( goalexclusivefpts.poses.size() == 0 )
 		{
 			ROS_WARN(" However, there is no more frontier points to visit. \n");
 			mb_explorationisdone = true;
 			return;
 		}
-		else if(goalexclusivefpts.poses.size() <=  mn_prev_nbv_posidx + 1 ) // we have
-		{
-			ROS_WARN(" We have tried every alternative goals... retrying from the beginning.. \n");
-			mn_prev_nbv_posidx = 0;
-			return;
-		}
+//		else if(goalexclusivefpts.poses.size() <=  mn_prev_nbv_posidx + 1 ) // we have
+//		{
+//			ROS_WARN(" We have tried every alternative goals... retrying from the beginning.. \n");
+//			mn_prev_nbv_posidx = 0;
+//			return;
+//		}
 
 		geometry_msgs::PoseStamped ufpt = StampedPosefromSE2( best_goal.pose.position.x, best_goal.pose.position.y, 0.f ) ;
 		appendUnreachablePoint(  ufpt ) ;
@@ -1195,7 +1197,8 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 	}
 	else
 	{
-		mn_prev_nbv_posidx = -1;
+		//mn_prev_nbv_posidx = -1;
+		mb_nbv_selected = false ;
 		const std::unique_lock<mutex> lock(mutex_currgoal);
 		m_targetgoal.header.frame_id = m_worldFrameId ;
 		m_targetgoal.pose.pose = best_goal.pose ;
@@ -1342,14 +1345,17 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 	ROS_INFO("new destination target is set to <%f  %f> \n", goal.target_pose.pose.position.x, goal.target_pose.pose.position.y );
 
 	// publish goal to Rviz
-	if( mn_prev_nbv_posidx < 0 )
+	if( !mb_nbv_selected )
+	{
 		publishGoalPointMarker( m_targetgoal );
+	}
 	else
 	{
 		m_targetgoal_marker.points.clear();
 		m_targetgoal_marker = SetVizMarker( -1, visualization_msgs::Marker::ADD, m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y, (float)TARGET_MARKER_SIZE,
 				m_worldFrameId,	0.58f, 0.44f, 0.86f, 1.f);
 		m_makergoalPub.publish(m_targetgoal_marker); // for viz
+		mb_nbv_selected = false ;
 	}
 
 // inspect the path
