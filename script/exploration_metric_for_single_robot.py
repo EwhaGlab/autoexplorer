@@ -51,7 +51,7 @@ def callback(data):
     msg_secs = data.header.stamp.secs
     now = rospy.get_time()
     
-    print("{} {}".format(msg_secs, now) )
+    #print("{} {}".format(msg_secs, now) )
     
     if (msg_secs + 3 < now):
         return
@@ -71,7 +71,7 @@ def callback(data):
 
         exploration_rate_log.append(exploration_rate_over_time)
         print("exploration time: {} rate: {}".format( curr_time - start_time, exploration_rate ) )
-        
+
         if exploration_rate >= 0.8 and (not achieve_80): 
             print("achieve 0.8 coverage rate!")
             print("T_80: {}".format( curr_time - start_time) )

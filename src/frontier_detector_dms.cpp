@@ -1186,7 +1186,7 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 //		ROS_ASSERT( goalexclusivefpts.poses.size() >  mn_prev_nbv_posidx );
 
 		// choose the next best goal based on the eucdist heurisitic.
-		ROS_WARN("The target goal is equal to the previous goal... Selecting < %d >th point from <%d goalexclusivefpts> to be the next best target \n", (mn_prev_nbv_posidx+1), goalexclusivefpts.poses.size() );
+		ROS_WARN("The target goal is equal to the previous goal... Selecting NBV point from <%d goalexclusivefpts> to be the next best target \n", goalexclusivefpts.poses.size() );
 		geometry_msgs::PoseStamped nextbestpoint = StampedPosefromSE2( 0.f, 0.f, 0.f ) ;
 		selectNextBestPoint( start,  goalexclusivefpts, nextbestpoint) ;
 
@@ -1195,7 +1195,7 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 		m_targetgoal.pose.pose = nextbestpoint.pose ;
 		m_previous_goal = m_targetgoal ;
 	}
-	else
+	else // ordinary case ( choosing the optimal pt, then move toward there )
 	{
 		//mn_prev_nbv_posidx = -1;
 		mb_nbv_selected = false ;
