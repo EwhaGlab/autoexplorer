@@ -552,6 +552,8 @@ int FrontierDetectorDMS::frontier_summary( const vector<FrontierPoint>& voFronti
 	}
 
 	ROS_INFO("========================================================================== \n\n");
+
+	return 1;
 }
 
 
@@ -592,6 +594,12 @@ int FrontierDetectorDMS::selectNextBestPoint( const geometry_msgs::PoseStamped& 
 
 	std::sort( begin(cvfrontierpoints), end(cvfrontierpoints), [cvrobotpoint](const cv::Point2f& lhs, const cv::Point2f& rhs)
 			{ return FrontierDetectorDMS::euc_dist(cvrobotpoint, lhs) < FrontierDetectorDMS::euc_dist(cvrobotpoint, rhs); });
+
+	for (const auto & pi : cvfrontierpoints )
+	{
+		float fdist = euc_dist( pi, cvrobotpoint ) ;
+		ROS_INFO("dist to alternative goals (%f %f) : %f \n", pi.x, pi.y, fdist );
+	}
 
 	ROS_ASSERT( ++mn_prev_nbv_posidx >= 0 ); // to prev possible oscillation in selecting next best point
 
@@ -1189,19 +1197,27 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 		// do escape routine
 		//moveBackWard();
 	}
-	else if( me_prev_exploration_state == ABORTED || equals_to_prevgoal( best_goal ) )
+	else if( equals_to_prevgoal( best_goal ) ) //|| me_prev_exploration_state == ABORTED ) // cond to select the next best alternative
 	{
+		ROS_WARN(" The best target <%f %f> found by the planner is the same as the previous goal. Need to select an alternative target. \n",
+				best_goal.pose.position.x,  best_goal.pose.position.y );
 		if( goalexclusivefpts.poses.size() == 0 )
 		{
 			ROS_WARN(" However, there is no more frontier points to visit. \n");
 			mb_explorationisdone = true;
 			return;
 		}
+		else if(goalexclusivefpts.poses.size() <=  mn_prev_nbv_posidx + 1 ) // we have
+		{
+			ROS_WARN(" We have tried every alternative goals... retrying from the beginning.. \n");
+			mn_prev_nbv_posidx = 0;
+			return;
+		}
 
 		geometry_msgs::PoseStamped ufpt = StampedPosefromSE2( best_goal.pose.position.x, best_goal.pose.position.y, 0.f ) ;
 		appendUnreachablePoint(  ufpt ) ;
 
-		ROS_ASSERT( goalexclusivefpts.poses.size() >  mn_prev_nbv_posidx + 1 );
+//		ROS_ASSERT( goalexclusivefpts.poses.size() >  mn_prev_nbv_posidx );
 
 		// choose the next best goal based on the eucdist heurisitic.
 		ROS_WARN("The target goal is equal to the previous goal... Selecting < %d >th point from <%d goalexclusivefpts> to be the next best target \n", (mn_prev_nbv_posidx+1), goalexclusivefpts.poses.size() );
