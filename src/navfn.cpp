@@ -891,8 +891,9 @@ namespace navfn {
       int status = 0;
       float fcurpot = potarr[*curP];
       mf_minpot = potarr[*curP];
+
       // do main cycle
-      float fcurpot = potarr[*curP];
+
       for (; cycle < cycles; cycle++) // go for this many cycles, unless interrupted
       {
         //
