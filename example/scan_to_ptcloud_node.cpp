@@ -1,4 +1,4 @@
-/*
+/*********************************************************************
 Copyright 2022 The Ewha Womans University.
 All Rights Reserved.
 
@@ -37,7 +37,7 @@ Phone:       +82-2-3277-6798
 
 EMail:       kimy@ewha.ac.kr
              hankm@ewha.ac.kr
- */
+*/
 
 
 #include <ros/ros.h>

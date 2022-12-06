@@ -1,7 +1,7 @@
 /*********************************************************************
 Copyright 2022 The Ewha Womans University.
 All Rights Reserved.
-
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
 Permission to use, copy, modify OR distribute this software and its
 documentation for educational, research and non-profit purposes, without
 fee, and without a written agreement is hereby granted, provided that the
@@ -272,9 +272,17 @@ void FrontierFilter::computeReachability( const set<pointset, pointset>& unreach
 			}
 		}
 	}
-
 }
 
+bool FrontierFilter::isReachable( const set<pointset, pointset>& unreachable_frontiers, const float& fxcand, const float& fycand )
+{
+	for (const auto & di : unreachable_frontiers)
+	{
+		float fdist = std::sqrt( (fxcand - di.p[0]) * (fxcand - di.p[0]) + (fycand - di.p[1]) * (fycand - di.p[1]) ) ;
+		if(fdist < mf_unreachable_dist_thr)
+			return false;
+	}
+}
 
 
 }

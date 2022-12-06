@@ -254,7 +254,7 @@ namespace navfn {
             // values in range 0 to 252 -> values from COST_NEUTRAL to COST_OBS_ROS.
             *cm = COST_OBS;
             int v = *cmap;
-            if (v < COST_OBS_ROS - 2 )
+            if (v < COST_OBS_ROS-2) // 251 ~ 253 --> OBS  by hkm
             {
               v = COST_NEUTRAL+COST_FACTOR*v;
               if (v >= COST_OBS)
@@ -281,7 +281,7 @@ namespace navfn {
             if (i<7 || i > ny-8 || j<7 || j > nx-8)
               continue;	// don't do borders
             int v = *cmap;
-            if (v < COST_OBS_ROS)
+            if (v < COST_OBS_ROS - 2)
             {
               v = COST_NEUTRAL+COST_FACTOR*v;
               if (v >= COST_OBS)
@@ -290,7 +290,7 @@ namespace navfn {
             }
             else if(v == COST_UNKNOWN_ROS)
             {
-              v = COST_OBS-1;
+              v = COST_NEUTRAL; //COST_OBS-1;
               *cm = v;
             }
           }
@@ -628,8 +628,8 @@ namespace navfn {
       if (costarr[n] < COST_OBS)	// don't propagate into obstacles
       {
         float hf = (float)costarr[n]; // traversability factor
-        float dc = tc-ta;		// relative cost between ta,tc
-        if (dc < 0) 		// ta is lowest ( if tc is lowest. so we set ta = tc)
+        float dc = tc-ta;	// we assume that p_u is the lowest (relative cost between ta,tc)
+        if (dc < 0) 		// in this case, p_l is the lowest
         {
           dc = -dc;
           ta = tc;
@@ -638,7 +638,7 @@ namespace navfn {
         // calculate new potential
         float pot;
         if (dc >= hf)		// if too large, use ta-only update
-          pot = ta+hf;
+          pot = ta+hf;		// pot = p_u + 50
         else			// two-neighbor interpolation update
         {
           // use quadratic approximation
@@ -653,6 +653,8 @@ namespace navfn {
 //mofs_astarlog << "ta, dc, hf: " << ta << " " << dc << " " << hf << std::endl;
 //mofs_astarlog << "[update] new pot (ta + hf, or ta + hf*v): " << pot << " potarr[" << n << "]: " << potarr[n] << std::endl;
         // now add affected neighbors to priority blocks
+
+
         if (pot < potarr[n])
         {
           float c_le = INVSQRT2*(float)costarr[n-1];
@@ -686,19 +688,19 @@ namespace navfn {
             if (p_d > pot+c_de) push_over(n+nx);
           }
         }
-        else if( pot > potarr[n] )// by kmhan
-        {
-//mofs_astarlog << "pot > potarr[n] case !!!! " << pot << " " <<  potarr[n] << std::endl;
-        }
-        else
-        {
-//mofs_astarlog << pot << " == " << potarr[n]  << " fcurminpot = " << fcurminpot << endl;
-        }
+//        else if( pot > potarr[n] )// by kmhan
+//        {
+////mofs_astarlog << "pot > potarr[n] case !!!! " << pot << " " <<  potarr[n] << std::endl;
+//        }
+//        else
+//        {
+////mofs_astarlog << pot << " == " << potarr[n]  << " fcurminpot = " << fcurminpot << endl;
+//        }
       }
-      else
-      {
-//mofs_astarlog << " cannot propagate into OBS   cost: " << costarr[n] << endl;
-      }
+//      else
+//      {
+////mofs_astarlog << " cannot propagate into OBS   cost: " << costarr[n] << endl;
+//      }
     }
 
 
@@ -887,6 +889,8 @@ namespace navfn {
       int startCell = start[1]*nx + start[0];
 
       int status = 0;
+      float fcurpot = potarr[*curP];
+      mf_minpot = potarr[*curP];
       // do main cycle
       float fcurpot = potarr[*curP];
       for (; cycle < cycles; cycle++) // go for this many cycles, unless interrupted
@@ -911,6 +915,7 @@ namespace navfn {
         i = curPe;
         float fcurpot = mf_minpot;
 
+        //fcurpot = mf_minpot;
 //mofs_astarlog << "begin updateCellAstar() from curpot: "<< fcurpot << " for " << curPe << " num cells" <<std::endl;
         while (i-- > 0)
         {
@@ -928,10 +933,29 @@ namespace navfn {
 		// B&B evaluation
 		fcurrnodepot = fcurpot ;
 
-		if( fcurrnodepot > fboundpot + COST_NEUTRAL )
+//		float fcurpot = potarr[*curP];
+//		mf_minpot = potarr[*curP];
+////mofs_astarlog << "begin updateCellAstar() from curpot: "<< fcurpot << " for " << curPe << " num cells" <<std::endl;
+//		while (i-- > 0)
+//		{
+//		  updateCellAstar(*pb++, fcurpot);
+//		  if( fcurpot < mf_minpot )
+//		  {
+//			  //mofs_astarlog << "updating fminpot from " << mf_minpot << " to " << fcurpot << endl;
+//			  mf_minpot = fcurpot;
+//		  }
+//		}
+////mofs_astarlog << "[tid: "<< tid << "] min pot of open nodes/bound: " << mf_minpot << "/" << fboundpot << "\n" <<std::endl;
+////ROS_INFO("[tid:%d] minpot: %f bound: %f\t",tid, fminpot, fboundpot);
+//
+//		// B&B evaluation
+//		fcurrnodepot = mf_minpot; //mf_minpot ;
+
+
+		if( fcurrnodepot > fboundpot ) //+ COST_NEUTRAL )
 		{
 			status = -1;
-//mofs_astarlog << "aborting condition detected " << std::endl;
+//mofs_astarlog << "aborting condition detected. i.e) currnode reached the bound condition " << std::endl;
 //ROS_INFO("[tid:%d] thread detected that the pot of currnode (%f) > bound (%f)\n", tid, fcurrnodepot, fboundpot);
 			break;
 		}

@@ -1,7 +1,7 @@
 /*********************************************************************
 Copyright 2022 The Ewha Womans University.
 All Rights Reserved.
-
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
 Permission to use, copy, modify OR distribute this software and its
 documentation for educational, research and non-profit purposes, without
 fee, and without a written agreement is hereby granted, provided that the
@@ -285,8 +285,8 @@ protected:
 	float mf_resolution ;
 	int mn_correctionwindow_width ;
 
-	visualization_msgs::Marker  m_exploration_goal ;
-	visualization_msgs::MarkerArray m_frontier_points, m_cands, m_unreachable_points ;
+	visualization_msgs::Marker  m_targetgoal_marker, m_optimaltarget_marker ;
+	visualization_msgs::MarkerArray m_frontierpoint_markers, m_cands, m_unreachable_markers ;
 
 	nav_msgs::OccupancyGrid m_gridmap;
 	nav_msgs::OccupancyGrid m_globalcostmap ;
@@ -311,7 +311,7 @@ protected:
 	ros::ServiceClient m_makeplan_client;
 //	cv::Mat m_uMapImg, m_uMapImgROI ;
 
-	geometry_msgs::PoseWithCovarianceStamped m_targetgoal ;
+	geometry_msgs::PoseWithCovarianceStamped m_targetgoal, m_optimal_targetgoal ; // actual goal /  optimal goal
 	set<pointset, pointset> m_unreachable_frontier_set ;
 	set<pointset, pointset> m_curr_frontier_set ;
 	set<pointset, pointset> m_prev_frontier_set ;

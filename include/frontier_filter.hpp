@@ -1,7 +1,7 @@
 /*********************************************************************
 Copyright 2022 The Ewha Womans University.
 All Rights Reserved.
-
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
 Permission to use, copy, modify OR distribute this software and its
 documentation for educational, research and non-profit purposes, without
 fee, and without a written agreement is hereby granted, provided that the
@@ -133,6 +133,7 @@ public:
 	void measureCostmapConfidence( const nav_msgs::OccupancyGrid& costmapData, std::vector<FrontierPoint>& voFrontierCandidates ) ;
 	void measureGridmapConfidence( const nav_msgs::OccupancyGrid& gridmapData, std::vector<FrontierPoint>& voFrontierCandidates ) ;
 	void computeReachability( const set<pointset, pointset>& unreachable_frontiers, std::vector<FrontierPoint>& voFrontierCandidates ) ;
+	bool isReachable( const set<pointset, pointset>& unreachable_frontiers, const float& fxcand, const float& fycand ) ;
 
 	inline float GetCostmapConf() const
 	{

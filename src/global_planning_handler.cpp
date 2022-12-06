@@ -1,7 +1,7 @@
 /*********************************************************************
 Copyright 2022 The Ewha Womans University.
 All Rights Reserved.
-
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
 Permission to use, copy, modify OR distribute this software and its
 documentation for educational, research and non-profit purposes, without
 fee, and without a written agreement is hereby granted, provided that the
@@ -438,14 +438,12 @@ ROS_WARN("GlobalPlanningHandler::makePlan() is called to find a plan from (%f %f
     //return !plan.empty();
 }
 
-int GlobalPlanningHandler::makePlan( string str_astar, const int& tid, const float& fbound, const bool& boneqgrid,
+int GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const bool& boneqgrid,
 			  const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
 		  	  std::vector<geometry_msgs::PoseStamped>& plan, float& fendpotential )
 {
 // does makePlan(), but breaks when f(n) > ubound occurs.
 // we don't need such path since f(n') >= f(n) which is the consistency property of Euclidean heuristic.
-
-	//planner_->setAstarLog(str_astar) ;
 
     if(!mb_initialized)
     {
@@ -574,7 +572,7 @@ ROS_DEBUG("[tid %d] setting planner nav arr w/ cellsizes: %d %d\n",m_costmap.get
 		goal_copy.header.stamp = ros::Time::now();
 		plan.push_back(goal_copy);
 
-		//planner_->writeAstarPlan(plan);
+		planner_->writeAstarPlan(plan);
 
 		//ROS_INFO("GPH has found a legal plan with %d length \n", plan.size() );
 		if(fendpotential < fbound )

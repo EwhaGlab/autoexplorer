@@ -1,7 +1,7 @@
 /*********************************************************************
 Copyright 2022 The Ewha Womans University.
 All Rights Reserved.
-
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
 Permission to use, copy, modify OR distribute this software and its
 documentation for educational, research and non-profit purposes, without
 fee, and without a written agreement is hereby granted, provided that the
@@ -51,7 +51,8 @@ m_nh(nh_),
 mn_globalcostmapidx(0), mn_numthreads(16),
 mb_isinitmotion_completed(false),
 mp_cost_translation_table(NULL),
-mb_strict_unreachable_decision(true)
+mb_strict_unreachable_decision(true),
+me_prev_exploration_state( SUCCEEDED ), mn_prev_nbv_posidx(-1)
 {
 	float fcostmap_conf_thr, fgridmap_conf_thr; // mf_unreachable_decision_bound ;
 	int nweakcomp_threshold ;
@@ -85,7 +86,9 @@ mb_strict_unreachable_decision(true)
 	m_markercandPub = m_nh.advertise<visualization_msgs::MarkerArray>("detected_shapes", 10);
 	m_markerfrontierPub = m_nh.advertise<visualization_msgs::MarkerArray>("filtered_shapes", 10);
 	m_markerfrontierregionPub = m_nh.advertise<visualization_msgs::Marker>("FR_shapes", 1);
-	m_unreachpointPub = m_nh.advertise<visualization_msgs::MarkerArray>("unreachable_shapes", 10);
+	m_marker_unreachpointPub = m_nh.advertise<visualization_msgs::MarkerArray>("unreachable_shapes", 10);
+	m_unreachpointPub 		 = m_nh.advertise<geometry_msgs::PoseStamped>("unreachable_posestamped",10);
+
 	m_velPub		= m_nh.advertise<geometry_msgs::Twist>("cmd_vel",10);
 	m_donePub		= m_nh.advertise<std_msgs::Bool>("exploration_is_done",1);
 	m_startmsgPub	= m_nh.advertise<std_msgs::Bool>("begin_exploration",1);
@@ -152,6 +155,8 @@ mb_strict_unreachable_decision(true)
 	std_msgs::Bool begin_task;
 	begin_task.data = true;
 	m_startmsgPub.publish( begin_task );
+
+	m_last_oscillation_reset = ros::Time::now();
 }
 
 FrontierDetectorDMS::~FrontierDetectorDMS()
@@ -159,17 +164,17 @@ FrontierDetectorDMS::~FrontierDetectorDMS()
 	delete [] mp_cost_translation_table;
 }
 
-void FrontierDetectorDMS::initmotion( )
+void FrontierDetectorDMS::initmotion(  const float& fvx = 0.f, const float& fvy = 0.f, const float& ftheta = 1.f  )
 {
 ROS_INFO("+++++++++++++++++ Start the init motion ++++++++++++++\n");
 	geometry_msgs::Twist cmd_vel;
-    cmd_vel.linear.x = 0.0;
-    cmd_vel.linear.y = 0.0;
-    cmd_vel.angular.z = 1.0;
+    cmd_vel.linear.x = fvx;
+    cmd_vel.linear.y = fvy;
+    cmd_vel.angular.z = ftheta;
 
     uint32_t start_time = ros::Time::now().sec ;
     uint32_t curr_time = start_time ;
-    while( curr_time < start_time + 6 )
+    while( curr_time < start_time + 4 )
     {
 		m_velPub.publish(cmd_vel);
 		curr_time = ros::Time::now().sec ;
@@ -253,19 +258,129 @@ void FrontierDetectorDMS::publishDoneExploration( )
 	std_msgs::Bool done_task;
 	done_task.data = true;
 
-	m_frontier_points = visualization_msgs::MarkerArray() ;
-	m_markerfrontierPub.publish(m_frontier_points);
-	m_exploration_goal = visualization_msgs::Marker() ;
-	m_makergoalPub.publish(m_exploration_goal); // for viz
+	m_frontierpoint_markers = visualization_msgs::MarkerArray() ;
+	m_markerfrontierPub.publish(m_frontierpoint_markers);
+	m_targetgoal_marker = visualization_msgs::Marker() ;
+	m_makergoalPub.publish(m_targetgoal_marker); // for viz
 
 	m_donePub.publish( done_task );
 
 	ros::spinOnce();
 }
 
-void FrontierDetectorDMS::publishFrontierRegionMarkers( const vector<vector<cv::Point>>& contour )
+void FrontierDetectorDMS::publishFrontierPointMarkers()
 {
+	visualization_msgs::MarkerArray ftmarkers_old = m_frontierpoint_markers ;
+	for(size_t idx=0; idx < ftmarkers_old.markers.size(); idx++)
+		ftmarkers_old.markers[idx].action = visualization_msgs::Marker::DELETE; //SetVizMarker( idx, visualization_msgs::Marker::DELETE, 0.f, 0.f, 0.5, "map", 0.f, 1.f, 0.f );
+	m_markerfrontierPub.publish(ftmarkers_old);
+	m_frontierpoint_markers.markers.resize(0);
 
+	// publish fpts to Rviz
+	for (const auto & pi : m_curr_frontier_set)
+	{
+		visualization_msgs::Marker vizmarker = SetVizMarker( mn_FrontierID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], (float)FRONTIER_MARKER_SIZE, m_worldFrameId, 0.f, 1.f, 0.f );
+		m_frontierpoint_markers.markers.push_back(vizmarker);
+		mn_FrontierID++ ;
+	}
+	m_markerfrontierPub.publish(m_frontierpoint_markers);
+}
+
+void FrontierDetectorDMS::publishFrontierRegionMarkers( const visualization_msgs::Marker& vizfrontier_regions  )
+{
+	// publish fpt regions to Rviz
+	m_markerfrontierregionPub.publish(vizfrontier_regions);
+}
+
+void FrontierDetectorDMS::publishGoalPointMarker( const geometry_msgs::PoseWithCovarianceStamped& targetgoal )
+{
+	m_targetgoal_marker.points.clear();
+	m_targetgoal_marker = SetVizMarker( -1, visualization_msgs::Marker::ADD, targetgoal.pose.pose.position.x, targetgoal.pose.pose.position.y, (float)TARGET_MARKER_SIZE,
+			m_worldFrameId,	1.f, 0.f, 1.f, 1.f);
+	m_makergoalPub.publish(m_targetgoal_marker); // for viz
+}
+
+//void FrontierDetectorDMS::publishUnreachbleMarker( const geometry_msgs::PoseStamped& unreachablepose )
+//{
+//	visualization_msgs::Marker viz_marker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD,
+//			unreachablepose.pose.position.x, unreachablepose.pose.position.y, (float)UNREACHABLE_MARKER_SIZE, "map", 1.f, 1.f, 0.f);
+//	m_unreachable_markers.markers.push_back(viz_marker);
+//	m_marker_unreachpointPub.publish( m_unreachable_markers );
+//	mn_UnreachableFptID++ ;
+//}
+
+void FrontierDetectorDMS::publishUnreachableMarkers( ) //const geometry_msgs::PoseStamped& unreachablepose )
+{
+	// first we refresh/update viz markers
+	visualization_msgs::MarkerArray ftmarkers_old = m_unreachable_markers ;
+	for(size_t idx=0; idx < ftmarkers_old.markers.size(); idx++)
+		ftmarkers_old.markers[idx].action = visualization_msgs::Marker::DELETE; //SetVizMarker( idx, visualization_msgs::Marker::DELETE, 0.f, 0.f, 0.5, "map", 0.f, 1.f, 0.f );
+	m_marker_unreachpointPub.publish(ftmarkers_old);
+	m_unreachable_markers.markers.resize(0);
+
+	const std::unique_lock<mutex> lock_unrc(mutex_unreachable_frontier_set) ;
+	{
+		// create new markers and publish them to Rviz
+		for (const auto & pi : m_unreachable_frontier_set)
+		{
+			visualization_msgs::Marker vizmarker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], (float)FRONTIER_MARKER_SIZE, m_worldFrameId, 1.f, 1.f, 0.f );
+			m_unreachable_markers.markers.push_back(vizmarker);
+			mn_UnreachableFptID++ ;
+		}
+	}
+	m_marker_unreachpointPub.publish(m_unreachable_markers);
+}
+
+void FrontierDetectorDMS::appendUnreachablePoint( const geometry_msgs::PoseStamped& unreachablepose )
+{
+	pointset ufpt(unreachablepose.pose.position.x, unreachablepose.pose.position.y );
+	// append the incoming unreachable fpt to the list
+	if( !mb_strict_unreachable_decision)
+	{
+		// this case, we only check the frontier sanity check... don't care about physical path plan to the target.
+		// if still valid frontier, we don't register this point to unreachable list b/c we think MoveBase() can guide the robot to the goal. Yet, Robot will stuck if this is not the case.
+		nav_msgs::OccupancyGrid globalcostmap;
+		std::vector<signed char> cmdata;
+		{
+			const std::unique_lock<mutex> lock(mutex_costmap);
+			globalcostmap = m_globalcostmap;
+			cmdata = globalcostmap.data;
+		}
+		int ncmx = static_cast<int>( (ufpt.p[0] - globalcostmap.info.origin.position.x) / globalcostmap.info.resolution ) ;
+		int ncmy = static_cast<int>( (ufpt.p[1] - globalcostmap.info.origin.position.y) / globalcostmap.info.resolution ) ;
+		//if( frontier_sanity_check(ncmx, ncmy, globalcostmap.info.width, cmdata) )
+		if( cmdata[ ncmy * globalcostmap.info.width + ncmx ] == -1 )
+			return ;
+	}
+
+	{
+		const std::unique_lock<mutex> lock_unrc(mutex_unreachable_frontier_set) ;
+		m_unreachable_frontier_set.insert( ufpt ) ;
+		ROS_WARN("@unreachablefrontierCallback Registering (%f %f) as the unreachable pt. Tot unreachable pts: %d \n", ufpt.p[0], ufpt.p[1], m_unreachable_frontier_set.size() );
+	}
+
+//	{
+//		std::unique_lock<mutex> lock(mutex_curr_frontier_set);
+//		for (const auto & pi : m_curr_frontier_set)
+//		{
+//			float fdist = std::sqrt( (ufpt.p[0] - pi.p[0]) * (ufpt.p[0] - pi.p[0]) + (ufpt.p[1] - pi.p[1]) * (ufpt.p[1] - pi.p[1]) ) ;
+//			if(fdist < mf_neighoringpt_decisionbound)
+//				m_curr_frontier_set.erase(pi);
+//		}
+//	}
+}
+
+void FrontierDetectorDMS::updatePrevFrontierPointsList( )
+{
+	{
+		const std::unique_lock<mutex> lock_curr(mutex_curr_frontier_set);
+		const std::unique_lock<mutex> lock_prev(mutex_prev_frontier_set);
+		set<pointset, pointset> frontier_set_tmp ;
+		frontier_set_tmp = m_curr_frontier_set ;
+		m_prev_frontier_set.clear() ;
+		m_curr_frontier_set.clear() ;
+		m_prev_frontier_set = frontier_set_tmp;
+	}
 }
 
 
@@ -448,6 +563,8 @@ int FrontierDetectorDMS::frontier_summary( const vector<FrontierPoint>& voFronti
 	}
 
 	ROS_INFO("========================================================================== \n\n");
+
+	return 1;
 }
 
 
@@ -455,16 +572,20 @@ void FrontierDetectorDMS::updateUnreachablePointSet( const nav_msgs::OccupancyGr
 {
 	std::vector<signed char> cmdata = globalcostmap.data ;
 	{
-		const std::unique_lock<mutex> lock(mutex_unreachable_points) ;
+		const std::unique_lock<mutex> lock_unrc(mutex_unreachable_frontier_set) ;
 		auto it = m_unreachable_frontier_set.begin() ;
 		while (it != m_unreachable_frontier_set.end() )
 		{
 			auto it_element = it++;
 			int ncmx = static_cast<int>( ((*it_element).p[0] - globalcostmap.info.origin.position.x) / globalcostmap.info.resolution ) ;
 			int ncmy = static_cast<int>( ((*it_element).p[1] - globalcostmap.info.origin.position.y) / globalcostmap.info.resolution ) ;
-			bool bis_explored = is_explored(ncmx, ncmy, globalcostmap.info.width, cmdata) ;
 
-			if( bis_explored )
+			int gmidx = globalcostmap.info.width * ncmy	+ ncmx ;
+			bool bisexplored = cmdata[gmidx] >=0 ? true : false ;
+
+			//bool bisexplored = is_explored(ncmx, ncmy, globalcostmap.info.width, cmdata) ;
+
+			if( bisexplored )
 			{
 				ROS_DEBUG("removing ufpt (%f %f) from the unreachable fpt list \n", (*it_element).p[0], (*it_element).p[1]) ;
 				m_unreachable_frontier_set.erase(it_element);
@@ -474,12 +595,66 @@ void FrontierDetectorDMS::updateUnreachablePointSet( const nav_msgs::OccupancyGr
 
 }
 
+int FrontierDetectorDMS::selectNextBestPoint( const geometry_msgs::PoseStamped& robotpose, const nav_msgs::Path& goalexclusivefpts, geometry_msgs::PoseStamped& nextbestpoint  )
+{
+	std::vector<cv::Point2f> cvfrontierpoints;
+	cv::Point2f cvrobotpoint( robotpose.pose.position.x, robotpose.pose.position.y );
+
+	for (const auto & pi : goalexclusivefpts.poses)
+		cvfrontierpoints.push_back(  cv::Point2f(pi.pose.position.x, pi.pose.position.y) );
+
+	std::sort( begin(cvfrontierpoints), end(cvfrontierpoints), [cvrobotpoint](const cv::Point2f& lhs, const cv::Point2f& rhs)
+			{ return FrontierDetectorDMS::euc_dist(cvrobotpoint, lhs) < FrontierDetectorDMS::euc_dist(cvrobotpoint, rhs); });
+
+	for (const auto & pi : cvfrontierpoints )
+	{
+		float fdist = euc_dist( pi, cvrobotpoint ) ;
+		ROS_INFO("dist to alternative goals (%f %f) : %f \n", pi.x, pi.y, fdist );
+	}
+
+	ROS_ASSERT( ++mn_prev_nbv_posidx >= 0 ); // to prev possible oscillation in selecting next best point
+
+	ROS_WARN("The next best target is < %f %f > \n", cvfrontierpoints[mn_prev_nbv_posidx].x, cvfrontierpoints[mn_prev_nbv_posidx].y);
+
+	nextbestpoint.pose.position.x = cvfrontierpoints[mn_prev_nbv_posidx].x ;
+	nextbestpoint.pose.position.y = cvfrontierpoints[mn_prev_nbv_posidx].y ;
+	nextbestpoint.header.frame_id = m_worldFrameId ;
+	nextbestpoint.header.stamp = ros::Time::now();
+}
+
+
+int FrontierDetectorDMS::selectEscapingPoint( geometry_msgs::PoseStamped& escapepoint)
+{
+	//
+}
+
+int FrontierDetectorDMS::moveBackWard()
+{
+	ROS_INFO("+++++++++++++++++ moving backward  ++++++++++++++\n");
+	geometry_msgs::Twist cmd_vel;
+	cmd_vel.linear.x = -0.5;
+	cmd_vel.linear.y = 0.0;
+	cmd_vel.angular.z = 0.0;
+
+	uint32_t start_time = ros::Time::now().sec ;
+	uint32_t curr_time = start_time ;
+	while( curr_time < start_time + 2 )
+	{
+		m_velPub.publish(cmd_vel);
+		curr_time = ros::Time::now().sec ;
+	}
+	cmd_vel.angular.x = 0.0;
+	m_velPub.publish(cmd_vel);
+	ROS_INFO("+++++++++++++++++ end of moving backward +++++++++\n");
+}
+
+
 
 // mapcallback for dynamic mapsize (i.e for the cartographer)
 void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) //const octomap_server::mapframedata& msg )
 {
 
-//ROS_INFO("start mapdata callback routine\n");
+ROS_INFO("********** \t start mapdata callback routine \t ********** \n");
 
 ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	//ROS_INFO("@ mapdataCallback() ");
@@ -641,16 +816,20 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	{
 		const std::unique_lock<mutex> lock_prev(mutex_prev_frontier_set);
 		const std::unique_lock<mutex> lock_curr(mutex_curr_frontier_set);
+		const std::unique_lock<mutex> lock_unrc(mutex_unreachable_frontier_set);
 
 		// append valid previous frontier points after the sanity check
 		for (const auto & pi : m_prev_frontier_set)
 		{
-			int ngmx = static_cast<int>( (pi.p[0] - m_gridmap.info.origin.position.x) / gmresolution ) ;
-			int ngmy = static_cast<int>( (pi.p[1] - m_gridmap.info.origin.position.y) / gmresolution ) ;
-			if( frontier_sanity_check(ngmx, ngmy, cmwidth, cmdata) )
+			int ngmx = static_cast<int>( (pi.p[0] - globalcostmap.info.origin.position.x) / cmresolution ) ;
+			int ngmy = static_cast<int>( (pi.p[1] - globalcostmap.info.origin.position.y) / cmresolution ) ;
+			if( frontier_sanity_check(ngmx, ngmy, cmwidth, cmdata) ) //if( cmdata[ ngmy * cmwidth + ngmx ] == -1 )
 			{
-				pointset pnew( pi.p[0], pi.p[1] );
-				m_curr_frontier_set.insert( pnew );
+				if( mo_frontierfilter.isReachable( m_unreachable_frontier_set, pi.p[0], pi.p[1] ) )
+				{
+					pointset pnew( pi.p[0], pi.p[1] );
+					m_curr_frontier_set.insert( pnew );
+				}
 			}
 		}
 	}
@@ -743,11 +922,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 									m_gridmap.info.origin.position.y, m_gridmap.info.origin.position.x,
 						   gmresolution, mn_numpyrdownsample );
 
-	//oPoint.SetFrontierRegion(contour_plus_offset);
-	//char outfile[10000];
-	//sprintf(outfile,"/media/hankm/mydata/results/explore_bench/outpoint%04d.txt", i);
-	//oPoint.saveFrontierInfo(std::string( outfile ) );
-
 	/////////////////////////////////////////////////////////////////////
 	// 				We need to run position correction here
 	/////////////////////////////////////////////////////////////////////
@@ -775,12 +949,12 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 				cv::Point frontier_in_gm = voFrontierCands[idx].GetCorrectedGridmapPosition();
 				//bool bisexplored = false; //is_explored(frontier_in_gm.x, frontier_in_gm.y, gmwidth, gmdata) ;
 				int gmidx = gmwidth * frontier_in_gm.y	+	frontier_in_gm.x ;
-				bool bisexplored = gmdata[gmidx] >=0 ? true : false ;
+				bool bisexplored = cmdata[gmidx] >=0 ? true : false ;
 				voFrontierCands[idx].SetFrontierFlag( fcm_conf, fgm_conf, bisexplored );
 			}
 			set<pointset, pointset> unreachable_frontiers;
 			{
-				const std::unique_lock<mutex> lock(mutex_unreachable_points) ;
+				const std::unique_lock<mutex> lock_unrc(mutex_unreachable_frontier_set) ;
 				unreachable_frontiers = m_unreachable_frontier_set ;
 				mo_frontierfilter.computeReachability( unreachable_frontiers, voFrontierCands );
 			}
@@ -826,8 +1000,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	ROS_INFO(" The num of tot frontier points left :  %d\n", m_curr_frontier_set.size() );
 	//frontier_summary( voFrontierCands );
 
-
-
 //	static int fileidx = 0;
 //	std::stringstream ssfptfile, ssmapfile ;
 //	ssfptfile << "fpt" << std::setw(4) << std::setfill('0') << fileidx << ".txt" ;
@@ -844,33 +1016,12 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 //	fileidx++;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+	publishFrontierPointMarkers( ) ;
+	publishFrontierRegionMarkers ( vizfrontier_regions );
 
-	if( m_curr_frontier_set.empty() )
+	if( m_curr_frontier_set.empty() ) // terminating condition
 	{
 		ROS_WARN("no more valid frontiers \n");
-
-		// refresh fpts in Rviz
-		visualization_msgs::MarkerArray ftmarkers_old = m_frontier_points ;
-		for(size_t idx=0; idx < ftmarkers_old.markers.size(); idx++)
-			ftmarkers_old.markers[idx].action = visualization_msgs::Marker::DELETE; //SetVizMarker( idx, visualization_msgs::Marker::DELETE, 0.f, 0.f, 0.5, "map", 0.f, 1.f, 0.f );
-		m_markerfrontierPub.publish(ftmarkers_old);
-		m_frontier_points.markers.resize(0);
-
-		// publish fpts to Rviz
-		for (const auto & pi : m_curr_frontier_set)
-		{
-			visualization_msgs::Marker vizmarker = SetVizMarker( mn_FrontierID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], (float)FRONTIER_MARKER_SIZE, m_worldFrameId, 0.f, 1.f, 0.f );
-			m_frontier_points.markers.push_back(vizmarker);
-			mn_FrontierID++ ;
-		}
-		m_markerfrontierPub.publish(m_frontier_points);
-
-		// publish goal to Rviz
-		m_exploration_goal.points.clear();
-		m_exploration_goal = SetVizMarker( -1, visualization_msgs::Marker::ADD, m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y, (float)TARGET_MARKER_SIZE,
-				m_worldFrameId,	1.f, 0.f, 1.f, 1.f);
-		m_makergoalPub.publish(m_exploration_goal); // for viz
-
 		mb_explorationisdone = true;
 		return;
 	}
@@ -953,7 +1104,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		msg_frontierpoints.poses.push_back(tmp_goal);
 	}
 
-
 ros::WallTime GPstartTime = ros::WallTime::now();
 
 	omp_set_num_threads(mn_numthreads);
@@ -964,7 +1114,7 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 //	for (const auto & pi : m_curr_frontier_set)
 //		cvgoalcands.push_back( cv::Point2f( pi.p[0], pi.p[1] ) );
 
-	#pragma omp parallel firstprivate( o_gph, msg_frontierpoints, plan, tid, start, goal, fendpot ) shared( fupperbound,  best_idx, ofs_mpbb )
+	#pragma omp parallel firstprivate( o_gph, msg_frontierpoints, plan, tid, start, goal, fendpot ) shared( fupperbound,  best_idx)
 	{
 
 		#pragma omp for
@@ -981,18 +1131,20 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 			goal.header.frame_id = m_worldFrameId ;
 	//ROS_INFO("goal: %f %f \n", fpoints[fptidx].x, fpoints[fptidx].y );
 
-			string str_astar  = (boost::format("/media/data/results/autoexplorer/mpbb/astar_%04d_%04d_%02d.txt") % ndebugframeidx % fptidx % tid ).str() ;
+			int bplansuccess = o_gph.makePlan( tid, fupperbound, false, start, goal, plan, fendpot);
 
-			int bplansuccess = o_gph.makePlan(str_astar, tid, fupperbound, false, start, goal, plan, fendpot);
+#ifdef DEBUG_MODE
 			{
 				omp_set_lock(&m_mplock);
 				cv::Point goal_gm = world2gridmap(cv::Point2f(goal.pose.position.x, goal.pose.position.y)) ;
+
 				ofs_mpbb << "[tid "<<tid <<"] ["<<bplansuccess << "] processed " << fptidx << " th point (" << start_gm.x << ", " << start_gm.y << ") to (" <<
 														goal_gm.x << ", " << goal_gm.y << ") marked \t" << fendpot << " / " << fupperbound << " potential \n " << endl;
 				omp_unset_lock(&m_mplock);
 			}
+#endif
 
-			if( fendpot < fupperbound )
+			if( fendpot > 0 && fendpot < fupperbound  )
 			{
 				omp_set_lock(&m_mplock);
 				fupperbound = fendpot; // set new bound;
@@ -1015,7 +1167,7 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 	{
 		if (tmpcnt != best_idx)
 		{
-			geometry_msgs::PoseStamped fpt = StampedPosefromSE2( pi.p[0], pi.p[1], 0.f ) ;;
+			geometry_msgs::PoseStamped fpt = StampedPosefromSE2( pi.p[0], pi.p[1], 0.f ) ;
 			fpt.header.frame_id = m_worldFrameId ;
 			fpt.header.stamp = goalexclusivefpts.header.stamp ;
 			goalexclusivefpts.poses.push_back(fpt);
@@ -1025,42 +1177,85 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 
 	//cv::Point2f cvbestgoal = cvgoalcands[best_idx] ;  // just for now... we need to fix it later
 	geometry_msgs::PoseStamped best_goal = msg_frontierpoints.poses[best_idx] ; //ps.p[0], ps.p[1], 0.f );
+
+// if the best frontier point is the same as the previous frontier point, we need to set a different goal
+
+	// check for ocsillation
+	float fdist2prevposition = euc_dist( cv::Point2f( m_previous_robot_pose.pose.position.x, m_previous_robot_pose.pose.position.y ), cv::Point2f( start.pose.position.x, start.pose.position.y ) ) ;
+	if( fdist2prevposition > 0.5 ) // 0.5 is ros nav stack default
 	{
+		m_last_oscillation_reset = ros::Time::now();
+	}
+
+	bool bisocillating = (m_last_oscillation_reset + ros::Duration(8.0) < ros::Time::now() );
+	if( bisocillating ) // first check for oscillation
+	{
+		ROS_WARN("Oscillation detected. Set <%f %f> as unreachable fpt \n", m_previous_goal.pose.pose.position.x, m_previous_goal.pose.pose.position.y);
+
+//		publishGoalPointMarker( ) ;
+
+		// publish current goal as unreachable pt
+		geometry_msgs::PoseStamped ufpt = StampedPosefromSE2( m_previous_goal.pose.pose.position.x, m_previous_goal.pose.pose.position.y, 0.f ) ;
+		appendUnreachablePoint(  ufpt ) ;
+		publishUnreachableMarkers( );
+
+		updatePrevFrontierPointsList( ) ;
+
+		// update m_prev_frontier_set / m_curr_frontier_set list
+		mb_strict_unreachable_decision = true;
+		m_last_oscillation_reset = ros::Time::now();
+		return ;
+		// do escape routine
+		//moveBackWard();
+	}
+	else if( equals_to_prevgoal( best_goal ) ) //|| me_prev_exploration_state == ABORTED ) // cond to select the next best alternative
+	{
+		ROS_WARN(" The best target <%f %f> found by the planner is the same as the previous goal. Need to select an alternative target. \n",
+				best_goal.pose.position.x,  best_goal.pose.position.y );
+		if( goalexclusivefpts.poses.size() == 0 )
+		{
+			ROS_WARN(" However, there is no more frontier points to visit. \n");
+			mb_explorationisdone = true;
+			return;
+		}
+		else if(goalexclusivefpts.poses.size() <=  mn_prev_nbv_posidx + 1 ) // we have
+		{
+			ROS_WARN(" We have tried every alternative goals... retrying from the beginning.. \n");
+			mn_prev_nbv_posidx = 0;
+			return;
+		}
+
+		geometry_msgs::PoseStamped ufpt = StampedPosefromSE2( best_goal.pose.position.x, best_goal.pose.position.y, 0.f ) ;
+		appendUnreachablePoint(  ufpt ) ;
+
+//		ROS_ASSERT( goalexclusivefpts.poses.size() >  mn_prev_nbv_posidx );
+
+		// choose the next best goal based on the eucdist heurisitic.
+		ROS_WARN("The target goal is equal to the previous goal... Selecting < %d >th point from <%d goalexclusivefpts> to be the next best target \n", (mn_prev_nbv_posidx+1), goalexclusivefpts.poses.size() );
+		geometry_msgs::PoseStamped nextbestpoint = StampedPosefromSE2( 0.f, 0.f, 0.f ) ;
+		selectNextBestPoint( start,  goalexclusivefpts, nextbestpoint) ;
+
+		const std::unique_lock<mutex> lock(mutex_currgoal);
+		m_targetgoal.header.frame_id = m_worldFrameId ;
+		m_targetgoal.pose.pose = nextbestpoint.pose ;
+		m_previous_goal = m_targetgoal ;
+	}
+	else
+	{
+		mn_prev_nbv_posidx = -1;
 		const std::unique_lock<mutex> lock(mutex_currgoal);
 		m_targetgoal.header.frame_id = m_worldFrameId ;
 		m_targetgoal.pose.pose = best_goal.pose ;
+		m_previous_goal = m_targetgoal ;
 	}
 
 //////////////////////////////////////////////////////////////////////////////
 // 						Publish frontier pts to Rviz						//
 //////////////////////////////////////////////////////////////////////////////
-	// ROS_INFO("publishing out messages \n");
 
 	// refresh fpts in Rviz
-	visualization_msgs::MarkerArray ftmarkers_old = m_frontier_points ;
-	for(size_t idx=0; idx < ftmarkers_old.markers.size(); idx++)
-		ftmarkers_old.markers[idx].action = visualization_msgs::Marker::DELETE; //SetVizMarker( idx, visualization_msgs::Marker::DELETE, 0.f, 0.f, 0.5, "map", 0.f, 1.f, 0.f );
-	m_markerfrontierPub.publish(ftmarkers_old);
-	m_frontier_points.markers.resize(0);
-
-	// publish fpt regions to Rviz
-	m_markerfrontierregionPub.publish(vizfrontier_regions);
-
-	// publish fpts to Rviz
-	for (const auto & pi : m_curr_frontier_set)
-	{
-		visualization_msgs::Marker vizmarker = SetVizMarker( mn_FrontierID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], (float)FRONTIER_MARKER_SIZE, m_worldFrameId, 0.f, 1.f, 0.f );
-		m_frontier_points.markers.push_back(vizmarker);
-		mn_FrontierID++ ;
-	}
-	m_markerfrontierPub.publish(m_frontier_points);
-
-	// publish goal to Rviz
-	m_exploration_goal.points.clear();
-	m_exploration_goal = SetVizMarker( -1, visualization_msgs::Marker::ADD, m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y, (float)TARGET_MARKER_SIZE,
-			m_worldFrameId,	1.f, 0.f, 1.f, 1.f);
-	m_makergoalPub.publish(m_exploration_goal); // for viz
-
+//	publishFrontierPointMarkers( );
+//	publishFrontierRegionMarkers ( vizfrontier_regions );
 
 #ifdef DEBUG_MODE
 //	static int ndebugframeidx = 0;
@@ -1080,27 +1275,36 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 	ndebugframeidx++ ;
 #endif
 
-
 	{
 		const std::unique_lock<mutex> lock(mutex_robot_state) ;
 		me_robotstate = ROBOT_STATE::ROBOT_IS_READY_TO_MOVE;
 	}
 
-	{
-		const std::unique_lock<mutex> lock_curr(mutex_curr_frontier_set);
-		const std::unique_lock<mutex> lock_prev(mutex_prev_frontier_set);
-		set<pointset, pointset> frontier_set_tmp ;
-		frontier_set_tmp = m_curr_frontier_set ;
-		m_prev_frontier_set.clear() ;
-		m_curr_frontier_set.clear() ;
-		m_prev_frontier_set = frontier_set_tmp;
-	}
+	updatePrevFrontierPointsList( ) ;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Lastly we publish the goal and other frontier points ( hands over the control to move_base )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+	m_previous_robot_pose = start;
 
-	m_otherfrontierptsPub.publish(goalexclusivefpts);
+// print costval of the targetgoal
+cv::Point gmpt = world2gridmap( cv::Point2f( m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y )  ) ;
+int c0 = static_cast<int>( cmdata[ cmwidth * (gmpt.y-1) + gmpt.x-1 ] ) ;
+int c1 = static_cast<int>( cmdata[ cmwidth * (gmpt.y-1) + gmpt.x ] ) ;
+int c2 = static_cast<int>( cmdata[ cmwidth * (gmpt.y-1) + gmpt.x+1 ] ) ;
+int c3 = static_cast<int>( cmdata[ cmwidth * gmpt.y + gmpt.x-1 ] ) ;
+int c4 = static_cast<int>( cmdata[ cmwidth * gmpt.y + gmpt.x ] ) ;
+int c5 = static_cast<int>( cmdata[ cmwidth * gmpt.y + gmpt.x+1 ] ) ;
+int c6 = static_cast<int>( cmdata[ cmwidth * (gmpt.y+1) + gmpt.x-1 ] ) ;
+int c7 = static_cast<int>( cmdata[ cmwidth * (gmpt.y+1) + gmpt.x ] ) ;
+int c8 = static_cast<int>( cmdata[ cmwidth * (gmpt.y+1) + gmpt.x+1 ] ) ;
+
+ROS_INFO("\n*********target cost******\n********* %02d %02d %02d ********\n********* %02d %02d %02d ********\n********* %02d %02d %02d ********\n",
+		c0,c1,c2,c3,c4,c5,c6,c7,c8);
+
+
+//	m_otherfrontierptsPub.publish(goalexclusivefpts);
+	publishUnreachableMarkers( );
 	m_currentgoalPub.publish(m_targetgoal);		// for control
 
 ros::WallTime mapCallEndTime = ros::WallTime::now();
@@ -1110,6 +1314,8 @@ ROS_DEBUG("\n "
 		 "	 \t mapDataCallback exec time (ms): %f ( %f planning time) \n "
 		 " ************************************************************************* \n "
 		, mapcallback_time, planning_time);
+
+ROS_INFO("********** \t End of mapdata callback routine \t ********** \n");
 
 }
 
@@ -1122,44 +1328,31 @@ void FrontierDetectorDMS::gobalPlanCallback(const visualization_msgs::Marker::Co
 
 void FrontierDetectorDMS::doneCB( const actionlib::SimpleClientGoalState& state )
 {
-    ROS_INFO("@DONECB: simpleClientGoalState [%s]", state.toString().c_str());
-
-//	bool bis_target_covered = false ;
-//	// The 1st thing is to check whether the current target goal is covered or not
-//	{
-//		const std::unique_lock<mutex> lock(mutex_currgoal) ;
-//		float fx_world = m_targetgoal.pose.pose.position.x ;
-//		float fy_world = m_targetgoal.pose.pose.position.y ;
-//
-//		std::vector<signed char> Data=m_gridmap.data;
-//		int ngmx = static_cast<int>( (fx_world - m_gridmap.info.origin.position.x) / m_gridmap.info.resolution ) ;
-//		int ngmy = static_cast<int>( (fy_world - m_gridmap.info.origin.position.x) / m_gridmap.info.resolution ) ;
-//		int ngmwidth = static_cast<int> (m_gridmap.info.width) ;
-//		if( !frontier_sanity_check(ngmx, ngmy, ngmwidth, Data) )
-//			bis_target_covered = true ;
-//	}
+//    ROS_INFO("@DONECB: simpleClientGoalState [%s]", state.toString().c_str());
 
     if (m_move_client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
          // do something as goal was reached
-    	ROS_INFO("touch down  \n");
+    	ROS_INFO("Touch down  \n");
 		{
 			const std::unique_lock<mutex> lock(mutex_robot_state) ;
 			me_robotstate = ROBOT_STATE::ROBOT_IS_NOT_MOVING ;
 		}
+		me_prev_exploration_state = SUCCEEDED ;
     }
     else if (m_move_client.getState() == actionlib::SimpleClientGoalState::ABORTED)
     {
         // do something as goal was canceled
-    	ROS_ERROR("Aboarted ... \n");
+    	ROS_ERROR("MoveBase() has failed to reach the goal. The frontier point has aboarted ... \n");
 		{
 			const std::unique_lock<mutex> lock(mutex_robot_state) ;
 			me_robotstate = ROBOT_STATE::ROBOT_IS_NOT_MOVING ;
 		}
+		me_prev_exploration_state = ABORTED ;
     }
     else
     {
-    	ROS_ERROR("unknown state \n");
+    	ROS_ERROR("doneCB() received an unknown state %d \n", m_move_client.getState());
     	exit(-1);
     }
 }
@@ -1193,6 +1386,19 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 	goal.target_pose.pose.position.y = goalpose.pose.pose.position.y ;
 	goal.target_pose.pose.orientation.w = goalpose.pose.pose.orientation.w ;
 
+	ROS_INFO("new destination target is set to <%f  %f> \n", goal.target_pose.pose.position.x, goal.target_pose.pose.position.y );
+
+	// publish goal to Rviz
+	if( mn_prev_nbv_posidx < 0 )
+		publishGoalPointMarker( m_targetgoal );
+	else
+	{
+		m_targetgoal_marker.points.clear();
+		m_targetgoal_marker = SetVizMarker( -1, visualization_msgs::Marker::ADD, m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y, (float)TARGET_MARKER_SIZE,
+				m_worldFrameId,	0.58f, 0.44f, 0.86f, 1.f);
+		m_makergoalPub.publish(m_targetgoal_marker); // for viz
+	}
+
 // inspect the path
 //////////////////////////////////////////////////////////////////////////////////////////////
 //ROS_INFO("+++++++++++++++++++++++++ @moveRobotCallback, sending a goal +++++++++++++++++++++++++++++++++++++\n");
@@ -1206,88 +1412,8 @@ void FrontierDetectorDMS::unreachablefrontierCallback(const geometry_msgs::PoseS
 	ROS_INFO("@unreachablefrontierCallback: The robot is at [%s] state\n ",  robot_state[me_robotstate+1] );
 
 	geometry_msgs::PoseStamped unreachablepose = *msg ;
-	pointset ufpt(unreachablepose.pose.position.x, unreachablepose.pose.position.y );
 
-ROS_WARN("@unreachablefrontierCallback Registering (%f %f) as the unreachable pt \n", ufpt.p[0], ufpt.p[1] );
-
-	// first we refresh/update viz markers
-	visualization_msgs::MarkerArray ftmarkers_old = m_unreachable_points ;
-	for(size_t idx=0; idx < ftmarkers_old.markers.size(); idx++)
-		ftmarkers_old.markers[idx].action = visualization_msgs::Marker::DELETE; //SetVizMarker( idx, visualization_msgs::Marker::DELETE, 0.f, 0.f, 0.5, "map", 0.f, 1.f, 0.f );
-	m_unreachpointPub.publish(ftmarkers_old);
-	m_unreachable_points.markers.resize(0);
-
-	// create new markers and publish them to Rviz
-
-	for (const auto & pi : m_curr_frontier_set)
-	{
-		visualization_msgs::Marker vizmarker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], (float)FRONTIER_MARKER_SIZE, m_worldFrameId, 0.f, 1.f, 0.f );
-		m_unreachable_points.markers.push_back(vizmarker);
-		mn_UnreachableFptID++ ;
-	}
-	m_unreachpointPub.publish(m_unreachable_points);
-
-	// this case, we only check the frontier sanity check... don't care about physical path plan to the target.
-	// if still valid frontier, we don't register this point to unreachable list.
-	if( !mb_strict_unreachable_decision)
-	{
-		nav_msgs::OccupancyGrid globalcostmap;
-		std::vector<signed char> cmdata;
-		{
-			const std::unique_lock<mutex> lock(mutex_costmap);
-			globalcostmap = m_globalcostmap;
-			cmdata = globalcostmap.data;
-		}
-		int ncmx = static_cast<int>( (ufpt.p[0] - globalcostmap.info.origin.position.x) / globalcostmap.info.resolution ) ;
-		int ncmy = static_cast<int>( (ufpt.p[1] - globalcostmap.info.origin.position.y) / globalcostmap.info.resolution ) ;
-		if( frontier_sanity_check(ncmx, ncmy, globalcostmap.info.width, cmdata) )
-			return ;
-	}
-
-	// append the incoming unreachable fpt to the list
-	{
-		const std::unique_lock<mutex> lock(mutex_unreachable_points) ;
-		m_unreachable_frontier_set.insert( ufpt ) ;
-		visualization_msgs::Marker viz_marker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD, ufpt.p[0], ufpt.p[1], (float)UNREACHABLE_MARKER_SIZE, "map",	1.f, 1.f, 0.f);
-		m_unreachable_points.markers.push_back(viz_marker);
-		m_unreachpointPub.publish( m_unreachable_points );
-		mn_UnreachableFptID++ ;
-	}
-
-	//ROS_INFO("removing ufpt from curr_frontier_set \n") ;
-// eliminate the unreachable pts from prev/curr fpt list
-	{
-		const std::unique_lock<mutex> lock(mutex_curr_frontier_set);
-		auto it = m_curr_frontier_set.begin() ;
-		while (it != m_curr_frontier_set.end() )
-		{
-			auto it_element = it++;
-			float fdist = std::sqrt( (ufpt.p[0] - (*it_element).p[0]) * (ufpt.p[0] - (*it_element).p[0]) + (ufpt.p[1] - (*it_element).p[1]) * (ufpt.p[1] - (*it_element).p[1]) ) ;
-			if( fdist < mf_neighoringpt_decisionbound )
-			{
-				ROS_WARN("removing ufpt (%f %f) from curr_frontier_set \n", (*it_element).p[0], (*it_element).p[1]) ;
-				m_curr_frontier_set.erase(it_element);
-			}
-		}
-	}
-
-//ROS_INFO("removing ufpt from prev_frontier_set \n") ;
-
-	{
-		const std::unique_lock<mutex> lock(mutex_prev_frontier_set);
-		auto it = m_prev_frontier_set.begin() ;
-		while (it != m_prev_frontier_set.end() )
-		{
-			auto it_element= it++;
-			float fdist = std::sqrt( (ufpt.p[0] - (*it_element).p[0]) * (ufpt.p[0] - (*it_element).p[0]) + (ufpt.p[1] - (*it_element).p[1]) * (ufpt.p[1] - (*it_element).p[1]) ) ;
-			if( fdist < mf_neighoringpt_decisionbound )
-			{
-				ROS_WARN("removing ufpt (%f %f) from prev_frontier_set \n", (*it_element).p[0], (*it_element).p[1]) ;
-				m_prev_frontier_set.erase(it_element);
-			}
-		}
-	}
-
+	appendUnreachablePoint( unreachablepose );
 
 //	for (const auto & di : m_unreachable_frontier_set)
 //	    ROS_WARN("unreachable pts: %f %f\n", di.d[0], di.d[1]);

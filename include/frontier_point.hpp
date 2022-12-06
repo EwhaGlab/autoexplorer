@@ -1,7 +1,7 @@
 /*********************************************************************
 Copyright 2022 The Ewha Womans University.
 All Rights Reserved.
-
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
 Permission to use, copy, modify OR distribute this software and its
 documentation for educational, research and non-profit purposes, without
 fee, and without a written agreement is hereby granted, provided that the
@@ -38,6 +38,7 @@ Phone:       +82-2-3277-6798
 EMail:       kimy@ewha.ac.kr
              hankm@ewha.ac.kr
 */
+
 
 #ifndef INCLUDE_FRONTIER_POINT_HPP_
 #define INCLUDE_FRONTIER_POINT_HPP_
