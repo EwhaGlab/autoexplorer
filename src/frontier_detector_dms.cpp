@@ -1243,22 +1243,6 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	m_previous_robot_pose = start;
 
-// print costval of the targetgoal
-//cv::Point gmpt = world2gridmap( cv::Point2f( m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y )  ) ;
-//int c0 = static_cast<int>( cmdata[ cmwidth * (gmpt.y-1) + gmpt.x-1 ] ) ;
-//int c1 = static_cast<int>( cmdata[ cmwidth * (gmpt.y-1) + gmpt.x ] ) ;
-//int c2 = static_cast<int>( cmdata[ cmwidth * (gmpt.y-1) + gmpt.x+1 ] ) ;
-//int c3 = static_cast<int>( cmdata[ cmwidth * gmpt.y + gmpt.x-1 ] ) ;
-//int c4 = static_cast<int>( cmdata[ cmwidth * gmpt.y + gmpt.x ] ) ;
-//int c5 = static_cast<int>( cmdata[ cmwidth * gmpt.y + gmpt.x+1 ] ) ;
-//int c6 = static_cast<int>( cmdata[ cmwidth * (gmpt.y+1) + gmpt.x-1 ] ) ;
-//int c7 = static_cast<int>( cmdata[ cmwidth * (gmpt.y+1) + gmpt.x ] ) ;
-//int c8 = static_cast<int>( cmdata[ cmwidth * (gmpt.y+1) + gmpt.x+1 ] ) ;
-//
-//ROS_INFO("\n*********target cost******\n********* %02d %02d %02d ********\n********* %02d %02d %02d ********\n********* %02d %02d %02d ********\n",
-//		c0,c1,c2,c3,c4,c5,c6,c7,c8);
-
-
 //	m_otherfrontierptsPub.publish(goalexclusivefpts);
 	publishUnreachableMarkers( );
 	m_currentgoalPub.publish(m_targetgoal);		// for control
@@ -1324,7 +1308,6 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 		return;
 
 	geometry_msgs::PoseWithCovarianceStamped goalpose = *msg ;
-
 	{
 		const std::unique_lock<mutex> lock(mutex_robot_state) ;
 		me_robotstate = ROBOT_STATE::ROBOT_IS_MOVING ;
