@@ -279,7 +279,7 @@ void FrontierDetectorDMS::publishFrontierPointMarkers()
 	// publish fpts to Rviz
 	for (const auto & pi : m_curr_frontier_set)
 	{
-		visualization_msgs::Marker vizmarker = SetVizMarker( mn_FrontierID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], (float)FRONTIER_MARKER_SIZE, m_worldFrameId, 0.f, 1.f, 0.f );
+		visualization_msgs::Marker vizmarker = SetVizMarker( mn_FrontierID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], 0.f, m_worldFrameId, 0.f, 1.f, 0.f, (float)FRONTIER_MARKER_SIZE );
 		m_frontierpoint_markers.markers.push_back(vizmarker);
 		mn_FrontierID++ ;
 	}
@@ -295,8 +295,8 @@ void FrontierDetectorDMS::publishFrontierRegionMarkers( const visualization_msgs
 void FrontierDetectorDMS::publishGoalPointMarker( const geometry_msgs::PoseWithCovarianceStamped& targetgoal )
 {
 	m_targetgoal_marker.points.clear();
-	m_targetgoal_marker = SetVizMarker( -1, visualization_msgs::Marker::ADD, targetgoal.pose.pose.position.x, targetgoal.pose.pose.position.y, (float)TARGET_MARKER_SIZE,
-			m_worldFrameId,	1.f, 0.f, 1.f, 1.f);
+	m_targetgoal_marker = SetVizMarker( -1, visualization_msgs::Marker::ADD, targetgoal.pose.pose.position.x, targetgoal.pose.pose.position.y, 0.f,
+			m_worldFrameId,	1.f, 0.f, 1.f, (float)TARGET_MARKER_SIZE );
 	m_makergoalPub.publish(m_targetgoal_marker); // for viz
 }
 
@@ -314,7 +314,7 @@ void FrontierDetectorDMS::publishUnreachableMarkers( ) //const geometry_msgs::Po
 		// create new markers and publish them to Rviz
 		for (const auto & pi : m_unreachable_frontier_set)
 		{
-			visualization_msgs::Marker vizmarker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], (float)FRONTIER_MARKER_SIZE, m_worldFrameId, 1.f, 1.f, 0.f );
+			visualization_msgs::Marker vizmarker = SetVizMarker( mn_UnreachableFptID, visualization_msgs::Marker::ADD, pi.p[0], pi.p[1], 0.f, m_worldFrameId, 1.f, 1.f, 0.f, (float)UNREACHABLE_MARKER_SIZE);
 			m_unreachable_markers.markers.push_back(vizmarker);
 			mn_UnreachableFptID++ ;
 		}
@@ -784,7 +784,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 
 	// init fr viz markers
 	visualization_msgs::Marker vizfrontier_regions;
-	vizfrontier_regions = SetVizMarker( 0, visualization_msgs::Marker::ADD, 0.f, 0.f, 0.1, m_worldFrameId,	1.f, 0.f, 0.f, 0.1);
+	vizfrontier_regions = SetVizMarker( 0, visualization_msgs::Marker::ADD, 0.f, 0.f, 0.f, m_worldFrameId,	1.f, 0.f, 0.f, 0.1);
 	vizfrontier_regions.type = visualization_msgs::Marker::POINTS;
 
 	// init curr frontier point sets
@@ -1244,7 +1244,7 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 	m_previous_robot_pose = start;
 
 //	m_otherfrontierptsPub.publish(goalexclusivefpts);
-	publishUnreachableMarkers( );
+	//publishUnreachableMarkers( );
 	m_currentgoalPub.publish(m_targetgoal);		// for control
 
 ros::WallTime mapCallEndTime = ros::WallTime::now();
@@ -1327,17 +1327,20 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 
 	ROS_INFO("new destination target is set to <%f  %f> \n", goal.target_pose.pose.position.x, goal.target_pose.pose.position.y );
 
+	publishUnreachableMarkers( ) ;
+
 	// publish goal to Rviz
 	if( !mb_nbv_selected )
 	{
-		publishGoalPointMarker( m_targetgoal );
+		publishGoalPointMarker( goalpose );
 	}
 	else
 	{
-		m_targetgoal_marker.points.clear();
-		m_targetgoal_marker = SetVizMarker( -1, visualization_msgs::Marker::ADD, m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y, (float)TARGET_MARKER_SIZE,
-				m_worldFrameId,	0.58f, 0.44f, 0.86f, 1.f);
-		m_makergoalPub.publish(m_targetgoal_marker); // for viz
+//		m_targetgoal_marker.points.clear();
+//		m_targetgoal_marker = SetVizMarker( -1, visualization_msgs::Marker::ADD, m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y, 0.f,
+//				m_worldFrameId,	0.58f, 0.44f, 0.86f, (float)TARGET_MARKER_SIZE);
+//		m_makergoalPub.publish(m_targetgoal_marker); // for viz
+		publishGoalPointMarker( goalpose );
 		mb_nbv_selected = false ;
 	}
 

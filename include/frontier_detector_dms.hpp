@@ -60,8 +60,8 @@ EMail:       kimy@ewha.ac.kr
 //#define DEBUG_MODE
 #define ROI_OFFSET (10)
 #define DIST_HIGH  (1.0e10)
-#define FRONTIER_MARKER_SIZE (0.2)
-#define TARGET_MARKER_SIZE (0.3)
+#define FRONTIER_MARKER_SIZE (0.4)
+#define TARGET_MARKER_SIZE (0.5)
 #define UNREACHABLE_MARKER_SIZE (0.4)
 
 
