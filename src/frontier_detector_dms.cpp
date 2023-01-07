@@ -981,6 +981,17 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	if( m_curr_frontier_set.empty() ) // terminating condition
 	{
 		ROS_WARN("no more valid frontiers \n");
+		// delete markers
+		visualization_msgs::MarkerArray ftmarkers_old = m_frontierpoint_markers ;
+		for(size_t idx=0; idx < ftmarkers_old.markers.size(); idx++)
+			ftmarkers_old.markers[idx].action = visualization_msgs::Marker::DELETE; //SetVizMarker( idx, visualization_msgs::Marker::DELETE, 0.f, 0.f, 0.5, "map", 0.f, 1.f, 0.f );
+		m_markerfrontierPub.publish(ftmarkers_old);
+
+		ftmarkers_old = m_unreachable_markers ;
+		for(size_t idx=0; idx < ftmarkers_old.markers.size(); idx++)
+			ftmarkers_old.markers[idx].action = visualization_msgs::Marker::DELETE; //SetVizMarker( idx, visualization_msgs::Marker::DELETE, 0.f, 0.f, 0.5, "map", 0.f, 1.f, 0.f );
+		m_marker_unreachpointPub.publish(ftmarkers_old);
+
 		mb_explorationisdone = true;
 		return;
 	}
@@ -1040,7 +1051,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	std::vector<geometry_msgs::PoseStamped> initplan;
 	fupperbound = static_cast<float>(DIST_HIGH) ;
 	best_idx	= static_cast<size_t>(0) ;
-
 
 ///////////////////////// /////////////////////////////////////////////////////////
 // 3. Do BB based openmp search
@@ -1244,7 +1254,7 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 	m_previous_robot_pose = start;
 
 //	m_otherfrontierptsPub.publish(goalexclusivefpts);
-	//publishUnreachableMarkers( );
+	publishUnreachableMarkers( );
 	m_currentgoalPub.publish(m_targetgoal);		// for control
 
 ros::WallTime mapCallEndTime = ros::WallTime::now();
