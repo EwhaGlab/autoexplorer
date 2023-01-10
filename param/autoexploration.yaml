@@ -1,8 +1,8 @@
 
 autoexplorer:
     debug_data_save_path:   '/media/data/results/autoexplorer'
-    costmap_conf_thr:       0.4 # 0.4 (works for willowgarage) # 0.4 (fetch)   # the higher the more strict  
-    gridmap_conf_thr:       0.4 # 0.2 (willowgarage)          # the higher the more strict
+    costmap_conf_thr:       0.3 # 0.4 (works for willowgarage) # 0.4 (fetch)   # the higher the more strict  
+    gridmap_conf_thr:       0.2 # 0.2 (willowgarage)          # the higher the more strict
     occupancy_thr:          50      # 0 ~ 100
     lethal_cost_thr:        20 #10   # 0 ~ 100  uk= -1      # the lower the more strict 
     global_width:           4000 #8000

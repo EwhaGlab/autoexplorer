@@ -70,7 +70,7 @@ def callback(data):
         curr_time = time.time()
 
         exploration_rate_log.append(exploration_rate_over_time)
-        print("exploration time: {} rate: {}".format( curr_time - start_time, exploration_rate ) )
+        #print("exploration time: {} rate: {}".format( curr_time - start_time, exploration_rate ) )
 
         if exploration_rate >= 0.8 and (not achieve_80): 
             print("achieve 0.8 coverage rate!")
