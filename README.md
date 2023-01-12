@@ -38,7 +38,13 @@ sudo apt-get install ros-<ros_ver>-turtlebot3
 ```
 cd ~/catkin_ws/src
 git clone https://github.com/han-kyung-min/octomap_mapping.git
-git checkout explore_bench-nn_burger
+git checkout explore_bench-nn_burger-fast_gridmap_pub
+```
+### Install NavStack (our customized version)
+```
+cd ~/catkin_ws/src
+git clone https://github.com/han-kyung-min/navigation.git
+git checkout proximity_check
 ```
 ### Install the packages
 ```
