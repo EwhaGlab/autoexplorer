@@ -121,6 +121,10 @@ namespace navfn {
     pb2 = new int[PRIORITYBUFSIZE];
     pb3 = new int[PRIORITYBUFSIZE];
 
+    memset(pb1, 0, PRIORITYBUFSIZE) ;
+    memset(pb2, 0, PRIORITYBUFSIZE) ;
+    memset(pb3, 0, PRIORITYBUFSIZE) ;
+
     // for Dijkstra (breadth-first), set to COST_NEUTRAL
     // for A* (best-first), set to COST_NEUTRAL
     priInc = 2*COST_NEUTRAL;	
