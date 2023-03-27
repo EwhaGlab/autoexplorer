@@ -145,8 +145,8 @@ me_prev_exploration_state( SUCCEEDED ), mb_nbv_selected(false) //, mn_prev_nbv_p
 
 	// Set markers
 
-	m_prev_frontier_set = set<pointset, pointset>();
-	m_curr_frontier_set = set<pointset, pointset>();
+	m_prev_frontier_set = set<pointset>();
+	m_curr_frontier_set = set<pointset>();
 	//m_exploration_goal = SetVizMarker( m_worldFrameId, 1.f, 0.f, 1.f, 0.5  );
 	mn_FrontierID = 1;
 	mn_UnreachableFptID = 0;
@@ -178,6 +178,7 @@ ROS_INFO("+++++++++++++++++ Start the init motion ++++++++++++++\n");
     {
 		m_velPub.publish(cmd_vel);
 		curr_time = ros::Time::now().sec ;
+		ros::Duration(0.1).sleep();
     }
 
 	cmd_vel.angular.z = 0.0;
@@ -357,7 +358,7 @@ void FrontierDetectorDMS::updatePrevFrontierPointsList( )
 	{
 		const std::unique_lock<mutex> lock_curr(mutex_curr_frontier_set);
 		const std::unique_lock<mutex> lock_prev(mutex_prev_frontier_set);
-		set<pointset, pointset> frontier_set_tmp ;
+		set<pointset> frontier_set_tmp ;
 		frontier_set_tmp = m_curr_frontier_set ;
 		m_prev_frontier_set.clear() ;
 		m_curr_frontier_set.clear() ;
@@ -587,7 +588,7 @@ int FrontierDetectorDMS::selectNextBestPoint( const geometry_msgs::PoseStamped& 
 	for (const auto & pi : cvfrontierpoints )
 	{
 		float fdist = euc_dist( pi, cvrobotpoint ) ;
-		ROS_INFO("dist to alternative goals (%f %f) : %f \n", pi.x, pi.y, fdist );
+		//ROS_INFO("dist to alternative goals (%f %f) : %f \n", pi.x, pi.y, fdist );
 	}
 
 //	ROS_ASSERT( ++mn_prev_nbv_posidx >= 0 ); // to prev possible oscillation in selecting next best point
@@ -598,6 +599,8 @@ int FrontierDetectorDMS::selectNextBestPoint( const geometry_msgs::PoseStamped& 
 	nextbestpoint.pose.position.y = cvfrontierpoints[0].y ;
 	nextbestpoint.header.frame_id = m_worldFrameId ;
 	nextbestpoint.header.stamp = ros::Time::now();
+
+	return 1;
 }
 
 
@@ -704,15 +707,15 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 
 			if ( occupancy < 0 && obs_cost < 0)
 			{
-				mcvu_mapimg.data[ y_ * mn_globalmap_width + x_ ] = static_cast<uchar>(ffp::MapStatus::UNKNOWN) ;
+				mcvu_mapimg.data[ y_ * mn_globalmap_width + x_ ] = static_cast<uchar>(dffp::MapStatus::UNKNOWN) ;
 			}
 			else if( occupancy >= 0 && occupancy < mn_occupancy_thr && obs_cost < 98) // mp_cost_translation_table[51:98] : 130~252 : possibly circumscribed ~ inscribed
 			{
-				mcvu_mapimg.data[ y_ * mn_globalmap_width + x_ ] = static_cast<uchar>(ffp::MapStatus::FREE) ;
+				mcvu_mapimg.data[ y_ * mn_globalmap_width + x_ ] = static_cast<uchar>(dffp::MapStatus::FREE) ;
 			}
 			else
 			{
-				mcvu_mapimg.data[ y_ * mn_globalmap_width + x_ ] = static_cast<uchar>(ffp::MapStatus::OCCUPIED) ;
+				mcvu_mapimg.data[ y_ * mn_globalmap_width + x_ ] = static_cast<uchar>(dffp::MapStatus::OCCUPIED) ;
 			}
 		}
 	}
@@ -746,7 +749,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 // u x x x x x x u
 // u u u u u u u u
 
-	uint8_t ukn = static_cast<uchar>(ffp::MapStatus::UNKNOWN) ;
+	uint8_t ukn = static_cast<uchar>(dffp::MapStatus::UNKNOWN) ;
 	cv::Mat img_plus_offset = cv::Mat( img_.rows + ROI_OFFSET*2, img_.cols + ROI_OFFSET*2, CV_8U, cv::Scalar(ukn) ) ;
 	cv::Rect myroi( ROI_OFFSET, ROI_OFFSET, img_.cols, img_.rows );
 	cv::Mat img_roi = img_plus_offset(myroi) ;
@@ -757,7 +760,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	int ngmy = static_cast<int>( (start.pose.position.y - gmstarty) / gmresolution ) ;
 	cv::Point start_gm (ngmx, ngmy);
 
-	ffp::FrontPropagation oFP(img_plus_offset); // image uchar
+	dffp::FrontPropagation oFP(img_plus_offset); // image uchar
 	oFP.update(img_plus_offset, cv::Point(ngmx,ngmy), cv::Point(0,0) );
 	oFP.extractFrontierRegion( img_plus_offset ) ;
 
@@ -778,21 +781,17 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 //	cv::imwrite(m_str_debugpath + "/labeled_img.png", img);
 //	cv::imwrite(m_str_debugpath + "/img_frontiers.png",img_frontiers);
 #endif
-
 	// update unreachable frontiers;
 	updateUnreachablePointSet(  globalcostmap );
-
 	// init fr viz markers
 	visualization_msgs::Marker vizfrontier_regions;
 	vizfrontier_regions = SetVizMarker( 0, visualization_msgs::Marker::ADD, 0.f, 0.f, 0.f, m_worldFrameId,	1.f, 0.f, 0.f, 0.1);
 	vizfrontier_regions.type = visualization_msgs::Marker::POINTS;
-
 	// init curr frontier point sets
 	{
 		const std::unique_lock<mutex> lock_prev(mutex_prev_frontier_set);
 		const std::unique_lock<mutex> lock_curr(mutex_curr_frontier_set);
 		const std::unique_lock<mutex> lock_unrc(mutex_unreachable_frontier_set);
-
 		// append valid previous frontier points after the sanity check
 		for (const auto & pi : m_prev_frontier_set)
 		{
@@ -808,7 +807,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 			}
 		}
 	}
-
 
 	if( contours_plus_offset.size() == 0 )
 	{
@@ -927,12 +925,12 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 				bool bisexplored = cmdata[gmidx] >=0 ? true : false ;
 				voFrontierCands[idx].SetFrontierFlag( fcm_conf, fgm_conf, bisexplored );
 			}
-			set<pointset, pointset> unreachable_frontiers;
+			set<pointset> unreachable_frontiers;
 			{
 				const std::unique_lock<mutex> lock_unrc(mutex_unreachable_frontier_set) ;
 				unreachable_frontiers = m_unreachable_frontier_set ;
-				mo_frontierfilter.computeReachability( unreachable_frontiers, voFrontierCands );
 			}
+			mo_frontierfilter.computeReachability( unreachable_frontiers, voFrontierCands );
 		}
 		else
 		{
@@ -968,8 +966,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	ofs_cand.close();
 #endif
 
-
-
 // print frontier list
 // save frontier info ;
 	ROS_INFO(" The num of tot frontier points left :  %d\n", m_curr_frontier_set.size() );
@@ -977,7 +973,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 
 	publishFrontierPointMarkers( ) ;
 	publishFrontierRegionMarkers ( vizfrontier_regions );
-
 	if( m_curr_frontier_set.empty() ) // terminating condition
 	{
 		ROS_WARN("no more valid frontiers \n");
@@ -1199,7 +1194,7 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 		ROS_WARN("The target goal is equal to the previous goal... Selecting NBV point from <%d goalexclusivefpts> to be the next best target \n", goalexclusivefpts.poses.size() );
 		geometry_msgs::PoseStamped nextbestpoint = StampedPosefromSE2( 0.f, 0.f, 0.f ) ;
 		selectNextBestPoint( start,  goalexclusivefpts, nextbestpoint) ;
-
+ROS_WARN("Selecting the next best point since frontier pts is unreachable ..  \n");
 		const std::unique_lock<mutex> lock(mutex_currgoal);
 		m_targetgoal.header.frame_id = m_worldFrameId ;
 		m_targetgoal.pose.pose = nextbestpoint.pose ;
@@ -1245,14 +1240,14 @@ double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 		const std::unique_lock<mutex> lock(mutex_robot_state) ;
 		me_robotstate = ROBOT_STATE::ROBOT_IS_READY_TO_MOVE;
 	}
-
+ROS_INFO("b4 updating prevfrontiers \n");
 	updatePrevFrontierPointsList( ) ;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Lastly we publish the goal and other frontier points ( hands over the control to move_base )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	m_previous_robot_pose = start;
-
+ROS_INFO("b4 publishing ureachable markers \n");
 //	m_otherfrontierptsPub.publish(goalexclusivefpts);
 	publishUnreachableMarkers( );
 	m_currentgoalPub.publish(m_targetgoal);		// for control

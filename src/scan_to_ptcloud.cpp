@@ -86,7 +86,7 @@ m_baseFrameId("base_footprint")
 	//ros::param::get("~base_frame_id", m_baseFrameId);
 	m_nh_private.param("scan2ptcloud/base_frame_id", m_baseFrameId, m_baseFrameId);
 
-	ROS_WARN("baseframe id: %s\n", m_baseFrameId.c_str() );
+	ROS_WARN("@scan2ptcloud baseframe id: %s\n", m_baseFrameId.c_str() );
 };
 
 

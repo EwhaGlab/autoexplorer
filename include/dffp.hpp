@@ -26,7 +26,7 @@ The authors may be contacted via:
 
 
 Mail:        Y. J. Kim, Kyung Min Han
-             Computer Graphics Lab                       
+             Computer Graphics Lab
              Department of Computer Science and Engineering
              Ewha Womans University
              11-1 Daehyun-Dong Seodaemun-gu, Seoul, Korea 120-750
@@ -39,8 +39,9 @@ EMail:       kimy@ewha.ac.kr
              hankm@ewha.ac.kr
 */
 
-#ifndef INCLUDE_FFP_HPP_
-#define INCLUDE_FFP_HPP_
+#ifndef INCLUDE_DFFP_HPP_
+#define INCLUDE_DFFP_HPP_
+
 
 #include<cmath>
 #include<cstring>
@@ -53,7 +54,7 @@ EMail:       kimy@ewha.ac.kr
 
 //#define DRAW_CONTOUR
 
-namespace ffp
+namespace dffp
 {
 
 constexpr char WIND_NAME[] = "Image";
@@ -99,7 +100,7 @@ public:
 			// update march status
 			m_lattice[pid] = MarchStatus::KNOWN ;
 
-//printf(": %d %d %d \n", pid, rowidx, colidx);
+//printf(": %d %d %d  /(%d %d) \n", pid, rowidx, colidx, m_rows, m_cols);
 
 			// each neighboring pixels Q of P
 			// l,r,t,b,tl,br
@@ -143,7 +144,76 @@ public:
 //cv::imshow("tmp", m_cvStatus);
 //cv::waitKey(1);
 		}
+	}
 
+
+	void InnerContourCorrection( const cv::Mat& mapimage )
+	{
+		for( int idx = 0; idx < m_inner_contour.size(); idx++)
+		{
+			cv::Point pt = ind2sub( m_inner_contour[idx] ) ;
+
+		// check for 8 neighboring pts
+			int u = pt.x ;
+			int v = pt.y ;
+
+		// left
+			int lu = MAX(u - 1, 0);
+		// right
+			int ru = MIN(u + 1, m_cols);
+		// top
+			int tv = MAX(v - 1, 0);
+		// bottom
+			int bv = MIN(v + 1, m_rows);
+
+			int i0 = 	tv * m_cols + lu ;
+			int i1 =  	tv * m_cols + u ;
+			int i2 = 	tv * m_cols + ru ;
+
+			int i3 =	v * m_cols + lu ;
+			//int i4 =	v * m_cols + u ;
+			int i5 = 	v * m_cols + ru ;
+
+			int i6 =	bv * m_cols + lu ;
+			int i7 = 	bv * m_cols + u ;
+			int i8 =	bv * m_cols + ru ;
+
+			uint8_t x0  = mapimage.data[ i0 ] ;
+			uint8_t x1 	= mapimage.data[ i1 ];
+			uint8_t x2	= mapimage.data[ i2 ] ;
+
+			uint8_t x3	= mapimage.data[ i3 ] ;
+			//uint8_t x4	= mapimage.data[  ] ;
+			uint8_t x5	= mapimage.data[ i5 ] ;
+
+			uint8_t x6	= mapimage.data[ i6 ] ;
+			uint8_t x7	= mapimage.data[ i7 ] ;
+			uint8_t x8	= mapimage.data[ i8 ] ;
+
+			if( x0 == MapStatus::UNKNOWN )
+				m_contour.push_back(i0);
+
+			if( x1 == MapStatus::UNKNOWN )
+				m_contour.push_back(i1);
+
+			if( x2 == MapStatus::UNKNOWN )
+				m_contour.push_back(i2);
+
+			if( x3 == MapStatus::UNKNOWN )
+				m_contour.push_back(i3);
+
+			if( x5 == MapStatus::UNKNOWN )
+				m_contour.push_back(i5);
+
+			if( x6 == MapStatus::UNKNOWN )
+				m_contour.push_back(i6);
+
+			if( x7 == MapStatus::UNKNOWN )
+				m_contour.push_back(i7);
+
+			if( x8 == MapStatus::UNKNOWN )
+				m_contour.push_back(i8);
+		}
 	}
 
 	void MarchFrontFromOutside( const cv::Mat& uImage, cv::Point seeds )
@@ -220,10 +290,12 @@ public:
 
 	void update(const cv::Mat& gray_float, cv::Point seed_inner, cv::Point seed_outer )
 	{
-		MarchFrontFromOutside(gray_float, seed_outer);
-	    initLattice();
+	    MarchFrontFromInside(gray_float, seed_inner); 	// required for DFFP
+	    InnerContourCorrection( gray_float );			// required for DFFP
 
-	    MarchFrontFromInside(gray_float, seed_inner);
+	    initLattice();
+		MarchFrontFromOutside(gray_float, seed_outer);
+
 //	    cv::namedWindow("after the fast marching",1);
 //	    cv::imshow("after the fast marching", m_cvStatus);
 //	    cv::waitKey(10);
@@ -334,7 +406,7 @@ private:
 	std::vector<cv::Point> m_seeds ;
 	std::vector<int> m_lattice ;
 	std::deque<int> m_que ;
-	std::vector<int> m_contour ;
+	std::vector<int> m_inner_contour, m_contour ;
 	std::vector<cv::Point> m_frontierContour ;
 	std::vector<int> m_neighbor ;
 
@@ -353,4 +425,7 @@ private:
 
 
 
-#endif /* INCLUDE_FFP_HPP_ */
+
+
+
+#endif /* INCLUDE_DFFP_HPP_ */

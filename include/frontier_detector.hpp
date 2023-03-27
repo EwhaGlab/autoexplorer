@@ -86,7 +86,7 @@ EMail:       kimy@ewha.ac.kr
 #include "nav_msgs/GetPlan.h"
 
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
-#include "ffp.hpp"
+#include "dffp.hpp"
 #include <experimental/filesystem>
 #include <set>
 
@@ -161,7 +161,7 @@ public:
 		cv::threshold( uOccu, uOccu, 0, 255, cv::THRESH_BINARY) ;// 67 ~ 187  --> 255 (occupied)
 
 		cv::Mat uUnkn = uImage.clone();
-		cv::threshold( uUnkn, uUnkn, 187, ffp::MapStatus::UNKNOWN, cv::THRESH_BINARY ); // 187 ~ 255 --> 255
+		cv::threshold( uUnkn, uUnkn, 187, dffp::MapStatus::UNKNOWN, cv::THRESH_BINARY ); // 187 ~ 255 --> 255
 
 		for(int iter=0; iter < mn_numpyrdownsample; iter++ )
 		{
@@ -169,8 +169,8 @@ public:
 			pyrDown(uUnkn, uUnkn, cv::Size(uUnkn.rows/2, uUnkn.cols/2));
 		}
 
-		cv::threshold(uOccu, uOccu, 0, ffp::MapStatus::OCCUPIED, CV_THRESH_BINARY) ;
-		cv::threshold(uUnkn, uUnkn, 0, ffp::MapStatus::UNKNOWN, CV_THRESH_BINARY) ;
+		cv::threshold(uOccu, uOccu, 0, dffp::MapStatus::OCCUPIED, CV_THRESH_BINARY) ;
+		cv::threshold(uUnkn, uUnkn, 0, dffp::MapStatus::UNKNOWN, CV_THRESH_BINARY) ;
 		uImage = uOccu + uUnkn ;
 	}
 
@@ -179,10 +179,10 @@ public:
 		cv::Mat uUnkn = uImage.clone();
 		cv::threshold( uUnkn, uUnkn, 187, 255, cv::THRESH_TOZERO_INV ); 	// 187 ~ 255 --> 0
 		cv::threshold( uUnkn, uUnkn, 67,  255, cv::THRESH_TOZERO ); 		// 0 ~ 66 	--> 0
-		cv::threshold( uUnkn, uUnkn, 0, ffp::MapStatus::UNKNOWN, cv::THRESH_BINARY) ;// 67 ~ 187  --> 127 (unknown)
+		cv::threshold( uUnkn, uUnkn, 0, dffp::MapStatus::UNKNOWN, cv::THRESH_BINARY) ;// 67 ~ 187  --> 127 (unknown)
 
 		cv::Mat uOcc = uImage.clone();
-		cv::threshold( uOcc, uOcc, 128, ffp::MapStatus::OCCUPIED, cv::THRESH_BINARY ); // 187 ~ 255 --> 255
+		cv::threshold( uOcc, uOcc, 128, dffp::MapStatus::OCCUPIED, cv::THRESH_BINARY ); // 187 ~ 255 --> 255
 		uImage = uOcc + uUnkn ;
 #ifdef SAVE_DEBUG_IMAGES
 		cv::imwrite("/home/hankm/catkin_ws/src/frontier_detector/launch/uImage.png",  uImage);
@@ -312,9 +312,9 @@ protected:
 //	cv::Mat m_uMapImg, m_uMapImgROI ;
 
 	geometry_msgs::PoseWithCovarianceStamped m_targetgoal, m_optimal_targetgoal ; // actual goal /  optimal goal
-	set<pointset, pointset> m_unreachable_frontier_set ;
-	set<pointset, pointset> m_curr_frontier_set ;
-	set<pointset, pointset> m_prev_frontier_set ;
+	set<pointset> m_unreachable_frontier_set ;
+	set<pointset> m_curr_frontier_set ;
+	set<pointset> m_prev_frontier_set ;
 
 	// thrs
 	//float	m_costmap_conf_thr ;

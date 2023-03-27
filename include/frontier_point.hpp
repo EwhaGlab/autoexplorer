@@ -60,19 +60,26 @@ namespace autoexplorer
 
 struct pointset
 {
-  float p[2];
-  pointset(float x, float y){p[0]=x; p[1]=y; };
-  pointset(){};
+	std::pair<float, float> xy;
+	pointset( float x_ =0.f, float y_ = 0.f) : xy(std::make_pair(x_, y_)){ p[0] = xy.first; p[1] = xy.second; }
+	bool operator<(const pointset& rhs) const
+	{return xy < rhs.xy;}
 
-  bool operator()( const pointset & pa, const pointset & pb) const
-  {
-    for (size_t n=0; n<2; ++n)
-    {
-      if ( pa.p[n] < pb.p[n] ) return true;
-      if ( pa.p[n] > pb.p[n] ) return false;
-    }
-    return false;
-  }
+	float p[2];
+
+//  float p[2];
+//  pointset(float x, float y){p[0]=x; p[1]=y; };
+//  pointset(){};
+//
+//  bool operator()( const pointset & pa, const pointset & pb) const
+//  {
+//    for (size_t n=0; n<2; ++n)
+//    {
+//      if ( pa.p[n] < pb.p[n] ) return true;
+//      if ( pa.p[n] > pb.p[n] ) return false;
+//    }
+//    return false;
+//  }
 };
 
 

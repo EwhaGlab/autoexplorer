@@ -241,7 +241,7 @@ void FrontierFilter::measureGridmapConfidence( const nav_msgs::OccupancyGrid& gr
 
 }
 
-void FrontierFilter::computeReachability( const set<pointset, pointset>& unreachable_frontiers, std::vector<FrontierPoint>& voFrontierCandidates )
+void FrontierFilter::computeReachability( const set<pointset>& unreachable_frontiers, std::vector<FrontierPoint>& voFrontierCandidates )
 {
 
 // classify unreachable points
@@ -274,7 +274,7 @@ void FrontierFilter::computeReachability( const set<pointset, pointset>& unreach
 	}
 }
 
-bool FrontierFilter::isReachable( const set<pointset, pointset>& unreachable_frontiers, const float& fxcand, const float& fycand )
+bool FrontierFilter::isReachable( const set<pointset>& unreachable_frontiers, const float& fxcand, const float& fycand )
 {
 	for (const auto & di : unreachable_frontiers)
 	{
@@ -282,6 +282,8 @@ bool FrontierFilter::isReachable( const set<pointset, pointset>& unreachable_fro
 		if(fdist < mf_unreachable_dist_thr)
 			return false;
 	}
+
+	return true;
 }
 
 
