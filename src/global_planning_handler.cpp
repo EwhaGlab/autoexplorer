@@ -46,18 +46,19 @@ namespace autoexplorer
 GlobalPlanningHandler::GlobalPlanningHandler( ):
 robot_base_frame_("base_footprint"), // was "base_link"
 global_frame_("map"),
-mb_initialized(false), mb_allow_unknown(true), mb_visualize_potential(false),
+mb_initialized(false), mb_visualize_potential(false),
 mf_tolerance(0.0),
 mp_cost_translation_table(NULL)
 {
 	planner_ = boost::shared_ptr<navfn::NavFn>( new navfn::NavFn(0, 0));
 	mb_initialized = true;
+	//mb_allow_unknown = false ;
 }
 
-GlobalPlanningHandler::GlobalPlanningHandler( costmap_2d::Costmap2D &ocostmap, const std::string& worldframe, const std::string& baseframe  ):
+GlobalPlanningHandler::GlobalPlanningHandler( costmap_2d::Costmap2D &ocostmap, const std::string& worldframe, const std::string& baseframe, bool b_allow_unknown  ):
 robot_base_frame_(baseframe), // was "base_link"
 global_frame_(worldframe),
-mb_initialized(false), mb_allow_unknown(true), mb_visualize_potential(false),
+mb_initialized(false), mb_allow_unknown(b_allow_unknown), mb_visualize_potential(false),
 mf_tolerance(0.0),
 mp_cost_translation_table(NULL)
 {
@@ -127,7 +128,7 @@ void GlobalPlanningHandler::reinitialization(  )
 //	robot_base_frame_ = string("base_link");
 //	global_frame_ = string("map");
 //	mb_initialized = false;
-	mb_allow_unknown = true;
+//	mb_allow_unknown = true;
 	mb_visualize_potential = false;
 	mf_tolerance = 0.0;
 

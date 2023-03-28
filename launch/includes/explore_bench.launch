@@ -92,6 +92,8 @@
     <param name="local_costmap/laser_scan_sensor/topic" value="scan"/>
     <param name="local_costmap/obstacle_layer/laser_scan_sensor/topic" value="scan"/>
     <param name="TebLocalPlannerROS/map_frame" value="odom"/>
+    
+    <!--param name="NavfnROS/allow_unknown" value="false"/-->   <!-- disabling allow_unknown drops down nav performance... so not recommended (by the way there are two pkgs in navigation stack uses "allow_unknown": one in NavfnROS and another in global_planner)-->
   </node>
 
   <!-- move_base -->

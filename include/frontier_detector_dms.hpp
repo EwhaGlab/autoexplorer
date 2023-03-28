@@ -257,6 +257,7 @@ protected:
 	//GlobalPlanningHandler* mpo_gph ;
 	GlobalPlanningHandler mo_gph ;
 	costmap_2d::Costmap2D* mpo_costmap;
+	bool mb_allow_unknown ;
 
 	uint8_t* mp_cost_translation_table;
 

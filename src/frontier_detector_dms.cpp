@@ -52,7 +52,8 @@ mn_globalcostmapidx(0), mn_numthreads(16),
 mb_isinitmotion_completed(false),
 mp_cost_translation_table(NULL),
 mb_strict_unreachable_decision(true),
-me_prev_exploration_state( SUCCEEDED ), mb_nbv_selected(false) //, mn_prev_nbv_posidx(-1)
+me_prev_exploration_state( SUCCEEDED ), mb_nbv_selected(false), //, mn_prev_nbv_posidx(-1)
+mb_allow_unknown(true)
 {
 	float fcostmap_conf_thr, fgridmap_conf_thr; // mf_unreachable_decision_bound ;
 	int nweakcomp_threshold ;
@@ -69,6 +70,7 @@ me_prev_exploration_state( SUCCEEDED ), mb_nbv_selected(false) //, mn_prev_nbv_p
 	m_nh.param("/autoexplorer/num_downsamples", mn_numpyrdownsample, 0);
 	m_nh.param("/autoexplorer/frame_id", m_worldFrameId, std::string("map"));
 	m_nh.param("/autoexplorer/strict_unreachable_decision", mb_strict_unreachable_decision, true);
+	m_nh.param("/autoexplorer/allow_unknown", mb_allow_unknown, true);
 
 	m_nh.param("/move_base/global_costmap/resolution", mf_resolution, 0.05f) ;
 	m_nh.param("move_base/global_costmap/robot_radius", mf_robot_radius, 0.12); // 0.3 for fetch
@@ -1054,7 +1056,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	float fendpot = 0.f; //POT_HIGH;
 	vector< uint32_t > gplansizes( m_curr_frontier_set.size(), 0 ) ;
 
-	GlobalPlanningHandler o_gph( *mpo_costmap, m_worldFrameId, m_baseFrameId );
+	GlobalPlanningHandler o_gph( *mpo_costmap, m_worldFrameId, m_baseFrameId, mb_allow_unknown );
 	std::vector<geometry_msgs::PoseStamped> plan;
 	uint32_t fptidx;
 	int tid;
@@ -1240,14 +1242,12 @@ ROS_WARN("Selecting the next best point since frontier pts is unreachable ..  \n
 		const std::unique_lock<mutex> lock(mutex_robot_state) ;
 		me_robotstate = ROBOT_STATE::ROBOT_IS_READY_TO_MOVE;
 	}
-ROS_INFO("b4 updating prevfrontiers \n");
-	updatePrevFrontierPointsList( ) ;
 
+	updatePrevFrontierPointsList( ) ;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Lastly we publish the goal and other frontier points ( hands over the control to move_base )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	m_previous_robot_pose = start;
-ROS_INFO("b4 publishing ureachable markers \n");
 //	m_otherfrontierptsPub.publish(goalexclusivefpts);
 	publishUnreachableMarkers( );
 	m_currentgoalPub.publish(m_targetgoal);		// for control
