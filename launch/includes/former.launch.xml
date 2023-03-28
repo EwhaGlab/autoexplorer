@@ -1,0 +1,23 @@
+<launch>
+  <arg name="init_pose" default="-x 1.0 -y 1.0 -z 0.0"/>
+  
+  <param name="robot_description" command="$(find xacro)/xacro $(find former_description)/urdf/former_gazebo.urdf.xacro --inorder" />
+  
+  <!-- Spawn the former in gazebo -->
+  <node pkg="gazebo_ros" type="spawn_model" name="urdf_spawner" output="screen" 
+        args="-urdf -model former $(arg init_pose) -param robot_description"/>
+
+  <!--node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model former $(arg init_pose) -param robot_description" /-->
+
+  <!-- Load the former base controllers -->
+  <rosparam file="$(find former_control)/config/control.yaml" command="load"/>
+
+  <node pkg="controller_manager" type="spawner" name="controller_spawner" output="screen" 
+        args="former_base_controller former_joint_state_controller"/>
+  
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0" />
+    <!--param name="tf_prefix" value="$(arg robot_name)"/-->
+  </node>
+
+ </launch> 
