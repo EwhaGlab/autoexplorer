@@ -28,7 +28,7 @@
         <param name="frame_id" type="string" value="map" />
     </node-->
     
-    <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/>    
+    <!--node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/-->    
 
     <!-- bag -->
     <!--node pkg="rosbag" type="record" name="rosbag_record" args="record -a -o /media/data/results/explore_bench/bag/"/-->
