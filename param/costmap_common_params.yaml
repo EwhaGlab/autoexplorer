@@ -3,18 +3,19 @@
 #For this example we'll configure the costmap in voxel-grid mode
 #map_type: costmap 
 
-obstacle_range: 4.0
-raytrace_range: 5.0
+obstacle_range: 6.0 #4.0
+raytrace_range: 8.0 #5.0
 
-#footprint: [[-0.105, -0.105], [-0.105, 0.105], [0.041, 0.105], [0.041, -0.105]]
-robot_radius: 0.3
+footprint: [[-0.202, -0.202], [-0.202, 0.202],[0.202, 0.202], [0.202, -0.202]]
+#robot_radius: 0.3
+resolution: 0.05
 
 inflation_radius: 0.4
 cost_scaling_factor: 1.0 #1.0 # decay faster if the number if high
 
 map_type: costmap
-observation_sources: base_scan
-base_scan: {sensor_frame: base_scan, data_type: LaserScan, topic: base_scan, marking: true, clearing: true}
+observation_sources: scan
+laser_scan_sensor: {sensor_frame: laser_link, data_type: LaserScan, topic: scan, marking: true, clearing: true}
 
 #depth_camera_sensor: {sensor_frame: left_cam, data_type: PointCloud2, topic: /gt_point_cloud_xyz, marking: true, clearing: true, max_obstacle_height: 1.0, min_obstacle_height: 0.5}
 

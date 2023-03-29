@@ -136,11 +136,12 @@ int main(int argc, char** argv)
 		  FrontierDetectorDMS front_detector_dms(private_nh, nh);
 		  front_detector_dms.SetNumThreads(numthreads);
 		  ros::spinOnce();
-		  //front_detector_dms.initmotion();
+		  front_detector_dms.initmotion(0.f, 0.f, 1.f);
 		  front_detector_dms.SetInitMotionCompleted();
 		  while( !front_detector_dms.isDone() && ros::ok() )
 		  {
-			  try{
+			  try
+			  {
 				  ros::spinOnce();
 			  }
 			  catch(std::runtime_error& e)

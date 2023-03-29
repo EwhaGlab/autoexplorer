@@ -1,5 +1,7 @@
 
 autoexplorer:
+    worldframe_id:          'map'
+    baseframe_id:           'base_link'
     debug_data_save_path:   '/media/data/results/autoexplorer'
     costmap_conf_thr:       0.3 # 0.4 (works for willowgarage) # 0.4 (fetch)   # the higher the more strict  
     gridmap_conf_thr:       0.2 # 0.2 (willowgarage)          # the higher the more strict
@@ -11,3 +13,5 @@ autoexplorer:
     num_downsamples:        0
     unreachable_decision_bound:   0.3 # < 4 * 0.05 res >
     strict_unreachable_decision: true  # make it true if there are several obstacles in the space that blocks the robot to traverse around. true helps if there is frontier point detected beyond the wall (cannot traverse to there). Mostly "true" in real world/ noisy env, but might want to set to "false" in the simulation env where no obs in the space. 
+
+    

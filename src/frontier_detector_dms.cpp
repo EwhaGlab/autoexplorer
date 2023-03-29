@@ -68,12 +68,13 @@ mb_allow_unknown(true)
 	m_nh.param("/autoexplorer/unreachable_decision_bound", mf_neighoringpt_decisionbound, 0.2f);
 	m_nh.param("/autoexplorer/weak_comp_thr", nweakcomp_threshold, 10);
 	m_nh.param("/autoexplorer/num_downsamples", mn_numpyrdownsample, 0);
-	m_nh.param("/autoexplorer/frame_id", m_worldFrameId, std::string("map"));
 	m_nh.param("/autoexplorer/strict_unreachable_decision", mb_strict_unreachable_decision, true);
 	m_nh.param("/autoexplorer/allow_unknown", mb_allow_unknown, true);
+	m_nh.param("/autoexplorer/worldframe_id", m_worldFrameId, std::string("map"));
+	m_nh.param("/autoexplorer/baseframe_id", m_baseFrameId, std::string("base_link"));
 
 	m_nh.param("/move_base/global_costmap/resolution", mf_resolution, 0.05f) ;
-	m_nh.param("move_base/global_costmap/robot_radius", mf_robot_radius, 0.12); // 0.3 for fetch
+	m_nh.param("/move_base/global_costmap/robot_radius", mf_robot_radius, 0.12); // 0.3 for fetch
 
 	mn_scale = pow(2, mn_numpyrdownsample);
 	m_frontiers_region_thr = nweakcomp_threshold / mn_scale ;
@@ -152,7 +153,7 @@ mb_allow_unknown(true)
 	//m_exploration_goal = SetVizMarker( m_worldFrameId, 1.f, 0.f, 1.f, 0.5  );
 	mn_FrontierID = 1;
 	mn_UnreachableFptID = 0;
-	ROS_INFO("autoexplorer has initialized \n");
+	ROS_INFO("autoexplorer has initialized (world: %s ) (baseframe: %s ) \n", m_worldFrameId.c_str(), m_baseFrameId.c_str());
 
 	std_msgs::Bool begin_task;
 	begin_task.data = true;

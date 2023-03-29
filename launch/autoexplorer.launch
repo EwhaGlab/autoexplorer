@@ -20,7 +20,9 @@
     
     <!--include file="$(find autoexplorer)/launch/includes/explore_bench-corridor.launch"/-->
     
-    <node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" args="$(arg slam_method) $(arg numthreads)" output="screen"/>
+    <node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" args="$(arg slam_method) $(arg numthreads)" output="screen">
+        <remap from="cmd_vel" to="/former_base_controller/cmd_vel"/>
+    </node>
     <!--include file="$(find path_tracker)/launch/path_tracker.launch" output="screen"/-->
     <!--node pkg="autoexplorer" type="autoexplorer_node" name="autoexplorer" output="screen">
         <param name="frame_id" type="string" value="map" />

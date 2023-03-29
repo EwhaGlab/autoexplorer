@@ -6,16 +6,15 @@ recovery_behaviors:
       type: 'rotate_recovery/RotateRecovery'
     - name: 'aggressive_reset'
       type: 'clear_costmap_recovery/ClearCostmapRecovery'
-    #- name: 'move_slow_reset'
-      #type: 'move_slow_and_clear/MoveSlowAndClear'
+    - name: 'move_slow_reset'
+      type: 'move_slow_and_clear/MoveSlowAndClear'
 
 
 TebLocalPlannerROS:
 
  odom_topic: odom
  #odom_topic: /robot_pose_ekf/odom_combined
- map_frame: map #robot1/odom
- #map_frame: /odom_combined
+ map_frame: map 
 
  # Trajectory
 
@@ -38,8 +37,7 @@ TebLocalPlannerROS:
  min_turning_radius: 0.0
  footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
  #radius: 0.12 # for type "circular"
-   vertices: [[-0.12, -0.12], [-0.12, 0.12],[0.12, 0.12], [0.12, -0.12]]
-   #vertices: [[-0.1, -0.26], [-0.1, 0.26],[0.287, 0.26], [0.287, -0.26]]
+   vertices: [[-0.202, -0.202], [-0.202, 0.202],[0.202, 0.202], [0.202, -0.202]]
 
  # GoalTolerance
 
@@ -65,13 +63,13 @@ TebLocalPlannerROS:
  optimization_verbose: False
  penalty_epsilon: 0.1
  weight_max_vel_x: 1
- weight_max_vel_y: 0                #差速导航注释掉此行
+ weight_max_vel_y: 0                
  weight_max_vel_theta: 1
  weight_acc_lim_x: 1
- weight_acc_lim_y: 0                #差速导航注释掉此行
+ weight_acc_lim_y: 0                
  weight_acc_lim_theta: 0.5
- weight_kinematics_nh: 1000            #差速导航将此值改为1000
- weight_kinematics_forward_drive: 60  #差速导航将此值改为60
+ weight_kinematics_nh: 1000            
+ weight_kinematics_forward_drive: 60  
  weight_kinematics_turning_radius: 1
  weight_optimaltime: 1
  weight_obstacle: 50
