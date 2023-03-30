@@ -12,16 +12,16 @@ recovery_behaviors:
 TrajectoryPlannerROS:
 
 #Robot Configuration Parameters
-  max_vel_x: 1.0 #0.22
+  max_vel_x: 0.5 #0.22
   min_vel_x: 0.1 #-0.22
 
-  max_vel_theta: 1.0 #2.0
-  min_vel_theta: -1.0 #-2.0
+  max_vel_theta: 0.8 #2.0
+  min_vel_theta: -0.8 #-2.0
   #min_in_place_vel_theta: 1.0
 
-  acc_lim_x: 2.0 #2.5
+  acc_lim_x: 1.0 #2.5
   acc_lim_y: 0.0
-  acc_lim_theta: 2.0 #3.2
+  acc_lim_theta: 1.0 #3.2
 
 #Goal Tolerance Parameters
   xy_goal_tolerance: 0.10

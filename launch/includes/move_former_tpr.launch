@@ -67,12 +67,12 @@
     
     <param name="global_costmap/global_frame" value="map"/>
     <param name="global_costmap/robot_base_frame" value="base_link"/> 
-    <param name="global_costmap/laser_scan_sensor/sensor_frame" value="laser_link"/>
+    <param name="global_costmap/laser_scan_sensor/sensor_frame" value="base_link"/>
     <param name="global_costmap/laser_scan_sensor/topic" value="ouster/scan"/>   
     
     <param name="local_costmap/global_frame" value="odom"/>
     <param name="local_costmap/robot_base_frame" value="base_link"/>
-    <param name="local_costmap/laser_scan_sensor/sensor_frame" value="laser_link"/>
+    <param name="local_costmap/laser_scan_sensor/sensor_frame" value="base_link"/>
     <param name="local_costmap/laser_scan_sensor/topic" value="ouster/scan"/>
     <param name="local_costmap/obstacle_layer/laser_scan_sensor/topic" value="ouster/scan"/>
   </node>  
