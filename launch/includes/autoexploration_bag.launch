@@ -1,0 +1,50 @@
+<launch>
+
+    <arg name="record_cameras" default="true" />
+    <node name="img_throttler" type="throttle" pkg="topic_tools" args="messages /camera/color/image_raw/compressed 10 /camera/color/image_raw/compressed_throttle" />
+
+    <node pkg="rosbag" type="record" name="rosbag_record_cam" 
+    args="record -o /media/former/FetchSSD/ subset_topics
+
+/camera/color/image_raw/compressed_throttle
+/former_base_controller/cmd_vel
+/former_base_controller/odom
+/former_base_controller/parameter_descriptions
+/former_base_controller/parameter_updates
+/scan
+/move_base/cmd_vel
+/teleop/cmd_vel
+/diagnostics
+/diagnostics_agg
+/diagnostics_toplevel_state
+/dock/cmd_vel
+/docked
+/imu/data
+/imu/rpy
+/joint_states
+/joy
+/joy/set_feedback
+/former_base_controller/odom
+/odometry/filtered
+/rosout
+/rosout_agg
+/sick_tim_node/parameter_descriptions
+/sick_tim_node/parameter_updates
+/tf
+/tf_static
+/filtered_shapes
+/curr_goal_shape
+/FR_shapes
+/unreachable_shapes
+/robot_footprints
+/robot_path
+
+/move_base/NavfnROS/plan
+/move_base/global_costmap/costmap
+/move_base/local_costmap/costmap
+/map
+    "
+    />
+
+
+</launch>
