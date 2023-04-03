@@ -66,7 +66,7 @@
   </node-->  
   
   <arg name="cmd_vel_topic" default="/former_base_controller/cmd_vel" />
-  <arg name="odom_topic" default="odom" />
+  <arg name="odom_topic" default="/former_base_controller/odom" />
   <arg name="move_forward_only" default="false"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">  
@@ -82,11 +82,11 @@
 
     <param name="global_costmap/global_frame" value="map"/>
     <param name="global_costmap/robot_base_frame" value="base_link"/>
-    <param name="global_costmap/laser_scan_sensor/sensor_frame" value="base_scan"/>
+    <param name="global_costmap/laser_scan_sensor/sensor_frame" value="laser_link"/>
     <param name="global_costmap/laser_scan_sensor/topic" value="scan"/>    
     <param name="local_costmap/global_frame" value="odom"/>
     <param name="local_costmap/robot_base_frame" value="base_link"/>
-    <param name="local_costmap/laser_scan_sensor/sensor_frame" value="base_scan"/>
+    <param name="local_costmap/laser_scan_sensor/sensor_frame" value="laser_link"/>
     <param name="local_costmap/laser_scan_sensor/topic" value="scan"/>
     <param name="local_costmap/obstacle_layer/laser_scan_sensor/topic" value="scan"/>
     <param name="TebLocalPlannerROS/map_frame" value="odom"/>

@@ -6,11 +6,11 @@
 obstacle_range: 4.0 #4.0
 raytrace_range: 5.0 #5.0
 
-footprint: [[-0.202, -0.202], [-0.202, 0.202],[0.202, 0.202], [0.202, -0.202]]
+footprint: [[-0.252, -0.252], [-0.252, 0.252],[0.252, 0.252], [0.252, -0.252]]
 #robot_radius: 0.3
 resolution: 0.05
 
-inflation_radius: 0.4
+inflation_radius: 0.5
 cost_scaling_factor: 1.0 #1.0 # decay faster if the number if high
 
 map_type: costmap
