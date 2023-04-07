@@ -10,7 +10,7 @@
 
     <arg name="namespace" default=""/>
     <arg name="numthreads" default="8"/>
-    <arg name="slam_method" default="gtmapping"/> <!-- "gmapping" -->
+    <arg name="slam_method" default="slam_toolbox"/> <!-- "gmapping" -->
     <!--param name="use_sim_time" value="true"/--> <!--by kmHan-->  
     <!--param name="slam_method" value="$(arg slam_method)"/-->
     <param name="numthreads" value="$(arg numthreads)"/>
