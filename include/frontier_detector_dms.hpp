@@ -225,10 +225,20 @@ public:
   	  return std::sqrt( fxdiff * fxdiff + fydiff * fydiff ) < 0.001 ? true : false;
     }
 
+    inline void world_to_scaled_gridmap( float fwx, float fwy, float fox, float foy, float fres, int& nmx, int& nmy, int nscale )
+    {
+    	int ngmx = static_cast<int>( (fwx - fox) / fres ) ;
+    	int ngmy = static_cast<int>( (fwy - foy) / fres ) ;
+
+    	ngmx = ngmx * nscale ;
+    	ngmy = ngmy * nscale ;
+    }
+
     static float euc_dist(const cv::Point2f& lhs, const cv::Point2f& rhs)
     {
         return (float)sqrt(  (lhs.x - rhs.x) * (lhs.x - rhs.x) + (lhs.y - rhs.y) * (lhs.y - rhs.y)  );
     }
+
 
 protected:
 
@@ -285,6 +295,10 @@ private:
 	std::mutex mutex_currgoal ;
 
 	omp_lock_t m_mplock;
+
+	// for debug
+	int mn_mapcallcnt ;
+	double mf_avgcallbacktime_msec, mf_avgplanngtime_msec, mf_totalcallbacktime_msec, mf_totalplanningtime_msec ;
 };
 
 }

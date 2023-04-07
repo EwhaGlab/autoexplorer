@@ -41,7 +41,6 @@ EMail:       kimy@ewha.ac.kr
 
 #include "frontier_detector_dms.hpp"
 
-
 namespace autoexplorer
 {
 
@@ -53,7 +52,8 @@ mb_isinitmotion_completed(false),
 mp_cost_translation_table(NULL),
 mb_strict_unreachable_decision(true),
 me_prev_exploration_state( SUCCEEDED ), mb_nbv_selected(false), //, mn_prev_nbv_posidx(-1)
-mb_allow_unknown(true)
+mb_allow_unknown(true),
+mn_mapcallcnt(0), mf_avgcallbacktime_msec(0.f), mf_avgplanngtime_msec(0.f), mf_totalcallbacktime_msec(0.f), mf_totalplanningtime_msec(0.f)
 {
 	float fcostmap_conf_thr, fgridmap_conf_thr; // mf_unreachable_decision_bound ;
 	int nweakcomp_threshold ;
@@ -152,7 +152,7 @@ mb_allow_unknown(true)
 	//m_exploration_goal = SetVizMarker( m_worldFrameId, 1.f, 0.f, 1.f, 0.5  );
 	mn_FrontierID = 1;
 	mn_UnreachableFptID = 0;
-	ROS_INFO("autoexplorer has initialized \n");
+	ROS_INFO("autoexplorer has initialized with (%d) downsmapling map \n", mn_numpyrdownsample);
 
 	std_msgs::Bool begin_task;
 	begin_task.data = true;
@@ -257,6 +257,15 @@ bool FrontierDetectorDMS::isValidPlan( vector<cv::Point>  )
 
 void FrontierDetectorDMS::publishDoneExploration( )
 {
+	double favg_callback_time = mf_totalcallbacktime_msec / (double)(mn_mapcallcnt) ;
+	double favg_planning_time = mf_totalplanningtime_msec / (double)(mn_mapcallcnt) ;
+
+	ROS_INFO("total map data callback counts : %d \n", mn_mapcallcnt  );
+	ROS_INFO("total callback time (sec) %f \n", mf_totalcallbacktime_msec / 1000 );
+	ROS_INFO("total planning time (sec) %f \n", mf_totalplanningtime_msec / 1000 );
+	ROS_INFO("avg callback time (msec) %f \n", favg_callback_time  );
+	ROS_INFO("avg planning time (msec) %f \n", favg_planning_time  );
+
 	ROS_INFO("The exploration task is done... publishing -done- msg" );
 	std_msgs::Bool done_task;
 	done_task.data = true;
@@ -758,8 +767,10 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	img_.copyTo(img_roi) ;
 
 	geometry_msgs::PoseStamped start = GetCurrRobotPose( );
-	int ngmx = static_cast<int>( (start.pose.position.x - gmstartx) / gmresolution ) ;
-	int ngmy = static_cast<int>( (start.pose.position.y - gmstarty) / gmresolution ) ;
+	int ngmx, ngmy;
+	world_to_scaled_gridmap( start.pose.position.x, start.pose.position.x, gmstartx, gmstarty, gmresolution, ngmx, ngmy, mn_scale) ;
+//	int ngmx = static_cast<int>( (start.pose.position.x - gmstartx) / gmresolution ) ;
+//	int ngmy = static_cast<int>( (start.pose.position.y - gmstarty) / gmresolution ) ;
 	cv::Point start_gm (ngmx, ngmy);
 
 	dffp::FrontPropagation oFP(img_plus_offset); // image uchar
@@ -776,6 +787,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	vector<vector<cv::Point> > contours_plus_offset;
 	vector<cv::Vec4i> hierarchy;
 	cv::findContours( img_frontiers_offset, contours_plus_offset, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE );
+
 
 #ifdef FD_DEBUG_MODE
 	string outfilename =  m_str_debugpath + "/global_mapimg.png" ;
@@ -1261,6 +1273,11 @@ ROS_DEBUG("\n "
 		, mapcallback_time, planning_time);
 
 ROS_INFO("********** \t End of mapdata callback routine \t ********** \n");
+
+// for timing
+mn_mapcallcnt++;
+mf_totalcallbacktime_msec = mf_totalcallbacktime_msec + mapcallback_time + planning_time ;
+mf_totalplanningtime_msec = mf_totalplanningtime_msec + planning_time ;
 
 }
 
