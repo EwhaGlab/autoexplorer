@@ -653,14 +653,6 @@ int FrontierDetectorDMS::moveToHome()
 {
 	ROS_INFO("Moving back to the home position \n");
 
-	const std::unique_lock<mutex> lock(mutex_currgoal);
-	m_targetgoal.header.frame_id = m_worldFrameId ;
-	m_targetgoal.pose.pose.orientation = m_home_pose.pose.orientation ;
-	m_targetgoal.pose.pose.position = m_home_pose.pose.position ;
-
-	m_currentgoalPub.publish(m_targetgoal);
-
-
 	move_base_msgs::MoveBaseGoal goal;
 	goal.target_pose.header.frame_id = m_worldFrameId; //m_baseFrameId ;
 	goal.target_pose.header.stamp = ros::Time::now() ;
