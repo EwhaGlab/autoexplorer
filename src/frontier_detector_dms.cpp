@@ -54,7 +54,8 @@ mp_cost_translation_table(NULL),
 mb_strict_unreachable_decision(true),
 me_prev_exploration_state( SUCCEEDED ), mb_nbv_selected(false), //, mn_prev_nbv_posidx(-1)
 mb_allow_unknown(true),
-mn_mapcallcnt(0), mf_totalcallbacktime_msec(0.f), mf_totalplanningtime_msec(0.f)
+mn_mapcallcnt(0), mf_totalcallbacktime_msec(0.f), mf_totalplanningtime_msec(0.f),
+mb_return_home(false)
 {
 	float fcostmap_conf_thr, fgridmap_conf_thr; // mf_unreachable_decision_bound ;
 	int nweakcomp_threshold ;
@@ -73,6 +74,7 @@ mn_mapcallcnt(0), mf_totalcallbacktime_msec(0.f), mf_totalplanningtime_msec(0.f)
 	m_nh.param("/autoexplorer/allow_unknown", mb_allow_unknown, true);
 	m_nh.param("/autoexplorer/worldframe_id", m_worldFrameId, std::string("map"));
 	m_nh.param("/autoexplorer/baseframe_id", m_baseFrameId, std::string("base_link"));
+	m_nh.param("/autoexplorer/return_home", mb_return_home, false);
 
 	m_nh.param("/move_base/global_costmap/resolution", mf_resolution, 0.05f) ;
 	m_nh.param("/move_base/global_costmap/robot_radius", mf_robot_radius, 0.12); // 0.3 for fetch
@@ -188,6 +190,8 @@ ROS_INFO("+++++++++++++++++ Start the init motion ++++++++++++++\n");
 	cmd_vel.angular.z = 0.0;
 	m_velPub.publish(cmd_vel);
 ROS_INFO("+++++++++++++++++ end of the init motion ++++++++++++++\n");
+
+	m_home_pose = GetCurrRobotPose();  // memorize the home position
 }
 
 
@@ -259,6 +263,12 @@ bool FrontierDetectorDMS::isValidPlan( vector<cv::Point>  )
 
 void FrontierDetectorDMS::publishDoneExploration( )
 {
+
+	if( mb_return_home ) // return to home position
+	{
+
+	}
+
     double favg_callback_time = mf_totalcallbacktime_msec / (double)(mn_mapcallcnt) ;
 	double favg_planning_time = mf_totalplanningtime_msec / (double)(mn_mapcallcnt) ;
 
@@ -641,7 +651,17 @@ int FrontierDetectorDMS::moveBackWard()
 	ROS_INFO("+++++++++++++++++ end of moving backward +++++++++\n");
 }
 
+int FrontierDetectorDMS::moveToHome()
+{
+	const std::unique_lock<mutex> lock(mutex_currgoal);
+	m_targetgoal.header.frame_id = m_worldFrameId ;
+	m_targetgoal.pose.pose.orientation = m_home_pose.pose.orientation ;
+	m_targetgoal.pose.pose.position = m_home_pose.pose.position ;
 
+	m_currentgoalPub.publish(m_targetgoal);
+
+	return 1;
+}
 
 // mapcallback for dynamic mapsize (i.e for the cartographer)
 void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) //const octomap_server::mapframedata& msg )

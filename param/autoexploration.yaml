@@ -13,5 +13,7 @@ autoexplorer:
     num_downsamples:        0
     unreachable_decision_bound:   0.3 # < 4 * 0.05 res >
     strict_unreachable_decision: true  # make it true if there are several obstacles in the space that blocks the robot to traverse around. true helps if there is frontier point detected beyond the wall (cannot traverse to there). Mostly "true" in real world/ noisy env, but might want to set to "false" in the simulation env where no obs in the space. 
-
+    
+    return_home:            true 
+    
     

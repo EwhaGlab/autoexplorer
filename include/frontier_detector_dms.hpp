@@ -132,6 +132,8 @@ public:
 	int selectEscapingPoint( geometry_msgs::PoseStamped& escapepoint) ;
 	int moveBackWard() ;
 
+	int moveToHome() ;
+
 	geometry_msgs::PoseStamped GetCurrRobotPose ( )
 	{
 		tf::StampedTransform map2baselink;
@@ -279,7 +281,9 @@ protected:
 	//int mn_prev_nbv_posidx ;
 	bool mb_nbv_selected ;
 	ros::Time m_last_oscillation_reset ;
-	geometry_msgs::PoseStamped m_previous_robot_pose ;
+	geometry_msgs::PoseStamped m_previous_robot_pose, m_home_pose ;
+
+	bool mb_return_home ;
 
 private:
 	std::mutex mutex_robot_state;
