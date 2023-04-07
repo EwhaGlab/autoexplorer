@@ -265,9 +265,7 @@ void FrontierDetectorDMS::publishDoneExploration( )
 {
 
 	if( mb_return_home ) // return to home position
-	{
-
-	}
+		moveToHome();
 
     double favg_callback_time = mf_totalcallbacktime_msec / (double)(mn_mapcallcnt) ;
 	double favg_planning_time = mf_totalplanningtime_msec / (double)(mn_mapcallcnt) ;
