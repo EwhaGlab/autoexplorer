@@ -651,12 +651,37 @@ int FrontierDetectorDMS::moveBackWard()
 
 int FrontierDetectorDMS::moveToHome()
 {
+	ROS_INFO("Moving back to the home position \n");
+
 	const std::unique_lock<mutex> lock(mutex_currgoal);
 	m_targetgoal.header.frame_id = m_worldFrameId ;
 	m_targetgoal.pose.pose.orientation = m_home_pose.pose.orientation ;
 	m_targetgoal.pose.pose.position = m_home_pose.pose.position ;
 
 	m_currentgoalPub.publish(m_targetgoal);
+
+
+	move_base_msgs::MoveBaseGoal goal;
+	goal.target_pose.header.frame_id = m_worldFrameId; //m_baseFrameId ;
+	goal.target_pose.header.stamp = ros::Time::now() ;
+
+//	geometry_msgs::PoseWithCovarianceStamped goalpose = // m_pathplan.poses.back() ;
+
+	goal.target_pose.pose.position.x = m_home_pose.pose.position.x ;
+	goal.target_pose.pose.position.y = m_home_pose.pose.position.y ;
+	goal.target_pose.pose.orientation.w = m_home_pose.pose.orientation.w ;
+
+//		m_targetgoal_marker.points.clear();
+//		m_targetgoal_marker = SetVizMarker( -1, visualization_msgs::Marker::ADD, m_targetgoal.pose.pose.position.x, m_targetgoal.pose.pose.position.y, 0.f,
+//				m_worldFrameId,	0.58f, 0.44f, 0.86f, (float)TARGET_MARKER_SIZE);
+//		m_makergoalPub.publish(m_targetgoal_marker); // for viz
+
+// inspect the path
+//////////////////////////////////////////////////////////////////////////////////////////////
+//ROS_INFO("+++++++++++++++++++++++++ @moveRobotCallback, sending a goal +++++++++++++++++++++++++++++++++++++\n");
+	m_move_client.sendGoal(goal, boost::bind(&FrontierDetectorDMS::doneCB, this, _1), SimpleMoveBaseClient::SimpleActiveCallback() ) ;
+//ROS_INFO("+++++++++++++++++++++++++ @moveRobotCallback, a goal is sent +++++++++++++++++++++++++++++++++++++\n");
+	m_move_client.waitForResult();
 
 	return 1;
 }
