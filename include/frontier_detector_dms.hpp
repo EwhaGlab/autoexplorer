@@ -227,13 +227,13 @@ public:
   	  return std::sqrt( fxdiff * fxdiff + fydiff * fydiff ) < 0.001 ? true : false;
     }
 
-    inline void world_to_scaled_gridmap( float fwx, float fwy, float fox, float foy, float fres, int& nmx, int& nmy, int nscale )
+    inline void world_to_scaled_gridmap( float fwx, float fwy, float fox, float foy, float fres, int nscale, int& nmx, int& nmy )
     {
     	int ngmx = static_cast<int>( (fwx - fox) / fres ) ;
     	int ngmy = static_cast<int>( (fwy - foy) / fres ) ;
 
-    	ngmx = ngmx * nscale ;
-    	ngmy = ngmy * nscale ;
+    	nmx = ngmx * nscale ;
+    	nmy = ngmy * nscale ;
     }
     
     static float euc_dist(const cv::Point2f& lhs, const cv::Point2f& rhs)
