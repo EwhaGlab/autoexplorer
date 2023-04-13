@@ -768,15 +768,15 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 
 	geometry_msgs::PoseStamped start = GetCurrRobotPose( );
 	int ngmx, ngmy;
-	world_to_scaled_gridmap( start.pose.position.x, start.pose.position.x, gmstartx, gmstarty, gmresolution, ngmx, ngmy, mn_scale) ;
+	world_to_scaled_gridmap( start.pose.position.x, start.pose.position.y, gmstartx, gmstarty, gmresolution, mn_scale, ngmx, ngmy) ;
 //	int ngmx = static_cast<int>( (start.pose.position.x - gmstartx) / gmresolution ) ;
 //	int ngmy = static_cast<int>( (start.pose.position.y - gmstarty) / gmresolution ) ;
-	cv::Point start_gm (ngmx, ngmy);
+
+ROS_INFO(" innner seed (%d %d)  map size: (%d %d)\n", ngmx, ngmy, img_plus_offset.rows, img_plus_offset.cols);
 
 	dffp::FrontPropagation oFP(img_plus_offset); // image uchar
 	oFP.update(img_plus_offset, cv::Point(ngmx,ngmy), cv::Point(0,0) );
 	oFP.extractFrontierRegion( img_plus_offset ) ;
-
 	cv::Mat img_frontiers_offset = oFP.GetFrontierContour() ;
 
 	cv::Mat dst_offset;
@@ -969,7 +969,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		}
 	}
 
-
 #ifdef FD_DEBUG_MODE
 	string strcandfile = m_str_debugpath + "/front_cand.txt" ;
 	ofstream ofs_cand(strcandfile);
@@ -1013,7 +1012,6 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 // 		generate a path trajectory
 // 		call make plan service
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 	//ROS_INFO("resizing mpo_costmap \n");
 	mpo_costmap->resizeMap( 	cmwidth, cmheight, cmresolution,
