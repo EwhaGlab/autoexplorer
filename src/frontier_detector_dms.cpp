@@ -804,10 +804,10 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 
 	geometry_msgs::PoseStamped start = GetCurrRobotPose( );
     int ngmx, ngmy;
-	world_to_scaled_gridmap( start.pose.position.x, start.pose.position.x, gmstartx, gmstarty, gmresolution, mn_scale, ngmx, ngmy) ;
+	world_to_scaled_gridmap( start.pose.position.x, start.pose.position.y, gmstartx, gmstarty, gmresolution, mn_scale, ngmx, ngmy) ;
 // 	int ngmx = static_cast<int>( (start.pose.position.x - gmstartx) / gmresolution ) ;
 // 	int ngmy = static_cast<int>( (start.pose.position.y - gmstarty) / gmresolution ) ;
-	cv::Point start_gm (ngmx, ngmy);
+
 	dffp::FrontPropagation oFP(img_plus_offset); // image uchar
 	oFP.update(img_plus_offset, cv::Point(ngmx,ngmy), cv::Point(0,0) );
 	oFP.extractFrontierRegion( img_plus_offset ) ;

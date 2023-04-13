@@ -232,8 +232,8 @@ public:
     	int ngmx = static_cast<int>( (fwx - fox) / fres ) ;
     	int ngmy = static_cast<int>( (fwy - foy) / fres ) ;
 
-    	nmx = ngmx * nscale ;
-    	nmy = ngmy * nscale ;
+    	nmx = ngmx / nscale ;
+    	nmy = ngmy / nscale ;
     }
     
     static float euc_dist(const cv::Point2f& lhs, const cv::Point2f& rhs)
