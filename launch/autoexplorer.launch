@@ -5,12 +5,15 @@
     <!--env name="ROSCONSOLE_CONFIG_FILE"
        value="$(find autoexplorer)/config/ffd_rosconsole.conf"/-->
 
-    <!-- launch octomap -->
-    <!--include file="$(find octomap_server)/launch/octomap_mapping.launch"/-->
+    <arg name="local_planner" default="teb"/>
+    <arg name="bag"           default="false"/>
+    
+    <include file="$(find autoexplorer)/launch/includes/move_former_tpr.launch" if="$(eval arg('local_planner') == 'tpr')"/>
+    <include file="$(find autoexplorer)/launch/includes/move_former_teb.launch" if="$(eval arg('local_planner') == 'teb')"/>
 
     <arg name="namespace" default=""/>
     <arg name="numthreads" default="8"/>
-    <arg name="slam_method" default="gtmapping"/> <!-- "gmapping" -->
+    <arg name="slam_method" default="slam_toolbox"/> <!-- "gmapping" -->
     <!--param name="use_sim_time" value="true"/--> <!--by kmHan-->  
     <!--param name="slam_method" value="$(arg slam_method)"/-->
     <param name="numthreads" value="$(arg numthreads)"/>
@@ -31,6 +34,11 @@
     <!--node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rviz_config)"/-->    
 
     <!-- bag -->
+    <group if="$(arg bag)">
+        <param name="autoexplorer/bag" value="true" />
+        <include file="$(find autoexplorer)/launch/includes/autoexploration_bag.launch"/>
+    </group>
+    
     <!--node pkg="rosbag" type="record" name="rosbag_record" args="record -a -o /media/data/results/explore_bench/bag/"/-->
     
     

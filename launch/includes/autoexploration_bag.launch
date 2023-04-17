@@ -1,12 +1,12 @@
 <launch>
 
     <arg name="record_cameras" default="true" />
-    <node name="img_throttler" type="throttle" pkg="topic_tools" args="messages /camera/color/image_raw/compressed 10 /camera/color/image_raw/compressed_throttle" />
+    <node name="img_throttler" type="throttle" pkg="topic_tools" args="messages /camera/color/image_raw/compressed 10 /camera/color/image_throttle/compressed" />
 
     <node pkg="rosbag" type="record" name="rosbag_record_cam" 
     args="record -o /media/former/FetchSSD/ subset_topics
 
-/camera/color/image_raw/compressed_throttle
+/camera/color/image_throttle/compressed
 /former_base_controller/cmd_vel
 /former_base_controller/odom
 /former_base_controller/parameter_descriptions
