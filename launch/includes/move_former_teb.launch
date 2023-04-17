@@ -69,7 +69,9 @@
   <arg name="odom_topic" default="/former_base_controller/odom" />
   <arg name="move_forward_only" default="false"/>
 
-  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">  
+  <arg name="msg" default="Starting TEB local planner." />
+  
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" args="pub /msg std_msgs/String '$(arg msg)'" output="screen">
     <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
     <rosparam file="$(find autoexplorer)/param/param_teb/costmap_common_params_former.yaml" command="load" ns="global_costmap" />
     <rosparam file="$(find autoexplorer)/param/param_teb/costmap_common_params_former.yaml" command="load" ns="local_costmap" />

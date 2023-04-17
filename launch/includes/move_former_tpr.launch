@@ -51,6 +51,7 @@
 <!--  <arg name="move_forward_only" default="false"/>-->
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS" />
     <param name="controller_frequency" value="20.0" />
     <param name="oscillation_timeout" value="12.0" />
     <param name="oscillation_distance" value="0.5" />
