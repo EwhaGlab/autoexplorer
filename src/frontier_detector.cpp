@@ -45,7 +45,7 @@ namespace autoexplorer
 {
 
 FrontierDetector::FrontierDetector():
-m_worldFrameId("map"), m_baseFrameId("base_footprint"),
+m_worldFrameId("map"), m_baseFrameId("base_link"),
 mu_cmheight(0), mu_cmwidth(0), me_robotstate(ROBOT_STATE::ROBOT_IS_NOT_MOVING),
 m_move_client("move_base", true),
 mf_robot_radius(0.3), mb_explorationisdone(false), mn_roi_origx(0), mn_roi_origy(0), mn_rows(0), mn_cols(0)

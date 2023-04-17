@@ -73,7 +73,7 @@ m_nScanCnt(0)
 Scan2PointCloud::Scan2PointCloud(const ros::NodeHandle private_nh_, const ros::NodeHandle &nh_):
 m_nh_private(private_nh_),
 m_nh(nh_),
-m_baseFrameId("base_footprint")
+m_baseFrameId("base_link")
 {
 	m_nScanCnt = 0;
 	ROS_INFO("instantiating the Scan2PointCloud node \n");
