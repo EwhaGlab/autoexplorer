@@ -96,10 +96,11 @@ mn_mapcallcnt(0), mf_avgcallbacktime_msec(0.f), mf_avgplanngtime_msec(0.f), mf_t
 	m_startmsgPub	= m_nh.advertise<std_msgs::Bool>("begin_exploration",1);
 	m_otherfrontierptsPub = m_nh.advertise<nav_msgs::Path>("goal_exclusive_frontierpoints_list",1);
 
-	m_mapframedataSub  	= m_nh.subscribe("map", 1, &FrontierDetectorDMS::mapdataCallback, this); // kmHan
+	//m_mapframedataSub  	= m_nh.subscribe("map", 1, &FrontierDetectorDMS::mapdataCallback, this); // kmHan
+	m_mapframedataSub  	= m_nh.subscribe("/move_base/global_costmap/costmap", 1, &FrontierDetectorDMS::mapdataCallback, this); // kmHan
 	//m_frontierCandSub		= m_nh.subscribe("filtered_shapes", 1, &FrontierDetectorDMS::frontierCandCallback, this);
 	m_currGoalSub 		= m_nh.subscribe("curr_goalpose",1 , &FrontierDetectorDMS::moveRobotCallback, this) ; // kmHan
-	m_globalCostmapSub 	= m_nh.subscribe("move_base/global_costmap/costmap", 1, &FrontierDetectorDMS::globalCostmapCallBack, this );
+	//m_globalCostmapSub 	= m_nh.subscribe("move_base/global_costmap/costmap", 1, &FrontierDetectorDMS::globalCostmapCallBack, this );
 
 	m_poseSub		   	= m_nh.subscribe("pose", 10, &FrontierDetectorDMS::robotPoseCallBack, this);
 	m_velSub			= m_nh.subscribe("cmd_vel", 10, &FrontierDetectorDMS::robotVelCallBack, this);
@@ -205,6 +206,38 @@ cv::Point FrontierDetectorDMS::world2gridmap( cv::Point2f grid_pt)
 	return cv::Point( (int)fx, (int)fy );
 }
 
+
+void FrontierDetectorDMS::generateGridmapFromCostmap( )
+{
+	m_gridmap = m_globalcostmap ;
+	int gmheight = m_globalcostmap.info.height ;
+	int gmwidth = m_globalcostmap.info.width ;
+
+	for( int ii =0 ; ii < gmheight; ii++)
+	{
+		for( int jj = 0; jj < gmwidth; jj++)
+		{
+			int8_t obs_cost  = m_globalcostmap.data[ ii * gmwidth + jj] ;
+
+			if ( obs_cost < 0) // if unknown
+			{
+				m_gridmap.data[ ii*gmwidth + jj ] = -1 ;
+			}
+			else if( obs_cost > 98 ) // mp_cost_translation_table[51:98] : 130~252 : possibly circumscribed ~ inscribed
+			{
+				m_gridmap.data[ ii*gmwidth + jj] = 100 ;
+			}
+			else
+			{
+				m_gridmap.data[ ii*gmwidth + jj] = 0 ;
+			}
+		}
+	}
+
+	ROS_INFO("cmap: ox oy: %f %f \n W H: %d %d", m_globalcostmap.info.origin.position.x, m_globalcostmap.info.origin.position.y, m_globalcostmap.info.width, m_globalcostmap.info.height);
+	ROS_INFO("gmap: ox oy: %f %f \n W H: %d %d", m_gridmap.info.origin.position.x, m_gridmap.info.origin.position.y, m_gridmap.info.width, m_gridmap.info.height);
+
+}
 
 int FrontierDetectorDMS::displayMapAndFrontiers( const cv::Mat& mapimg, const vector<cv::Point>& frontiers, const int winsize)
 {
@@ -663,10 +696,12 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 		me_robotstate = ROBOT_STATE::ROBOT_IS_NOT_MOVING;
 	}
 
+	m_globalcostmap = *msg ;
+
 	nav_msgs::OccupancyGrid globalcostmap;
-	float cmresolution, gmresolution, cmstartx, cmstarty, gmstartx, gmstarty;
-	uint32_t cmwidth, cmheight, gmheight, gmwidth;
-	std::vector<signed char> gmdata;
+	float cmresolution, cmstartx, cmstarty ;
+	uint32_t cmwidth, cmheight;
+	//std::vector<signed char> gmdata;
 	std::vector<signed char> cmdata;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -678,49 +713,37 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	// TODO 1: I need to eliminate gridmap ... I should only use costmap to find FFP and do A* search
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	{
-		const std::unique_lock<mutex> lock(mutex_gridmap);
-		m_gridmap = *msg ;
-		gmdata = m_gridmap.data ;
-		gmresolution = m_gridmap.info.resolution ;
-		gmheight = m_gridmap.info.height ;
-		gmwidth = m_gridmap.info.width ;
-		gmstartx = m_gridmap.info.origin.position.x ;
-		gmstarty = m_gridmap.info.origin.position.y ;
-	}
+	// generate gridmap from the input costmap
 
-	{
-		const std::unique_lock<mutex> lock(mutex_costmap);
-		globalcostmap = m_globalcostmap;
-		cmresolution=globalcostmap.info.resolution;
-		cmstartx=globalcostmap.info.origin.position.x;
-		cmstarty=globalcostmap.info.origin.position.y;
-		cmwidth =globalcostmap.info.width;
-		cmheight=globalcostmap.info.height;
-		cmdata  =globalcostmap.data;
-	}
+	globalcostmap = m_globalcostmap;
+	cmresolution=globalcostmap.info.resolution;
+	cmstartx=globalcostmap.info.origin.position.x;
+	cmstarty=globalcostmap.info.origin.position.y;
+	cmwidth =globalcostmap.info.width;
+	cmheight=globalcostmap.info.height;
+	cmdata  =globalcostmap.data;
 
-	if( gmheight == 0 || gmwidth == 0
-		|| gmwidth  != cmwidth
-		|| gmheight != cmheight)
-	{
-		ROS_WARN("unreliable grid map input h/w (%d, %d) gcostmap h/w (%d, %d). May be the (G)costmap has not been updated yet. \n",
-				gmheight, gmwidth,
-				cmheight, cmwidth);
-		return;
-	}
+	if (cmwidth == 0 || cmheight == 0)
+		return ;
 
-	mn_roi_origx = mn_globalmap_centx ; // - (int)round( m_gridmap.info.origin.position.x / m_fResolution ) ;
-	mn_roi_origy = mn_globalmap_centy ; //- (int)round( m_gridmap.info.origin.position.y / m_fResolution ) ;
-	cv::Rect roi( mn_roi_origx, mn_roi_origy, gmwidth, gmheight );
+
+	generateGridmapFromCostmap() ;
+
+ROS_INFO("gmap is copied from cmap \n");
+
+	cv::Point Offset = world2gridmap(cv::Point2f(0.f, 0.f));
+	mn_roi_origx = mn_globalmap_centx - Offset.x; // - (int)round( m_gridmap.info.origin.position.x / m_fResolution ) ;
+	mn_roi_origy = mn_globalmap_centy - Offset.y; //- (int)round( m_gridmap.info.origin.position.y / m_fResolution ) ;
+	cv::Rect roi( mn_roi_origx, mn_roi_origy, cmwidth, cmheight );
+ROS_INFO("%d %d %d %d \n", mn_roi_origx, mn_roi_origy, m_gridmap.info.height, m_gridmap.info.width);
 
 	mcvu_mapimgroi = mcvu_mapimg(roi);
 
-	for( int ii =0 ; ii < gmheight; ii++)
+	for( int ii =0 ; ii < cmheight; ii++)
 	{
-		for( int jj = 0; jj < gmwidth; jj++)
+		for( int jj = 0; jj < cmwidth; jj++)
 		{
-			int8_t occupancy = m_gridmap.data[ ii * gmwidth + jj ]; // dynamic gridmap size
+			int8_t occupancy = m_gridmap.data[ ii * cmwidth + jj ]; // dynamic gridmap size
 			int8_t obs_cost  = globalcostmap.data[ ii * cmwidth + jj] ;
 			int y_ = (mn_roi_origy + ii) ;
 			int x_ = (mn_roi_origx + jj) ;
@@ -777,7 +800,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 
 	geometry_msgs::PoseStamped start = GetCurrRobotPose( );
 	int ngmx, ngmy;
-	world_to_scaled_gridmap( start.pose.position.x, start.pose.position.y, gmstartx, gmstarty, gmresolution, mn_scale, ngmx, ngmy) ;
+	world_to_scaled_gridmap( start.pose.position.x, start.pose.position.y, cmstartx, cmstarty, cmresolution, mn_scale, ngmx, ngmy) ;
 //	int ngmx = static_cast<int>( (start.pose.position.x - gmstartx) / gmresolution ) ;
 //	int ngmy = static_cast<int>( (start.pose.position.y - gmstarty) / gmresolution ) ;
 
@@ -841,8 +864,9 @@ ROS_INFO(" innner seed (%d %d)  map size: (%d %d)\n", ngmx, ngmy, img_plus_offse
 	else // We found fr, update append new points to m_curr_frontier_set accordingly
 	{
 		// To publish the FR found to Rviz
-		FrontierPoint oFRpoint( cv::Point(contours_plus_offset[0][0].x, contours_plus_offset[0][0].y), gmheight, gmwidth, m_gridmap.info.origin.position.y, m_gridmap.info.origin.position.x,
-							   gmresolution, mn_numpyrdownsample );
+		FrontierPoint oFRpoint( cv::Point(contours_plus_offset[0][0].x, contours_plus_offset[0][0].y), cmheight, cmwidth,
+								m_gridmap.info.origin.position.y, m_gridmap.info.origin.position.x,
+							   cmresolution, mn_numpyrdownsample );
 
 		geometry_msgs::Point point_w;
 		vector<cv::Point> vecents_offset;  // shifted by the offet param
@@ -854,8 +878,9 @@ ROS_INFO(" innner seed (%d %d)  map size: (%d %d)\n", ngmx, ngmy, img_plus_offse
 			for( int j=0; j < contour_plus_offset.size(); j++)
 			{
 
-				FrontierPoint oFRpoint( cv::Point(contour_plus_offset[j].x - ROI_OFFSET, contour_plus_offset[j].y - ROI_OFFSET), gmheight, gmwidth, m_gridmap.info.origin.position.y, m_gridmap.info.origin.position.x,
-									   gmresolution, mn_numpyrdownsample );
+				FrontierPoint oFRpoint( cv::Point(contour_plus_offset[j].x - ROI_OFFSET, contour_plus_offset[j].y - ROI_OFFSET), cmheight, cmwidth,
+										m_gridmap.info.origin.position.y, m_gridmap.info.origin.position.x,
+									   cmresolution, mn_numpyrdownsample );
 
 				point_w.x = oFRpoint.GetInitWorldPosition().x ;
 				point_w.y = oFRpoint.GetInitWorldPosition().y ;
@@ -914,9 +939,9 @@ ROS_INFO(" innner seed (%d %d)  map size: (%d %d)\n", ngmx, ngmy, img_plus_offse
 			frontier.x = frontier_offset.x - ROI_OFFSET ;
 			frontier.y = frontier_offset.y - ROI_OFFSET ;
 
-			FrontierPoint oPoint( frontier, gmheight, gmwidth,
+			FrontierPoint oPoint( frontier, cmheight, cmwidth,
 									m_gridmap.info.origin.position.y, m_gridmap.info.origin.position.x,
-						   gmresolution, mn_numpyrdownsample );
+						   cmresolution, mn_numpyrdownsample );
 
 	/////////////////////////////////////////////////////////////////////
 	// 				We need to run position correction here
@@ -944,7 +969,7 @@ ROS_INFO(" innner seed (%d %d)  map size: (%d %d)\n", ngmx, ngmy, img_plus_offse
 			{
 				cv::Point frontier_in_gm = voFrontierCands[idx].GetCorrectedGridmapPosition();
 				//bool bisexplored = false; //is_explored(frontier_in_gm.x, frontier_in_gm.y, gmwidth, gmdata) ;
-				int gmidx = gmwidth * frontier_in_gm.y	+	frontier_in_gm.x ;
+				int gmidx = cmwidth * frontier_in_gm.y	+	frontier_in_gm.x ;
 				bool bisexplored = cmdata[gmidx] >=0 ? true : false ;
 				voFrontierCands[idx].SetFrontierFlag( fcm_conf, fgm_conf, bisexplored );
 			}
