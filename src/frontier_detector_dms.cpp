@@ -223,7 +223,7 @@ void FrontierDetectorDMS::generateGridmapFromCostmap( )
 			{
 				m_gridmap.data[ ii*gmwidth + jj ] = -1 ;
 			}
-			else if( obs_cost > 98 ) // mp_cost_translation_table[51:98] : 130~252 : possibly circumscribed ~ inscribed
+			else if( obs_cost > 97 ) // mp_cost_translation_table[51:98] : 130~252 : possibly circumscribed ~ inscribed
 			{
 				m_gridmap.data[ ii*gmwidth + jj] = 100 ;
 			}
@@ -701,7 +701,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	nav_msgs::OccupancyGrid globalcostmap;
 	float cmresolution, cmstartx, cmstarty ;
 	uint32_t cmwidth, cmheight;
-	//std::vector<signed char> gmdata;
+	std::vector<signed char> gmdata;
 	std::vector<signed char> cmdata;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -714,6 +714,7 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// generate gridmap from the input costmap
+	generateGridmapFromCostmap() ;
 
 	globalcostmap = m_globalcostmap;
 	cmresolution=globalcostmap.info.resolution;
@@ -723,11 +724,11 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	cmheight=globalcostmap.info.height;
 	cmdata  =globalcostmap.data;
 
+	gmdata  =m_gridmap.data ;
+
 	if (cmwidth == 0 || cmheight == 0)
 		return ;
 
-
-	generateGridmapFromCostmap() ;
 
 ROS_INFO("gmap is copied from cmap \n");
 
