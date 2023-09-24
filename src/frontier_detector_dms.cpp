@@ -234,8 +234,8 @@ void FrontierDetectorDMS::generateGridmapFromCostmap( )
 		}
 	}
 
-	ROS_INFO("cmap: ox oy: %f %f \n W H: %d %d", m_globalcostmap.info.origin.position.x, m_globalcostmap.info.origin.position.y, m_globalcostmap.info.width, m_globalcostmap.info.height);
-	ROS_INFO("gmap: ox oy: %f %f \n W H: %d %d", m_gridmap.info.origin.position.x, m_gridmap.info.origin.position.y, m_gridmap.info.width, m_gridmap.info.height);
+//	ROS_INFO("cmap: ox oy: %f %f \n W H: %d %d", m_globalcostmap.info.origin.position.x, m_globalcostmap.info.origin.position.y, m_globalcostmap.info.width, m_globalcostmap.info.height);
+//	ROS_INFO("gmap: ox oy: %f %f \n W H: %d %d", m_gridmap.info.origin.position.x, m_gridmap.info.origin.position.y, m_gridmap.info.width, m_gridmap.info.height);
 
 }
 
@@ -681,8 +681,7 @@ void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPt
 
 ROS_INFO("********** \t start mapdata callback routine \t ********** \n");
 
-ros::WallTime	mapCallStartTime = ros::WallTime::now();
-	//ROS_INFO("@ mapdataCallback() ");
+	ros::WallTime	mapCallStartTime = ros::WallTime::now();
 
 	if(!mb_isinitmotion_completed)
 	{
@@ -697,46 +696,30 @@ ros::WallTime	mapCallStartTime = ros::WallTime::now();
 	}
 
 	m_globalcostmap = *msg ;
+	nav_msgs::OccupancyGrid globalcostmap = m_globalcostmap;
 
-	nav_msgs::OccupancyGrid globalcostmap;
-	float cmresolution, cmstartx, cmstarty ;
-	uint32_t cmwidth, cmheight;
-	std::vector<signed char> gmdata;
-	std::vector<signed char> cmdata;
-
-	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	// There is a minor bug here!!
-	// the comparison statement below is not the perfect solution to sync gridmap and costmap !!!
-	// the costmap and gridmap could be different even if they are the same sized.
-	// costmap is a bit lagging behind the gridmap !!! This is a minor bug for AE, but a serious bug if we want to feed both Gmap and Cmap for training DNN !!!
-	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	// TODO 1: I need to eliminate gridmap ... I should only use costmap to find FFP and do A* search
-	//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	// generate gridmap from the input costmap
+// generate gridmap from the input costmap
 	generateGridmapFromCostmap() ;
 
-	globalcostmap = m_globalcostmap;
-	cmresolution=globalcostmap.info.resolution;
-	cmstartx=globalcostmap.info.origin.position.x;
-	cmstarty=globalcostmap.info.origin.position.y;
-	cmwidth =globalcostmap.info.width;
-	cmheight=globalcostmap.info.height;
-	cmdata  =globalcostmap.data;
-
-	gmdata  =m_gridmap.data ;
+	float cmresolution=globalcostmap.info.resolution;
+	float cmstartx=globalcostmap.info.origin.position.x;
+	float cmstarty=globalcostmap.info.origin.position.y;
+	uint32_t cmwidth =globalcostmap.info.width;
+	uint32_t cmheight=globalcostmap.info.height;
+	std::vector<signed char> cmdata  =globalcostmap.data;
+	std::vector<signed char> gmdata  =m_gridmap.data ;
 
 	if (cmwidth == 0 || cmheight == 0)
 		return ;
+	ROS_ASSERT( m_globalcostmap.info.height == m_gridmap.info.height && m_globalcostmap.info.width == m_gridmap.info.width );
 
-
-ROS_INFO("gmap is copied from cmap \n");
+//ROS_INFO("<%d %d> size gmap is copied from cmap \n", m_gridmap.info.height, m_gridmap.info.width);
 
 	cv::Point Offset = world2gridmap(cv::Point2f(0.f, 0.f));
 	mn_roi_origx = mn_globalmap_centx - Offset.x; // - (int)round( m_gridmap.info.origin.position.x / m_fResolution ) ;
 	mn_roi_origy = mn_globalmap_centy - Offset.y; //- (int)round( m_gridmap.info.origin.position.y / m_fResolution ) ;
 	cv::Rect roi( mn_roi_origx, mn_roi_origy, cmwidth, cmheight );
-ROS_INFO("%d %d %d %d \n", mn_roi_origx, mn_roi_origy, m_gridmap.info.height, m_gridmap.info.width);
+//ROS_INFO("%d %d %d %d \n", mn_roi_origx, mn_roi_origy, m_gridmap.info.height, m_gridmap.info.width);
 
 	mcvu_mapimgroi = mcvu_mapimg(roi);
 
@@ -897,7 +880,6 @@ ROS_INFO(" innner seed (%d %d)  map size: (%d %d)\n", ngmx, ngmy, img_plus_offse
 			int ncx = nx / ncnt ;
 			int ncy = ny / ncnt ;
 
-
 			cv::Point ncent( ncx,  ncy ) ;
 			vecents_offset.push_back( ncent );
 		}
@@ -1049,11 +1031,8 @@ ROS_INFO(" innner seed (%d %d)  map size: (%d %d)\n", ngmx, ngmy, img_plus_offse
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	//ROS_INFO("resizing mpo_costmap \n");
-	mpo_costmap->resizeMap( 	cmwidth, cmheight, cmresolution,
-								cmstartx, cmstarty );
-	//ROS_INFO("mpo_costmap has been reset \n");
+	mpo_costmap->resizeMap( cmwidth, cmheight, cmresolution, cmstartx, cmstarty );
 	unsigned char* pmap = mpo_costmap->getCharMap() ;
-	//ROS_INFO("w h datlen : %d %d %d \n", cmwidth, cmheight, cmdata.size() );
 
 	for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 	{
@@ -1115,7 +1094,7 @@ ROS_INFO(" innner seed (%d %d)  map size: (%d %d)\n", ngmx, ngmy, img_plus_offse
 		msg_frontierpoints.poses.push_back(tmp_goal);
 	}
 
-ros::WallTime GPstartTime = ros::WallTime::now();
+	ros::WallTime GPstartTime = ros::WallTime::now();
 
 	omp_set_num_threads(mn_numthreads);
 	omp_init_lock(&m_mplock);
@@ -1161,8 +1140,8 @@ ros::WallTime GPstartTime = ros::WallTime::now();
 		}
 	}
 
-ros::WallTime GPendTime = ros::WallTime::now();
-double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
+	ros::WallTime GPendTime = ros::WallTime::now();
+	double planning_time = (GPendTime - GPstartTime ).toNSec() * 1e-6;
 
 	// publish goalexclusive fpts
 	int tmpcnt = 0;
@@ -1297,20 +1276,20 @@ ROS_WARN("Selecting the next best point since frontier pts is unreachable ..  \n
 	publishUnreachableMarkers( );
 	m_currentgoalPub.publish(m_targetgoal);		// for control
 
-ros::WallTime mapCallEndTime = ros::WallTime::now();
-double mapcallback_time = (mapCallEndTime - mapCallStartTime).toNSec() * 1e-6;
-ROS_DEBUG("\n "
-		 " ************************************************************************* \n "
-		 "	 \t mapDataCallback exec time (ms): %f ( %f planning time) \n "
-		 " ************************************************************************* \n "
-		, mapcallback_time, planning_time);
+	ros::WallTime mapCallEndTime = ros::WallTime::now();
+	double mapcallback_time = (mapCallEndTime - mapCallStartTime).toNSec() * 1e-6;
+	ROS_DEBUG("\n "
+			 " ************************************************************************* \n "
+			 "	 \t mapDataCallback exec time (ms): %f ( %f planning time) \n "
+			 " ************************************************************************* \n "
+			, mapcallback_time, planning_time);
 
 ROS_INFO("********** \t End of mapdata callback routine \t ********** \n");
 
-// for timing
-mn_mapcallcnt++;
-mf_totalcallbacktime_msec = mf_totalcallbacktime_msec + mapcallback_time + planning_time ;
-mf_totalplanningtime_msec = mf_totalplanningtime_msec + planning_time ;
+	// for timing
+	mn_mapcallcnt++;
+	mf_totalcallbacktime_msec = mf_totalcallbacktime_msec + mapcallback_time + planning_time ;
+	mf_totalplanningtime_msec = mf_totalplanningtime_msec + planning_time ;
 
 }
 
@@ -1401,10 +1380,11 @@ void FrontierDetectorDMS::moveRobotCallback(const geometry_msgs::PoseWithCovaria
 
 // inspect the path
 //////////////////////////////////////////////////////////////////////////////////////////////
-//ROS_INFO("+++++++++++++++++++++++++ @moveRobotCallback, sending a goal +++++++++++++++++++++++++++++++++++++\n");
+ROS_INFO("+++++++ @moveRobotCallback, sending the goal +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 	m_move_client.sendGoal(goal, boost::bind(&FrontierDetectorDMS::doneCB, this, _1), SimpleMoveBaseClient::SimpleActiveCallback() ) ;
-//ROS_INFO("+++++++++++++++++++++++++ @moveRobotCallback, a goal is sent +++++++++++++++++++++++++++++++++++++\n");
+ROS_INFO("+++++++ @moveRobotCallback, the goal is sent (Autoexplorer waits for the motion server ) +++++++++++++++\n");
 	m_move_client.waitForResult();
+ROS_INFO("+++++++ @moveRobotCallback, motion server completed reaching the goal (Autoexplorer is back to work) +++\n");
 }
 
 void FrontierDetectorDMS::unreachablefrontierCallback(const geometry_msgs::PoseStamped::ConstPtr& msg )
