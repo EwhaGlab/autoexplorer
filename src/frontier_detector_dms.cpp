@@ -169,7 +169,7 @@ FrontierDetectorDMS::~FrontierDetectorDMS()
 
 void FrontierDetectorDMS::initmotion(  const float& fvx = 0.f, const float& fvy = 0.f, const float& ftheta = 1.f  )
 {
-ROS_INFO("+++++++++++++++++ Start the init motion ++++++++++++++\n");
+ROS_INFO("```````````````````````````  Start the init motion `````````````````````````````````````````````````````\n");
 	geometry_msgs::Twist cmd_vel;
     cmd_vel.linear.x = fvx;
     cmd_vel.linear.y = fvy;
@@ -186,7 +186,7 @@ ROS_INFO("+++++++++++++++++ Start the init motion ++++++++++++++\n");
 
 	cmd_vel.angular.z = 0.0;
 	m_velPub.publish(cmd_vel);
-ROS_INFO("+++++++++++++++++ end of the init motion ++++++++++++++\n");
+ROS_INFO("...........................  End of the init motion ....................................................\n");
 }
 
 
@@ -678,8 +678,8 @@ int FrontierDetectorDMS::moveBackWard()
 // mapcallback for dynamic mapsize (i.e for the cartographer)
 void FrontierDetectorDMS::mapdataCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) //const octomap_server::mapframedata& msg )
 {
-
-ROS_INFO("********** \t start mapdata callback routine \t ********** \n");
+ROS_INFO("********************************************************************************************************\n");
+ROS_INFO("***************************  Start mapdata callback routine  *******************************************\n");
 
 	ros::WallTime	mapCallStartTime = ros::WallTime::now();
 
@@ -1284,7 +1284,8 @@ ROS_WARN("Selecting the next best point since frontier pts is unreachable ..  \n
 			 " ************************************************************************* \n "
 			, mapcallback_time, planning_time);
 
-ROS_INFO("********** \t End of mapdata callback routine \t ********** \n");
+ROS_INFO("***************************  End of mapdata callback routine *******************************************\n");
+ROS_INFO("********************************************************************************************************\n");
 
 	// for timing
 	mn_mapcallcnt++;
@@ -1384,7 +1385,7 @@ ROS_INFO("+++++++ @moveRobotCallback, sending the goal +++++++++++++++++++++++++
 	m_move_client.sendGoal(goal, boost::bind(&FrontierDetectorDMS::doneCB, this, _1), SimpleMoveBaseClient::SimpleActiveCallback() ) ;
 ROS_INFO("+++++++ @moveRobotCallback, the goal is sent (Autoexplorer waits for the motion server ) +++++++++++++++\n");
 	m_move_client.waitForResult();
-ROS_INFO("+++++++ @moveRobotCallback, motion server completed reaching the goal (Autoexplorer is back to work) +++\n");
+ROS_INFO("+++++++ @moveRobotCallback, motion server has completed reaching the goal (Autoexplorer is back to work)\n");
 }
 
 void FrontierDetectorDMS::unreachablefrontierCallback(const geometry_msgs::PoseStamped::ConstPtr& msg )
