@@ -18,53 +18,79 @@ In the case of solving real-world exploration problems with a mobile robot, you 
 We recommend installing [SLAM toolbox](https://github.com/SteveMacenski/slam_toolbox) for your localization and mapping.
 
 ## To install
+
+### Follow the steps below to install autoexplorer and its dependencies
+
+> #### (1) Install Octomap
+
+```
+  cd ~/catkin_ws/src
+  git clone https://github.com/han-kyung-min/octomap_mapping.git
+  cd octomap_mapping
+  git checkout explore_bench-nn_burger-fast_gridmap_pub
+  sudo apt-get install ros-<ros_ver>-octomap*
+  sudo apt-get install ros-<ros_ver>-octomap-server
+  cd ~/catkin_ws
+  catkin_make install
+```
+> #### (2) Install Turtlebot3 package
+```
+  sudo apt-get install ros-<ros_ver>-turtlebot3
+```
+> #### (3) Install navigation stack
+```
+  cd ~/catkin_ws/src
+  git clone https://github.com/han-kyung-min/navigation.git
+  cd navigation
+  git checkout proximity_check
+  cd ~/catkin_ws
+  catkin_make install
+```
+> #### (4) Install teb_local_planner
+```
+  cd ~/catkin_ws/src
+  git clone https://github.com/rst-tu-dortmund/teb_local_planner
+  cd teb_local_planner
+  git checkout <your_ros_version_branch>
+  cd ~/catkin_ws
+  catkin_make -DCATKIN_WHITELIST_PACKAGES="teb_local_planner"
+```
+> #### (5) Clone and install autoexplorer
+
 ```
 cd ~/catkin_ws/src
 git clone https://github.com/EwhaGlab/autoexplorer.git
 cd ~/catkin_ws
 catkin_make install
 ```
+### Additionally, you need to install [SLAM toolbox](https://github.com/SteveMacenski/slam_toolbox) if your application is driving a real robot 
 
 
 ## Example 1: Autoexplorer in Willowgarage Gazebo world
 
-Make sure that your have installed the TEB local planner and the navigation stack listed above.
 
-### Install Turtlebot3 
-```
-sudo apt-get install ros-<ros_ver>-turtlebot3
-```
-### Install OctoMap (our customized version)
-```
-cd ~/catkin_ws/src
-git clone https://github.com/han-kyung-min/octomap_mapping.git
-git checkout explore_bench-nn_burger-fast_gridmap_pub
-```
-### Install NavStack (our customized version)
-```
-cd ~/catkin_ws/src
-git clone https://github.com/han-kyung-min/navigation.git
-git checkout proximity_check
-```
-### Install the packages
-```
-cd ~/catkin_ws
-catkin_make install
-```
 ### Start the exploration task
 Don't forget to "source ~/catkin_ws/install/setup.bash" before starting the launch files below
+
 ```
 roslaunch autoexplorer willowgarage.launch
 roslaunch autoexplorer explorer_bench.launch
 roslaunch autoexplorer autoexplorer.launch
 ```
 
-## Citation
+## Bibtex
 Good luck with your projects! Please cite our paper if you think **autoexplorer** is helpful for your research work.
 
 ```
-K.M. Han and Y.J. Kim, "Autoexplorer: Autonomous Exploration of Unknown Environments using Fast Frontier-Region Detection and Parallel Path Planning," 
-2022 International Conference on Intelligent Robots and Systems (IROS), 2022
+@INPROCEEDINGS{HanKim_iros22,
+  author={Han, Kyung Min and Kim, Young J.},
+  booktitle={2022 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)}, 
+  title={Autoexplorer: Autonomous Exploration of Unknown Environments using Fast Frontier-Region Detection and Parallel Path Planning}, 
+  year={2022},
+  volume={},
+  number={},
+  pages={10536-10541},
+  keywords={Buildings;Filtering algorithms;Manipulators;Path planning;Planning;Mobile robots;Detection algorithms},
+  doi={10.1109/IROS47612.2022.9981263}}
 ```
-
 Feel free to send us an email if you are having a trouble with compiling this package.
