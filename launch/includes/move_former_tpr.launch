@@ -25,7 +25,7 @@
   </include-->
   
   <!-- start SLAM -->
-  <node pkg="slam_toolbox" type="lifelong_slam_toolbox_node" name="slam_toolbox" output="screen">
+  <node pkg="slam_toolbox" type="lifelong_slam_toolbox_node" name="slam_toolbox"> <!--output="screen"-->
       <!--remap from="/scan"  to="/base_scan"/-->
       <rosparam command="load" file="$(find slam_toolbox)/config/mapper_params_lifelong.yaml" />
   </node>
