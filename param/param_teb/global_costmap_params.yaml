@@ -5,7 +5,12 @@ global_costmap:
   update_frequency: 5.0 #10.0
   publish_frequency: 5.0 #10.0
   transform_tolerance: 0.5
-  always_send_full_costmap: true
+  #always_send_full_costmap: true
 
   static_map: true
- 
+  rolling_window: false
+  
+  plugins: 
+    - {name: static_map,    type: "costmap_2d::StaticLayer"}            
+    - {name: obstacle_layer,    type: "costmap_2d::ObstacleLayer"}
+    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}

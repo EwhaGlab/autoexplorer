@@ -1,13 +1,13 @@
-obstacle_range: 6 #3.0
-raytrace_range: 7 #3.5
+obstacle_range: 5 #3.0
+raytrace_range: 5 #3.5
 
-footprint: [[-0.222, -0.222], [-0.222, 0.222], [0.222, 0.222], [0.222, -0.222]]
+footprint: [[-0.232, -0.232], [-0.232, 0.232],[0.232, 0.232], [0.232, -0.232]]
 #robot_radius: 0.105
 
 #update_frequency: 5.0
 #publish_frequency: 5.0
 
-inflation_radius: 0.5
+inflation_radius: 0.6
 cost_scaling_factor: 1
 
 map_type: costmap

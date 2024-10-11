@@ -27,7 +27,7 @@ TebLocalPlannerROS:
 
  # Robot
 
- max_vel_x: 1.0 #0.5
+ max_vel_x: 0.7 #0.5
  max_vel_y: 0    #差速导航注释掉此行
  max_vel_x_backwards: 0.35
  max_vel_theta: 0.4
