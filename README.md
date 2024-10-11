@@ -78,7 +78,7 @@ roslaunch autoexplorer explorer_bench.launch
 roslaunch autoexplorer autoexplorer.launch
 ```
 
-## Example 1: Autoexplorer in a real world with a Former robot
+## Example 2: Autoexplorer in a real world with a Former robot
 ```
 cd ~/catkin_ws/src/autoexplorer
 git checkout former-2d_lidar
